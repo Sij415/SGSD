@@ -142,6 +142,21 @@ body {
     color: #45a049;
 }
 
+.signup-btn {
+    background: none;
+    border: none;
+    color: #9cb297;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: left;
+    font-weight: 700;
+    letter-spacing: -0.06rem;
+}
+
+.signup-btn:hover {
+    color: #45a049;
+}
+
 .footer {
     position: fixed;
     bottom: 0;
