@@ -1,16 +1,13 @@
 <?php
-// Start the session
 session_start();
 
-// Check if the session token exists
-if (isset($_SESSION['token']) && !empty($_SESSION['token'])) {
-    // User is logged in, redirect to /Dashboard
-    header("Location: /Dashboard");
+// Example login process
+if ($validCredentials) { // Replace with actual credential check
+    $_SESSION['token'] = bin2hex(random_bytes(16)); // Generate a random token
+    header("Location: ./Dashboard");
     exit;
 } else {
-    // User is not logged in or session is invalid, redirect to /Login
-    header("Location: /Login");
+    header("Location: ./Login");
     exit;
 }
-
 ?>
