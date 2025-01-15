@@ -274,7 +274,8 @@ aside {
 }
 
 .sidebar-profile h3 {
-    font-size: 0.9em !important;
+    font-size: 0.8em !important;
+    color: #787878 !important;
 }
 
 .sidebar-profile-exit-icon,
