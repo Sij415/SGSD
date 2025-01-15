@@ -38,7 +38,35 @@
 
 </header>
 
-<body></body>
+<!-- <body>
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <div class="square bg-primary"></div>
+        </div>
+        <div class="col-6">
+            <div class="square bg-secondary"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="square bg-success"></div>
+        </div>
+        <div class="col-6">
+            <div class="square bg-danger"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .square {
+        width: 100%;
+        padding-bottom: 100%; /* 1:1 Aspect Ratio */
+        margin-bottom: 20px;
+        border-radius: 12px;
+    }
+</style>
+</body> -->
 
 <footer class="footer">
     © SGSD 2025
