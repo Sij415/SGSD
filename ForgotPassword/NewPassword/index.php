@@ -38,7 +38,7 @@
         </div>
 
         <div class="button-group">
-            <a href="../login" class="request-btn">Reset Password</a>
+            <a href="../Login" class="request-btn">Reset Password</a>
         </div>
     </div>
 </body>
