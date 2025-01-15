@@ -1,10 +1,15 @@
 <?php
-$host = "localhost"; // Hostname of the MariaDB server
-$username = "root";  // Your database username
-$password = "tifpis-4timbY-wubgoh";      // Your database password
-$database = "SGSD";  // Your database name
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Create a connection to MariaDB
+// Database connection configuration
+$host = "localhost";
+$username = "root";
+$password = "tifpis-4timbY-wubgoh";
+$database = "SGSD";
+
+// Create a connection
 $conn = new mysqli($host, $username, $password, $database);
 
 // Check connection
