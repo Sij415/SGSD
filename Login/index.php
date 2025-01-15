@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 $_SESSION['first_name'] = $user['First_Name'];
 
                 // Redirect to dashboard based on the role
-                header("Location: dashboard.php");
+                header("Location: ../Dashboard");
                 exit();
             } else {
                 $error = "Invalid password.";
