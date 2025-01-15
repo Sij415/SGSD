@@ -1,32 +1,31 @@
-<!-- <?php
-// Include the database connection
-// include('../dbconnect.php');
+ <?php
 
-// if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-//     // Get the input values from the form
-//     $first_name = $_POST['first_name'];
-//     $last_name = $_POST['last_name'];
-//     $email = $_POST['email'];
-//     $password = $_POST['password'];
-//     $role = $_POST['role']; // Get the role from the form
+include('../dbconnect.php');
 
-//     // Hash the password
-//     $password_hash = password_hash($password, PASSWORD_DEFAULT);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get the input values from the form
+    $first_name = $_POST['first_name'];
+    $last_name = $_POST['last_name'];
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $role = $_POST['role']; // Get the role from the form
 
-//     // Insert the new user into the Users table
-//     $sql = "INSERT INTO Users (First_Name, Last_Name, Email, Password_hash, Role) 
-//             VALUES ('$first_name', '$last_name', '$email', '$password_hash', '$role')";
+    // Hash the password
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-//     if ($conn->query($sql) === TRUE) {
-//         echo "New record created successfully";
-//     } else {
-//         echo "Error: " . $sql . "<br>" . $conn->error;
-//     }
-// }
+    // Insert the new user into the Users table
+    $sql = "INSERT INTO Users (First_Name, Last_Name, Email, Password_hash, Role) 
+            VALUES ('$first_name', '$last_name', '$email', '$password_hash', '$role')";
 
-// Close connection
-// $conn->close();
-?> -->
+    if ($conn->query($sql) === TRUE) {
+        echo "New record created successfully";
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+
+$conn->close();
+?> 
 
 <!DOCTYPE html>
 <html lang="en">

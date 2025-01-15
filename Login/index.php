@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             <div class="button-group">
                 <button type="submit" name="login" class="login-btn">Login to Dashboard</button>
                 <a href="../ForgotPassword" class="forgot-btn">Forgot Password?</a>
-                <a href="../asdasdas" class="signup-btn">Don't have an Account? Sign up</a>
+                <a href="../SignUp" class="signup-btn">Don't have an Account? Sign up</a>
             </div>
         </form>
     </div>

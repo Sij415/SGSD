@@ -1,4 +1,8 @@
 <?php
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+
 // Database connection configuration
 $host = "localhost";
 $username = "connectdatabase";
@@ -13,4 +17,5 @@ $conn = new mysqli($host, $username, $password, $database);
 //     die("Connection failed: " . $conn->connect_error);
 // }
 // echo "Connected successfully to the database.";
+return $conn;
 ?>
