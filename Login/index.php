@@ -1,3 +1,48 @@
+<?php
+
+
+// Include the database connection
+include('../dbconnect.php');
+session_start();
+
+// Handle login
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+
+    // Prepare query to get user data based on email
+    $sql = "SELECT * FROM Users WHERE Email = ?";
+    $stmt = $conn->prepare($sql);
+
+    if ($stmt) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            if (password_verify($password, $user['Password_hash'])) {
+                // Store user data in session
+                $_SESSION['user_id'] = $user['User_ID'];
+                $_SESSION['role'] = $user['Role'];
+                $_SESSION['first_name'] = $user['First_Name'];
+
+                // Redirect to dashboard based on the role
+                header("Location: ../Dashboard");
+                exit();
+            } else {
+                $error = "Invalid password.";
+            }
+        } else {
+            $error = "No user found with that email.";
+        }
+        $stmt->close();
+    } else {
+        $error = "An error occurred. Please try again later.";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,20 +63,14 @@
 </header>
 
 <body>
-
     <div class="login-container">
         <h1 class="main-heading">Welcome Back</h1>
         <p class="sub-heading">Welcome back to SGSD! Please enter your details below to login.</p>
 
-        <!-- Display error message if login fails -->
-        <?php if (!empty($error)): ?>
-            <div class="alert alert-danger" role="alert">
-                <?php echo $error; ?>
-            </div>
-        <?php endif; ?>
+        <!-- Display error message if any -->
+        <?php if (isset($error)) { echo "<div class='alert alert-danger'>$error</div>"; } ?>
 
-        <!-- Login form -->
-        <form method="POST" action="">
+        <form action="" method="POST">
             <div class="form-group">
                 <label for="email">E-Mail</label>
                 <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
@@ -43,54 +82,10 @@
             </div>
 
             <div class="button-group">
-                <button type="submit" class="btn btn-primary">Login to Dashboard</button>
-                <a href="../ForgotPassword" class="btn btn-link">Forgot Password?</a>
+                <button type="submit" name="login" class="login-btn">Login to Dashboard</button>
+                <a href="../ForgotPassword" class="forgot-btn">Forgot Password?</a>
+                <a href="../asdasdas" class="signup-btn">Don't have an Account? Sign up</a>
             </div>
-            <?php
-    session_start();
-
-    // Include the database connection file
-    include_once '../dbconnect.php'; // Adjust the path as necessary
-    $error = "";
-
-    // Handle form submission
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-
-        if (!empty($email) && !empty($password)) {
-            // Prepare and execute SQL query
-            if (isset($conn)) { // Ensure $conn is defined
-                $stmt = $conn->prepare("SELECT User_ID, Password_hash FROM users WHERE Email = ?");
-                $stmt->bind_param("s", $email);
-                $stmt->execute();
-                $stmt->store_result();
-
-                if ($stmt->num_rows > 0) {
-                    $stmt->bind_result($id, $hashed_password);
-                    $stmt->fetch();
-
-                    // Verify password
-                    if (password_verify($password, $hashed_password)) {
-                        $_SESSION['user_id'] = $id; // Store user ID in session
-                        header("Location: ../dashboard.php"); // Redirect to dashboard
-                        exit();
-                    } else {
-                        $error = "Invalid email or password. Please try again.";
-                    }
-                } else {
-                    $error = "Invalid email or password. Please try again.";
-                }
-
-                $stmt->close();
-            } else {
-                $error = "Database connection not initialized. Please check your setup.";
-            }
-        } else {
-            $error = "Please fill in all fields.";
-        }
-    }
-    ?>
         </form>
     </div>
 </body>
