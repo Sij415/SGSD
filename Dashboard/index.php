@@ -12,9 +12,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
-<header class="main-header">
-    <nav class="main-nav">
-        <a href="#" class="sgsd-redirect">≡</a>
+<header class="app-header">
+    <nav class="app-nav">
+        <a href="#" class="sidebar-btn">≡</a>
+        <a href="#" class="tooltip-btn">X</a>
     </nav>
     
     <!-- Implement Sidebar -->
@@ -41,20 +42,21 @@
     </div>
     <!-- Grid Dashboard -->
     <div class="dashboard-summary">
-        <div class="card" style="width:18rem;">
-          <img src="https://images.unsplash.com/photo-1561154464-82e9adf32764?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60" class="card-img-top" alt="...">
-          <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <h6 class="card-subtitle mb-2 text-muted ">Card subtitle</h6>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-            b5
-          </div>
+        <div class="parent">
+            <div class="div1">1</div>
+            <div class="div2">2</div>
+            <div class="div3">3</div>
+            <div class="div4">4</div>
+            <div class="div5">5</div>
         </div>
     </div>
+    <div class="dashboard-top">
+        <h1><b>TOP</b> SELLING</h1>
+    </div>
+    <div class="dashboard-top-grid">
+                <div class="div1">1</div>
+                <div class="div2">2</div>
+            </div>
+    <hr>
 </body> 
-
-<footer class="footer">
-    © SGSD 2025
-</footer>
-
 </html>
