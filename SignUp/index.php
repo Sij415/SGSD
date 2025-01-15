@@ -1,6 +1,6 @@
 <?php
 // Include the database connection
-include('dbconnect.php');
+include('../dbconnect.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the input values from the form
@@ -8,13 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $last_name = $_POST['last_name'];
     $email = $_POST['email'];
     $password = $_POST['password'];
+    $role = $_POST['role']; // Get the role from the form
 
     // Hash the password
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     // Insert the new user into the Users table
-    $sql = "INSERT INTO Users (First_Name, Last_Name, Email, Password_hash) 
-            VALUES ('$first_name', '$last_name', '$email', '$password_hash')";
+    $sql = "INSERT INTO Users (First_Name, Last_Name, Email, Password_hash, Role) 
+            VALUES ('$first_name', '$last_name', '$email', '$password_hash', '$role')";
 
     if ($conn->query($sql) === TRUE) {
         echo "New record created successfully";
@@ -48,6 +49,14 @@ $conn->close();
         
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br><br>
+
+        <!-- Dropdown for selecting role -->
+        <label for="role">Role:</label>
+        <select id="role" name="role" required>
+            <option value="driver">Driver</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+        </select><br><br>
         
         <input type="submit" value="Signup">
     </form>
