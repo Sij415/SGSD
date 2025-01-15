@@ -37,7 +37,7 @@ $conn->close();
 </head>
 <body>
     <h2>Create Account</h2>
-    <form action="signup.php" method="POST">
+    <form action="" method="POST">
         <label for="first_name">First Name:</label>
         <input type="text" id="first_name" name="first_name" required><br><br>
         
