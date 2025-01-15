@@ -3,36 +3,44 @@
 include('dbconnect.php');
 session_start();
 
+$error = ''; // Initialize error variable
+
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+    // Sanitize user input
+    $email = htmlspecialchars(trim($_POST['email']));
+    $password = htmlspecialchars(trim($_POST['password']));
 
     // Prepare query to get user data based on email
     $sql = "SELECT * FROM Users WHERE Email = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        if (password_verify($password, $user['Password_hash'])) {
-            // Store user data in session
-            $_SESSION['user_id'] = $user['User_ID'];
-            $_SESSION['role'] = $user['Role'];
-            $_SESSION['first_name'] = $user['First_Name'];
+    if ($stmt) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-            // Redirect to dashboard based on the role
-            header("Location: dashboard.php");
-            exit();
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            if (password_verify($password, $user['Password_hash'])) {
+                // Store user data in session
+                $_SESSION['user_id'] = $user['User_ID'];
+                $_SESSION['role'] = $user['Role'];
+                $_SESSION['first_name'] = $user['First_Name'];
+
+                // Redirect to dashboard
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                $error = "Invalid password. Please try again.";
+            }
         } else {
-            $error = "Invalid password.";
+            $error = "No user found with the provided email.";
         }
+        $stmt->close();
     } else {
-        $error = "No user found with that email.";
+        $error = "Database error: Unable to prepare statement.";
     }
-    $stmt->close();
 }
 ?>
 
@@ -61,7 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         <p class="sub-heading">Welcome back to SGSD! Please enter your details below to login.</p>
 
         <!-- Display error message if any -->
-        <?php if (isset($error)) { echo "<div class='alert alert-danger'>$error</div>"; } ?>
+        <?php if (!empty($error)) { ?>
+            <div class="alert alert-danger" role="alert">
+                <?php echo $error; ?>
+            </div>
+        <?php } ?>
 
         <form action="" method="POST">
             <div class="form-group">
@@ -75,9 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             </div>
 
             <div class="button-group">
-                <button type="submit" name="login" class="login-btn">Login to Dashboard</button>
+                <button type="submit" name="login" class="login-btn btn btn-primary">Login to Dashboard</button>
                 <a href="../ForgotPassword" class="forgot-btn">Forgot Password?</a>
-                <a href="../asdasdas" class="signup-btn">Don't have an Account? Sign up</a>
+                <a href="../signup.php" class="signup-btn">Don't have an Account? Sign up</a>
             </div>
         </form>
     </div>
