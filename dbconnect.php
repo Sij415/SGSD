@@ -5,8 +5,8 @@ error_reporting(E_ALL);
 
 // Database connection configuration
 $host = "localhost";
-$username = "root";
-$password = "tifpis-4timbY-wubgoh";
+$username = "connectdatabase";
+$password = "ibw0LhO00N36";
 $database = "SGSD";
 
 // Create a connection
