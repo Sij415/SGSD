@@ -84,6 +84,8 @@
         </div>
     </form>
 </div>
-
 </body>
+<footer class="footer">
+    © SGSD 2025
+</footer>
 </html>
