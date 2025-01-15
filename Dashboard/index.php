@@ -3,68 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Dashbard</title>
     <link rel="stylesheet" href="../style/style.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .sidebar {
-            width: 250px;
-            height: 50vh;
-            background-color: #f4f4f4;
-            position: center;
-            top: 0;
-            left: 0;
-            padding: 1rem;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            border-radius: 16px;
-        }
-        .sidebar ul {
-            list-style-type: none;
-            padding: 1rem;
-        }
-        .sidebar ul li {
-            margin: 1rem 0;
-        }
-        .sidebar ul li a {
-            text-decoration: none;
-            color: #545454;
-            font-weight: 600;
-        }
-        .sidebar ul li a:hover {
-            color: #4CAF50;
-        }
-
-        .sidebar-header {
-            font-size: 1.34em;
-            color: #545454;
-        }
-
-        .sidebar-profile-usr {
-            display:flex;
-        }
-
-        .sidebar-profile {
-            display: block;
-        }
-            .sidebar-profile h1 {
-                font-size: 1.5em;
-            }
-
-            .sidebar-profile h3 {
-                font-size: 1em;
-            }
-        
-            .sidebar-profile-exit-icon {
-                text-align: right;
-            }
-
-        .sidebar-profile-exit {
-            text-align: right;
-        }
-
-
-
-    </style>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
