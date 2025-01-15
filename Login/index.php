@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         <!-- Display error message if any -->
         <?php if (isset($error)) { echo "<div class='alert alert-danger'>$error</div>"; } ?>
 
-        <form action="index.php" method="POST">
+        <form action="" method="POST">
             <div class="form-group">
                 <label for="email">E-Mail</label>
                 <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
