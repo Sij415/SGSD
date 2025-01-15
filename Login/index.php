@@ -1,5 +1,6 @@
 <?php
 
+
 // Include the database connection
 include('../dbconnect.php');
 session_start();
@@ -13,30 +14,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $sql = "SELECT * FROM Users WHERE Email = ?";
     $stmt = $conn->prepare($sql);
 
-    if (!$stmt) {
-        die("Prepared statement failed: " . $conn->error);
-    }
+    if ($stmt) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            if (password_verify($password, $user['Password_hash'])) {
+                // Store user data in session
+                $_SESSION['user_id'] = $user['User_ID'];
+                $_SESSION['role'] = $user['Role'];
+                $_SESSION['first_name'] = $user['First_Name'];
 
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        if (password_verify($password, $user['Password_hash'])) {
-            // Login successful
-            echo "Success";
-            exit();
+                // Redirect to dashboard based on the role
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                $error = "Invalid password.";
+            }
         } else {
-            echo "Invalid password.";
-            exit();
+            $error = "No user found with that email.";
         }
+        $stmt->close();
     } else {
-        echo "No user found with that email.";
-        exit();
+        $error = "An error occurred. Please try again later.";
     }
-
-    $stmt->close();
 }
 ?>
 
@@ -79,7 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             </div>
 
             <div class="button-group">
-                <button type="submit" name="login" class="login-btn">Login</button>
+                <button type="submit" name="login" class="login-btn">Login to Dashboard</button>
+                <a href="../ForgotPassword" class="forgot-btn">Forgot Password?</a>
+                <a href="../asdasdas" class="signup-btn">Don't have an Account? Sign up</a>
             </div>
         </form>
     </div>
