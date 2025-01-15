@@ -73,12 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         <form action="" method="POST">
             <div class="form-group">
                 <label for="email">E-Mail</label>
-                <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+                <input type="email" id="email" name="email" class="form-group" placeholder="Enter your email" required>
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                <input type="password" id="password" name="password" class="form-group" placeholder="Enter your password" required>
             </div>
 
             <div class="button-group">
