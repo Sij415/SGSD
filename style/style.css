@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 * {
     margin: 0;
     padding: 0;
@@ -10,12 +9,12 @@
 .main-header {
     width: 100%;
     padding: 1rem 2rem;
-    position: fixed;
+    position: absolute;
     top: 0;
-    left: 0;
 }
 
 .main-nav {
+    font-family: 'Inter', sans-serif !important;
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -36,7 +35,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', sans-serif !important;
     background-color: #ffffff;
     min-height: 100vh;
     display: flex;
@@ -76,6 +75,8 @@ body {
     margin-bottom: 3rem;
 }
 
+/* Form Group Controller for Login, Forgot Password, and New Password */
+
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -101,6 +102,76 @@ body {
     outline: none;
     border-color: #4CAF50;
 }
+
+/* Form Group for Signup */
+
+.form-group-signup {
+    display:grid;
+    max-width: 600px; 
+}
+
+.form-group-signup-name {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group-signup,
+.form-field-signup {
+    margin-bottom: 1.5rem;
+}
+
+.form-group-signup label {
+    display: block;
+    color: #545454;
+    font-weight: 700;
+    letter-spacing: -0.06rem;
+}
+
+.form-group-signup input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.form-group-signup input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+/* Form group select */
+
+.form-field-signup {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+}
+
+.form-field-signup label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-field-signup select {
+    padding: 1em;
+    font-size: 14px;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    transition: border-color 0.3s ease;
+}
+
+.form-field-signup select:focus {
+    border-color: #4caf50;
+    outline: none;
+}
+
+/* Button Group */
 
 .button-group {
     display: flex;
@@ -146,8 +217,8 @@ body {
     background: none;
     border: none;
     color: #9cb297;
-    font-size: 0.9rem;
     cursor: pointer;
+    font-size: 0.9rem;
     text-align: left;
     font-weight: 700;
     letter-spacing: -0.06rem;
@@ -155,6 +226,25 @@ body {
 
 .signup-btn:hover {
     color: #45a049;
+}
+
+.signup-cont-btn {
+    background-color: #6fa062;
+    color: white !important;
+    padding: 1.4rem;
+    border: none;
+    text-align: center;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: -0.06rem;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.signup-cont-btn:hover {
+    background-color: #45a049;
+    text-decoration: underline;
 }
 
 
@@ -212,6 +302,8 @@ body {
 aside {
     font-family: 'Inter', sans-serif;
 }
+
+/* Sidebar */
 
 .sidebar {
     width: 250px;
@@ -299,7 +391,66 @@ aside {
     text-align: right;
 }
 
+/* Dashboard */
+
+.dashboard {
+    display: block;
+}
+.dashboard-title {
+    padding: 32px;
+}
+
+.dashboard h1 {
+    font-size: 2.1em;
+}
+
+/* Hide the default radio button circle */
+input[type="radio"].btn-check {
+    display: none;
+}
+
+/* Style the labels to look like buttons */
+input[type="radio"].btn-check:checked + label {
+    background-color: #6b9d61; /* Active color */
+    color: white;
+    border-color: #6b9d61;
+}
+
+input[type="radio"].btn-check + label {
+    border-color: #6b9d61;
+    color: #6b9d61;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Style when hovered */
+input[type="radio"].btn-check + label:hover {
+    border-color: #6b9d61;
+    background-color: #6b9d61; /* Hover color */
+    color: white;
+}
+
+/* Style for radio button group container */
+.btn-group {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    background-color: #f4f9f8;
+}
+.btn-group .btn {
+    color: #6F6F6F;
+    width: 100%; /* Make buttons stretch to fit the container */
+    text-align: center;
+    padding: 0.5rem 1rem;
+}
+.input[type="radio"].btn-check:checked + label {
+    border-radius: 5px;
+}
+.dashboard-summary {
+    display: grid;
+    padding: 0px 32px 0px 32px;
+}
 /* Responsive adjustments */
+
 @media (max-width: 768px) {
     .main-header {
         padding: 0.8rem 1rem;
@@ -309,9 +460,6 @@ aside {
         height: 32px;
     }
     
-    body {
-        padding-top: 65px;
-    }
 }
 
 @media (max-width: 480px) {
@@ -323,5 +471,18 @@ aside {
     .sgsd-redirect {
         font-size: 1rem;
         text-align: center;
+    }
+    .form-group-signup-name {
+        display: block !important;
+    }
+    .dashboard-title {
+        font-size: 0.7rem; /* Adjust the font size */
+        margin: 0.5rem 0; /* Adjust margins if needed */
+        height: auto; /* Control the height */
+        width: auto; /* Control the width */
+    }
+    .btn-group .btn {
+        padding: 0.6rem 0.4rem; /* Further decrease padding */
+        font-size: 0.8rem; /* Further decrease font size */
     }
 }
