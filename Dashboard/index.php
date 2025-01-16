@@ -39,12 +39,10 @@ include('../sidebar.php');
 </head>
 <body>
     <div class="container py-4">
-        <!-- Header -->
         <div class="d-flex align-items-center mb-4">
             <h1 class="fw-bold">ANALYTICS DASHBOARD</h1>
         </div>
 
-        <!-- Tabs -->
         <ul class="nav nav-pills mb-4">
             <li class="nav-item">
                 <a class="nav-link active" href="#">Daily</a>
@@ -60,7 +58,6 @@ include('../sidebar.php');
             </li>
         </ul>
 
-        <!-- Dashboard Cards -->
         <div class="row g-3">
             <?php
             $cards = [
@@ -86,7 +83,6 @@ include('../sidebar.php');
             ?>
         </div>
 
-        <!-- Top Selling Section -->
         <div class="mt-5">
             <h5 class="mb-3">Top Selling</h5>
             <div class="doughnut-container">
@@ -95,10 +91,8 @@ include('../sidebar.php');
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Revenue Bar Chart
         new Chart(document.getElementById('revenueBarChart'), {
             type: 'bar',
             data: {
@@ -111,7 +105,6 @@ include('../sidebar.php');
             options: { responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // Orders Line Chart
         new Chart(document.getElementById('ordersLineChart'), {
             type: 'line',
             data: {
@@ -121,7 +114,6 @@ include('../sidebar.php');
             options: { responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // Customers Line Chart
         new Chart(document.getElementById('customersLineChart'), {
             type: 'line',
             data: {
@@ -131,7 +123,6 @@ include('../sidebar.php');
             options: { responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // Items Sold Bar Chart
         new Chart(document.getElementById('itemsSoldBarChart'), {
             type: 'bar',
             data: {
@@ -144,7 +135,6 @@ include('../sidebar.php');
             options: { responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // Doughnut Chart for Top Selling
         new Chart(document.getElementById('topSellingChart'), {
             type: 'doughnut',
             data: {
