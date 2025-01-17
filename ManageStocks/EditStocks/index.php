@@ -12,11 +12,11 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
-<header class="app-header">
-    <nav class="app-nav">
-        <a href="#" class="back-btn"><</a>
-        <a href="#" class="tooltip-btn">X</a>
-    </nav>
+<header class="main-header">
+        <nav class="main-nav">
+            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
+        </nav>
+    </header>
     
     <!-- Implement Sidebar -->
 
