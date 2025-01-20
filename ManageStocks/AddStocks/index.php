@@ -35,8 +35,7 @@
         </select>
 
         <label for="product-unit">Product Unit</label>
-        <select id="product-unit" name="product-unit" required>
-            <option value="">Select Product Unit</option>
+        <select id="product-unit" name="product-unit" required placeholder="Select Product Unit">
             <option value="unit1">Unit 1</option>
             <option value="unit2">Unit 2</option>
             <option value="unit3">Unit 3</option>
@@ -44,7 +43,7 @@
 
         <label for="product-quantity">Price</label>
         <input type="number" id="product-quantity" name="product-quantity" required>
-    <div class="incr-dcrn">
+        <div class="incr-dcrn">
         <div class="quantity-input">
         <label for="product-quantity">Quantity</label>
             <input type="number" id="product-quantity" name="product-quantity" required>
