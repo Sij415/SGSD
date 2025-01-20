@@ -13,23 +13,25 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </head>
-<!-- Frontend notes: make this hidden or be linked in another file. -->
+
 <script>
+/* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
 function openNav() {
   document.getElementById("Sidebar").style.width = "275px";
   document.getElementById("main").style.marginLeft = "275px";
 }
 
+/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
 function closeNav() {
   document.getElementById("Sidebar").style.width = "0";
   document.getElementById("main").style.marginLeft = "0";
 }
 </script>
-<!-- Import to Dashboard, ManageOrders, ManageStocks. Because this is the Sidebar as well as the heading-->
+
 <header class="app-header">
     <nav class="app-nav">
         <a href="#" class="sidebar-btn" id="menu-toggle" onclick="openNav()">≡</a>
-        <a href="#" class="tooltip-btn">X</a>
+        <a href="#" class="tooltip-btn" id="tooltip-toggle" onclick="openTooltip()">X</a>
     </nav>
     
     <div id="Sidebar" class="sidebar">
@@ -69,5 +71,51 @@ function closeNav() {
         </div>
     </div>
 </header>
- 
+
+<body class="dashboard">
+    <!-- Dashboard-title -->
+    <!-- <div class="dashboard-title">
+        <h1><b>ANALYTICS</b> DASHBOARD</h1>
+            <div class="btn-group" style="z-index: 999;" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio1">DAILY</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked>
+                <label class="btn btn-outline-primary" for="btnradio2">WEEKLY</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio3">MONTHLY</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio4">YEARLY</label>
+            </div>
+    </div> -->
+
+    <!-- Modal Class -->
+    <div class="tooltip-modal">
+        <div class="tooltip-modal-content">
+            <h2>Tooltip Modal</h2>
+            <p>This is a placeholder content for the tooltip modal. You can customize this as needed.</p>
+        </div>
+    </div>
+
+    <!-- Grid Dashboard -->
+    <!-- <div class="dashboard-summary">
+        <div class="parent">
+            <div class="div1">1</div>
+            <div class="div2">2</div>
+            <div class="div3">3</div>
+            <div class="div4">4</div>
+            <div class="div5">5</div>
+        </div>
+    </div>
+    <div class="dashboard-top">
+        <h1><b>TOP</b> SELLING</h1>
+    </div>
+    <div class="dashboard-top-grid">
+                <div class="div1">1</div>
+                <div class="div2">2</div>
+            </div>
+    <hr> -->
+</body> 
 </html>

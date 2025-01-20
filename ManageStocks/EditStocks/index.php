@@ -58,7 +58,6 @@
                 <button class="quantity-btn increment-btn" onclick="increment()">+</button>
             </div>
         </div>
-
         <div class="quantity-input">
         <label for="product-quantity">New Stock</label>
             <input type="number" id="product-quantity" name="product-quantity" required>
@@ -67,10 +66,7 @@
                 <button class="quantity-btn increment-btn" onclick="increment()">+</button>
             </div>
         </div>
-
-
-
-        <div class="in-stock-input">
+        <div class="quantity-input" id="#">
         <label for="product-quantity">In Stock</label>
             <input type="number" id="product-quantity" name="product-quantity" required>
             <div>
@@ -78,7 +74,6 @@
                 <button class="quantity-btn increment-btn" onclick="increment()">+</button>
             </div>
         </div>
-
         <div class="ceiling-input">
         <label for="product-ceiling">Old Stock</label>
             <input type="number" id="product-ceiling" name="product-ceiling" required>
@@ -88,7 +83,6 @@
             </div>
         </div>
     </div>
-
     <h1 style="margin-top: 24px;"><b>Product</b> Condition</h1>
     <div class="product-condition">
         <div class="product-date">
@@ -105,7 +99,7 @@
         </select>
         </div>
     </div>
-    <div class="button-group">
+    <div class="button-group-stock">
         <input class="add-stck-cancel-btn" type="submit" value="Cancel">
         <input class="add-stck-add-btn" type="submit" value="Confirm Changes">
     </div>

@@ -47,14 +47,12 @@
     <div class="incr-dcrn">
         <div class="quantity-input">
         <label for="product-quantity">Quantity</label>
-
             <input type="number" id="product-quantity" name="product-quantity" required>
             <div>
                 <button class="quantity-btn decrement-btn" onclick="decrement()">-</button>
                 <button class="quantity-btn increment-btn" onclick="increment()">+</button>
             </div>
         </div>
-
         <div class="ceiling-input">
         <label for="product-ceiling">Ceiling</label>
             <input type="number" id="product-ceiling" name="product-ceiling" required>

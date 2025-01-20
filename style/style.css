@@ -279,9 +279,10 @@ body {
     color: #fff;
 }
 
+.add-stck-cancel-btn,
 .back-btn {
     background-color: #f1fdee;
-    border: none;
+    border: none !important;
     color: #ffffff;
     cursor: pointer;
     padding: 1.4rem;
@@ -290,7 +291,7 @@ body {
     text-align: center;
     font-weight: 700;
     letter-spacing: -0.06rem;
-    color: #3e6b32;
+    color: #6fa062 !important;
     transition: background-color 0.3s;
 }
 
@@ -742,6 +743,10 @@ input[type="radio"].btn-check + label:hover {
     color: #fff;
 }
 
+.product-quantity input {
+    margin-bottom: 8px !important;
+}
+
 /* Add Stocks */
 .add-stck, 
 .add-stck-title {
@@ -826,11 +831,17 @@ input[type="radio"].btn-check + label:hover {
     grid-column-start: 2;
 }
 
+.button-group-stock {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons if needed */
+}
+
 .add-stck-add-btn {
     background-color: #6fa062;
     color: white !important;
-    margin: 16px auto;
-    padding: 1.0rem;
+    margin: 0px auto;
     border: none;
     border-radius: 64px;
     cursor: pointer;
@@ -847,17 +858,28 @@ input[type="radio"].btn-check + label:hover {
     color: #fff;
 }
 
+.add-stck-cancel-btn,
+.add-stck-add-btn {
+    border-radius: 32px !important;
+}
+
 .incr-dcrn {
     display: flex;
+    margin-bottom: 0.8rem;
 }
 
 .incr-dcrn input {
     width: 75%;
 }
 
+.ceiling-input,
+.quantity-input {
+    display: grid;
+}
+
 .quantity-input input,
 .ceiling-input input {
-    margin-bottom: 0.5rem !important;  /* Fix margin */
+    margin-bottom: 0.5rem !important;
 }
 
 .product-date {
@@ -975,6 +997,205 @@ input[type="radio"].btn-check + label:hover {
     color: #fff;
 }
 
+/* Modal Background */
+.tooltip-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+}
+/* Modal Content */
+.tooltip-modal-content {
+    background-color: #fff;
+    margin: 15% auto; 
+    padding: 20px !important;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 500px; /* Optional: max width */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Add Order */
+.add-ordr, 
+.add-ordr-title {
+    display: block;
+    overflow: scroll;
+    margin-top: 16px;
+}
+
+.add-ordr-title {
+    padding: 0px 32px 0px 32px;
+    letter-spacing: -0.065rem;
+    color: #252525;
+}
+
+.add-ordr-input {
+    padding: 12px 32px 0px 32px;
+    display: grid;
+}
+
+.add-ordr-input input, 
+.add-ordr-input select {
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.add-ordr-input select:focus, .add-ordr-input input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.add-ordr-input button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.add-ordr-product {
+    display: flex;
+}
+
+.add-more-ordr-product {
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 50px; /* Adjust width */
+    height: 50px; /* Adjust height to make it a square */
+    border-radius: 50%; /* Rounded corners */
+    display: flex; /* Ensure that align-items works */
+    justify-content: center; /* Center the content */
+    justify-self: end; /* Align the button to the right of the grid cell */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+    align-self: center; /* Align with the label */
+}
+
+.add-ordr-inv {
+    margin: 12px 32px 12px 32px ;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #dcdcdc;
+    background-color: #fafafa;
+    border-radius: 16px;
+    height: 38em;
+    overflow-y: scroll;
+}
+
+.add-ordr-item {
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    border: 1px solid #4CAF50;
+    border-radius: 12px;
+}
+
+.add-ordr-item-div-1 {
+    grid-row: span 2 / span 2;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #4CAF50;
+}
+
+.add-ordr-item-div-3 {
+    grid-column-start: 2;
+}
+
+.button-group-stock {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons if needed */
+}
+
+.add-ordr-add-btn {
+    background-color: #6fa062;
+    color: white !important;
+    margin: 0px auto;
+    border: none;
+    border-radius: 64px;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: -0.06rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.add-ordr-add-btn:hover {
+    background-color: #45a049;
+    color: #fff;
+}
+
+.add-ordr-cancel-btn,
+.add-ordr-add-btn {
+    border-radius: 32px !important;
+}
+
+.product-ordr {
+    display: flex;
+    gap: 8px;
+}
+
+.product-notes {
+    display: grid;
+}
+
+.add-ordr-input-notes {
+    display: grid;
+}
+
+.add-ordr-input-notes textarea {
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.add-ordr-input-notes textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.add-ordr-input-notes button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.additional-notes {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+}
+
 
 /* Responsive adjustments */
 
@@ -986,7 +1207,10 @@ input[type="radio"].btn-check + label:hover {
     .logo {
         height: 32px;
     }
-    
+
+    .ceiling-input,
+    .quantity-input {
+        display: grid;
 }
 
 @media (max-width: 480px) {
@@ -1037,3 +1261,4 @@ input[type="radio"].btn-check + label:hover {
     }
 }
 
+}
