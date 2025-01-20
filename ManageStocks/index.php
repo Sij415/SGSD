@@ -57,11 +57,7 @@
                 <div class="mng-stck-item-div-2">C</div>
                 <div class="mng-stck-item-div-3">C</div>
             </div>
-            <div class="mng-stck-item">
-                <div class="mng-stck-item-div-1">C</div>
-                <div class="mng-stck-item-div-2">C</div>
-                <div class="mng-stck-item-div-3">C</div>
-            </div>
+
         </div>
     </div>
     <div class="button-group">

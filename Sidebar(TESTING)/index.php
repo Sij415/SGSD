@@ -13,8 +13,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </head>
-
-
 <script>
 /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
 function openNav() {
@@ -73,53 +71,5 @@ function closeNav() {
         </div>
     </div>
 </header>
-
-
-<body class="mng-ordr">
-    <div class="mng-ordr-title">
-        <h1><b>Manage</b> Orders</h1>
-        <h3>To view the orders in detail, click the product.</h3>
-    </div>
-    <div class="mng-ordr-search">
-        <input type="text" id="search" name="search" placeholder="Search...">
-        <!-- <button type="submit">X</button> -->
-    </div>
-    <div class="mng-ordr-inv">
-        <div class="mng-ordr-list">
-            <div class="mng-ordr-item">
-                <div class="mng-ordr-item-div-1">C</div>
-                <div class="mng-ordr-item-div-2">C</div>
-                <div class="mng-ordr-item-div-3">C</div>
-            </div>
-            <div class="mng-ordr-item">
-                <div class="mng-ordr-item-div-1">C</div>
-                <div class="mng-ordr-item-div-2">C</div>
-                <div class="mng-ordr-item-div-3">C</div>
-            </div>
-            <div class="mng-ordr-item">
-                <div class="mng-ordr-item-div-1">C</div>
-                <div class="mng-ordr-item-div-2">C</div>
-                <div class="mng-ordr-item-div-3">C</div>
-            </div>
-            <div class="mng-ordr-item">
-                <div class="mng-ordr-item-div-1">C</div>
-                <div class="mng-ordr-item-div-2">C</div>
-                <div class="mng-ordr-item-div-3">C</div>
-            </div>
-            <div class="mng-ordr-item">
-                <div class="mng-ordr-item-div-1">C</div>
-                <div class="mng-ordr-item-div-2">C</div>
-                <div class="mng-ordr-item-div-3">C</div>
-            </div>
-            <div class="mng-ordr-item">
-                <div class="mng-ordr-item-div-1">C</div>
-                <div class="mng-ordr-item-div-2">C</div>
-                <div class="mng-ordr-item-div-3">C</div>
-            </div>
-        </div>
-    </div>
-    <div class="button-group">
-        <input class="mng-ordr-add-btn" type="submit" value="Add Products">
-    </div>
-</body> 
+ 
 </html>

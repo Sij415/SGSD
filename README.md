@@ -1,3 +1,1 @@
 # SGSD
-
-Pogi ako
