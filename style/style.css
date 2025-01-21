@@ -29,6 +29,13 @@
     font-weight: 600;
     font-size: 1.2rem;
     padding: 0.5rem 1rem;
+    letter-spacing: -0.050em;
+    transition: color 0.3s ease, transform 0.3s ease; /* Smooth transition for color and transform */
+}
+
+.sgsd-redirect:hover {
+    color: #45a049 !important; /* Changed hover color to a different shade */
+    text-decoration: none; /* Added underline effect on hover */
 }
 
 .logo {
