@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css');
+
 * {
     margin: 0;
     padding: 0;
@@ -27,6 +29,13 @@
     font-weight: 600;
     font-size: 1.2rem;
     padding: 0.5rem 1rem;
+    letter-spacing: -0.050em;
+    transition: color 0.3s ease, transform 0.3s ease; /* Smooth transition for color and transform */
+}
+
+.sgsd-redirect:hover {
+    color: #45a049 !important; /* Changed hover color to a different shade */
+    text-decoration: none; /* Added underline effect on hover */
 }
 
 .logo {
@@ -277,9 +286,10 @@ body {
     color: #fff;
 }
 
+.add-stck-cancel-btn,
 .back-btn {
     background-color: #f1fdee;
-    border: none;
+    border: none !important;
     color: #ffffff;
     cursor: pointer;
     padding: 1.4rem;
@@ -288,7 +298,7 @@ body {
     text-align: center;
     font-weight: 700;
     letter-spacing: -0.06rem;
-    color: #3e6b32;
+    color: #6fa062 !important;
     transition: background-color 0.3s;
 }
 
@@ -299,109 +309,241 @@ body {
 
 /* Sidebar for Dashboard */
 
-aside {
-    font-family: 'Inter', sans-serif;
-}
-
-/* Sidebar */
-
+/* The sidebar menu */
 .sidebar {
-    width: 250px;
-    height: 55vh;
-    background-color: #f2f4f0;
-    position: center;
+    height: 100%; /* 100% Full-height */
+    width: 0; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Stay on top */
     top: 0;
     left: 0;
-    padding: 1rem;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    border-radius: 16px;
-    
-}
+    background-color: #f2f4f0; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
+    padding-top: 60px; /* Place content 60px from the top */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
+    border-radius: 24px;
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.15); /* Add shadow */
+  }
 
-.sidebar-header {
-    font-size: 0.6em !important;
-    color: #545454;
-    letter-spacing: -0.07em;
-    font-weight: 600;
-    padding: 1rem;
-}
-
-.sidebar ul {
-    list-style-type: none;
-    margin-left: -0.7em;
-    padding: 1rem;
-    transition: background-color 0.3s, transform 0.3s;
-}
-.sidebar ul li {
-    margin: 1.5rem 0;
-}
-.sidebar ul li a {
+  .sidebar-items {
+    height: calc(100% - 160px); /* Use up all available space except for the top padding */
+    overflow: hidden; /* Enable vertical scroll if content exceeds height */
+  }
+  
+  /* The sidebar links */
+  .sidebar-items a {
+    padding: 8px 8px 8px 32px;
     text-decoration: none;
-    color: #545454;
-    font-weight: 600;
-    position: relative;
-    padding: 12px;
-    letter-spacing: -0.057em;
-    transition: transform 0.2s;
-}
-    .sidebar ul li a:hover {
-        color: #545454;
-    }
-    .sidebar ul li a::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background-color: #000;
-        border-radius: 100px;
-        transition: width 0.2s, height 0.2s, top 0.2s, left 0.2s;
-        z-index: -1;
-    }
-    .sidebar ul li a:hover::before {
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-    }
-    .sidebar ul li a:hover {
-        color: #FFF !important;
-        transform: scale(1.1);
-    }
-.sidebar-profile-usr {
-    display:flex;
-}
-.sidebar-profile {
+    font-size: 22px;
+    color: #414141;
     display: block;
-    letter-spacing: -0.068em;
+    transition: 0.3s;
+    letter-spacing: -0.045em;
+  }
+
+.sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 22px;
+    color: #414141;
+    display: block;
+    transition: 0.3s;
+    letter-spacing: -0.045em;  
 }
-.sidebar-profile h1 {
-    font-size: 1.1em !important;
+
+.sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol:hover {
+    color: #3e6b32;
+}
+
+.sidebar-item a {
+    display: flex;
+    align-items: center; /* Aligns icon and text vertically */
+    text-decoration: none; /* Removes underline from links */
+    color: #333; /* Adjust text color as needed */
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.sidebar-item i {
+    margin-right: 8px; /* Adds spacing between icon and text */
+    vertical-align: middle;
+}
+
+  /* When you mouse over the navigation links, change their color */
+  .sidebar-items a:hover {
+    background-color: #252525;
+    color: #fff;
+    padding: 16px;
+    border-top-right-radius: 56px;
+    border-bottom-right-radius: 56px;
+  }
+  
+  /* Position and style the close button (top right corner) */
+  .sidebar .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    text-decoration: none !important;
+    color: #252525 !important;
+  }
+  
+  /* The button used to open the sidebar */
+  .openbtn {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: #111;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+  }
+  
+  .openbtn:hover {
+    background-color: #444;
+  }
+
+.sidebar-usr {
+    padding: 0px 32px 32px 32px;
+    display: flex;
+}
+
+.sidebar-usr img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; /* Make it circle */
+    object-fit: cover; /* Auto crop */
+}
+
+.sidebar-usrname {
+    margin-left: 10px;
+    letter-spacing: -0.065em !important;
+}
+
+.sidebar-usrname h1 {
+    font-size: 0.7em !important;
     font-weight: 700;
 }
 
-.sidebar-profile h3 {
-    font-size: 0.8em !important;
-    color: #787878 !important;
+.sidebar-usrname h2 {
+    font-size: 0.5em !important;
 }
-
-.sidebar-profile-exit-icon,
-.sidebar-profile-exit {
-    text-align: right;
-}
+  
+  /* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+  #main {
+    transition: margin-left .5s; /* If you want a transition effect */
+    padding: 20px;
+  }
+  
+  /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+  @media screen and (max-height: 450px) {
+    .sidebar {padding-top: 15px;}
+    .sidebar a {font-size: 18px;}
+  }
 
 /* Dashboard */
 
-.dashboard {
-    display: block;
+.app-header {
+    width: 100%;
+    padding: 1rem 2rem;
+    position: fixed;
+    top: 0;
 }
+
+.app-nav {
+    font-family: 'Inter', sans-serif !important;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+}
+
+.sidebar-btn {
+    align-items: center;
+    justify-content: center; /* Center the content */
+    background-color: #FFF;
+    width: 50px; /* Adjust width */
+    height: 50px; /* Adjust height to make it a square */
+    border-radius: 100px; /* Rounded corners */
+    display: flex; /* Ensure that align-items works */
+    text-decoration: none;
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.back-btn {
+    align-items: center;
+    justify-content: center; /* Center the content */
+    background-color: #6fa062;
+    width: 50px; /* Adjust width */
+    height: 50px; /* Adjust height to make it a square */
+    border-radius: 100px; /* Rounded corners */
+    display: flex; /* Ensure that align-items works */
+    text-decoration: none;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+
+.tooltip-btn {
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 50px; /* Adjust width */
+    height: 50px; /* Adjust height to make it a square */
+    border-radius: 10px; /* Rounded corners */
+    display: flex; /* Ensure that align-items works */
+    justify-content: center; /* Center the content */
+    justify-self: end; /* Align the button to the right of the grid cell */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+body.dashboard {
+    display: block;
+    overflow: auto;
+    margin: 0;
+    padding: 0;
+    transition: margin-left 0.3s ease;
+}
+
+#main {
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar {
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    overflow-x: hidden;
+    transition: width 0.3s ease;
+    background-color: #111;
+    padding-top: 60px;
+}
+
+.dashboard-title .btn-group {
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+}
+
+/* When the sidebar is open */
+.sidebar-open .dashboard-title .btn-group {
+    margin-left: 275px;
+}
+
 .dashboard-title {
     padding: 32px;
 }
 
 .dashboard h1 {
-    font-size: 2.1em;
+    font-size: 1.8em;
 }
 
 /* Hide the default radio button circle */
@@ -414,11 +556,13 @@ input[type="radio"].btn-check:checked + label {
     background-color: #6b9d61; /* Active color */
     color: white;
     border-color: #6b9d61;
+    z-index: 999;
 }
 
 input[type="radio"].btn-check + label {
     border-color: #6b9d61;
     color: #6b9d61;
+    z-index: 999;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -427,15 +571,19 @@ input[type="radio"].btn-check + label:hover {
     border-color: #6b9d61;
     background-color: #6b9d61; /* Hover color */
     color: white;
+    z-index: 999;
+
 }
 
-/* Style for radio button group container */
 .btn-group {
     display: flex;
     justify-content: space-between;
     margin: 10px 0;
     background-color: #f4f9f8;
+    z-index: 999;
+    position: relative; /* Ensure the container does not overlap */
 }
+
 .btn-group .btn {
     color: #6F6F6F;
     width: 100%; /* Make buttons stretch to fit the container */
@@ -448,6 +596,689 @@ input[type="radio"].btn-check + label:hover {
 .dashboard-summary {
     display: grid;
     padding: 0px 32px 0px 32px;
+    margin-bottom: 1.5em;
+}
+
+/* Column styling */
+
+/* Grid container */
+.parent {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    border: 2px solid #333; /* Border for the entire grid container */
+    padding: 10px; /* 25px for top/bottom, 10px for left/right */
+}
+
+/* Individual grid items */
+.parent > div {
+    border: 2px solid #333; /* Border for each grid item */
+    padding: 100px 10px; /* 25px for top/bottom, 10px for left/right */
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+.div4 {
+    grid-column: span 2 / span 2;
+}
+
+.div5 {
+    grid-column-start: 3;
+}
+
+.dashboard-top {
+    display: flex;
+    padding: 0px 32px 0px 32px;
+    font-size: 0.8em;
+}
+
+.dashboard-top-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    gap: 8px;
+    padding: 0px 32px 32px 32px;
+}
+
+.dashboard-top-grid > div {
+    border: 2px solid #333; /* Border for each grid item */
+    padding: 100px 10px; /* 25px for top/bottom, 10px for left/right */
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+/* Manage Stocks */
+.mng-stck, 
+.mng-stck-title {
+    display: block;
+    overflow: hidden;
+}
+
+.mng-stck-title {
+    padding: 0px 32px 0px 32px;
+    letter-spacing: -0.065rem;
+    color: #252525;
+}
+
+.mng-stck-title h3 {
+    font-size: 1.0em;
+    color: #6F6F6F !important;
+    font-weight: 300;
+    letter-spacing: 0em;
+}
+
+.mng-stck-search {
+    padding: 12px 32px 0px 32px;
+    display: flex;
+}
+
+.mng-stck-search input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.mng-stck-search input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.mng-stck-search button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.mng-stck-inv {
+    margin: 12px 32px 12px 32px ;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #dcdcdc;
+    background-color: #fafafa;
+    border-radius: 16px;
+    height: 38em;
+    overflow-y: scroll;
+}
+
+.mng-stck-item {
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    border: 1px solid #4CAF50;
+    border-radius: 12px;
+}
+
+.mng-stck-item-div-1 {
+    grid-row: span 2 / span 2;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #4CAF50;
+}
+
+.mng-stck-item-div-3 {
+    grid-column-start: 2;
+}
+
+.mng-stck-add-btn {
+    background-color: #6fa062;
+    color: white;
+    margin: 16px auto;
+    padding: 1.0rem;
+    border: none;
+    border-radius: 32px;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: -0.06rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.mng-stck-add-btn:hover {
+    background-color: #45a049;
+    color: #fff;
+}
+
+.product-quantity input {
+    margin-bottom: 8px !important;
+}
+
+/* Add Stocks */
+.add-stck, 
+.add-stck-title {
+    display: block;
+    overflow: scroll;
+    margin-top: 16px;
+}
+
+.add-stck-title {
+    padding: 0px 32px 0px 32px;
+    letter-spacing: -0.065rem;
+    color: #252525;
+}
+
+.add-stck-title h3 {
+    font-size: 1.0em;
+    color: #6F6F6F !important;
+    font-weight: 300;
+    letter-spacing: 0em;
+}
+
+.add-stck-input {
+    padding: 12px 32px 0px 32px;
+    display: grid;
+}
+
+.add-stck-input input, 
+.add-stck-input select {
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.add-stck-input select:focus, .add-stck-input input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.add-stck-input button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.add-stck-inv {
+    margin: 12px 32px 12px 32px ;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #dcdcdc;
+    background-color: #fafafa;
+    border-radius: 16px;
+    height: 38em;
+    overflow-y: scroll;
+}
+
+.add-stck-item {
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    border: 1px solid #4CAF50;
+    border-radius: 12px;
+}
+
+.add-stck-item-div-1 {
+    grid-row: span 2 / span 2;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #4CAF50;
+}
+
+.add-stck-item-div-3 {
+    grid-column-start: 2;
+}
+
+.button-group-stock {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons if needed */
+}
+
+.add-stck-add-btn {
+    background-color: #6fa062;
+    color: white !important;
+    margin: 0px auto;
+    border: none;
+    border-radius: 64px;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: -0.06rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.add-stck-add-btn:hover {
+    background-color: #45a049;
+    color: #fff;
+}
+
+.add-stck-cancel-btn,
+.add-stck-add-btn {
+    border-radius: 32px !important;
+}
+
+.incr-dcrn {
+    display: flex;
+    margin-bottom: 0.8rem;
+}
+
+.incr-dcrn input {
+    width: 75%;
+}
+
+.ceiling-input,
+.quantity-input {
+    display: grid;
+}
+
+.quantity-input input,
+.ceiling-input input {
+    margin-bottom: 0.5rem !important;
+}
+
+.product-date {
+    display: block;
+}
+
+.product-condition {
+    display: flex;
+    gap: 8px;
+}
+
+.incr-dcrn-edit {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+}
+
+/* Manage Orders */
+.mng-ordr, 
+.mng-ordr-title {
+    display: block;
+}
+
+.mng-ordr-title {
+    padding: 0px 32px 0px 32px;
+    letter-spacing: -0.065rem;
+    color: #252525;
+}
+
+.mng-ordr-title h3 {
+    font-size: 1.0em;
+    color: #6F6F6F !important;
+    font-weight: 300;
+    letter-spacing: 0em;
+}
+
+.mng-ordr-search {
+    padding: 12px 32px 0px 32px;
+    display: flex;
+}
+
+.mng-ordr-search input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.mng-ordr-search input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.mng-ordr-search button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.mng-ordr-inv {
+    margin: 12px 32px 12px 32px ;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #4CAF50;
+    background-color: #fafafa;
+    border-radius: 16px;
+}
+
+.mng-ordr-item {
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    border: 1px solid #4CAF50;
+    border-radius: 12px;
+}
+
+.mng-ordr-item-div-1 {
+    grid-row: span 2 / span 2;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #4CAF50;
+}
+
+.mng-ordr-item-div-3 {
+    grid-column-start: 2;
+}
+
+.mng-ordr-add-btn {
+    background-color: #6fa062;
+    color: white;
+    margin: 16px auto;
+    padding: 1.0rem;
+    border: none;
+    border-radius: 32px;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: -0.06rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.mng-ordr-add-btn:hover {
+    background-color: #45a049;
+    color: #fff;
+}
+
+/* Modal Background */
+.tooltip-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+}
+/* Modal Content */
+.tooltip-modal-content {
+    background-color: #fff;
+    margin: 15% auto; 
+    padding: 20px !important;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 500px; /* Optional: max width */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Add Order */
+.add-ordr, 
+.add-ordr-title {
+    display: block;
+    overflow: scroll;
+    margin-top: 16px;
+}
+
+.add-ordr-title {
+    padding: 0px 32px 0px 32px;
+    letter-spacing: -0.065rem;
+    color: #252525;
+}
+
+.add-ordr-input {
+    padding: 12px 32px 0px 32px;
+    display: grid;
+}
+
+.add-ordr-input input, 
+.add-ordr-input select {
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.add-ordr-input select:focus, .add-ordr-input input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.add-ordr-input button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.add-ordr-product {
+    display: flex;
+}
+
+.add-more-ordr-product {
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 50px; /* Adjust width */
+    height: 50px; /* Adjust height to make it a square */
+    border-radius: 50%; /* Rounded corners */
+    display: flex; /* Ensure that align-items works */
+    justify-content: center; /* Center the content */
+    justify-self: end; /* Align the button to the right of the grid cell */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+    align-self: center; /* Align with the label */
+}
+
+.add-ordr-inv {
+    margin: 12px 32px 12px 32px ;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #dcdcdc;
+    background-color: #fafafa;
+    border-radius: 16px;
+    height: 38em;
+    overflow-y: scroll;
+}
+
+.add-ordr-item {
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    border: 1px solid #4CAF50;
+    border-radius: 12px;
+}
+
+.add-ordr-item-div-1 {
+    grid-row: span 2 / span 2;
+    padding: 12px 32px 12px 32px;
+    border: 1px solid #4CAF50;
+}
+
+.add-ordr-item-div-3 {
+    grid-column-start: 2;
+}
+
+.button-group-stock {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons if needed */
+}
+
+.add-ordr-add-btn {
+    background-color: #6fa062;
+    color: white !important;
+    margin: 0px auto;
+    border: none;
+    border-radius: 64px;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: -0.06rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.add-ordr-add-btn:hover {
+    background-color: #45a049;
+    color: #fff;
+}
+
+.add-ordr-cancel-btn,
+.add-ordr-add-btn {
+    border-radius: 32px !important;
+}
+
+.product-ordr {
+    display: flex;
+    gap: 8px;
+}
+
+.product-notes {
+    display: grid;
+}
+
+.add-ordr-input-notes {
+    display: grid;
+}
+
+.add-ordr-input-notes textarea {
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.add-ordr-input-notes textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.add-ordr-input-notes button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.additional-notes {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+}
+
+/* order */
+
+.ordr, 
+.ordr-title {
+    display: block;
+    overflow: scroll;
+    margin-top: 16px;
+}
+
+.ordr-title {
+    padding: 0px 32px 0px 32px;
+    letter-spacing: -0.065rem;
+    color: #252525;
+}
+
+.ordr-input {
+    padding: 12px 32px 0px 32px;
+    display: grid;
+}
+
+.ordr-input input, 
+.ordr-input select {
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 1rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #545454;
+}
+
+.ordr-input select:focus, .ordr-input input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.ordr-input button {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: 58px; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.ordr-product {
+    display: flex;
+}
+
+.ordr-price {
+    padding: 12px 32px 0px 32px;
+    display: grid;
+}
+
+.ordr-price-container {
+    border: #FFF;
+    align-items: center; /* Align the button content to the center */
+    background-color: #6fa062;
+    width: max-content; /* Adjust width */
+    border-radius: 100px; /* Rounded corners */
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 700;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+    margin-bottom: 24px;
+}
+
+.ordr-price-title {
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: #fff;
+    padding: 16px;
+    margin-bottom: 0px !important;
 }
 /* Responsive adjustments */
 
@@ -459,7 +1290,10 @@ input[type="radio"].btn-check + label:hover {
     .logo {
         height: 32px;
     }
-    
+
+    .ceiling-input,
+    .quantity-input {
+        display: grid;
 }
 
 @media (max-width: 480px) {
@@ -476,13 +1310,38 @@ input[type="radio"].btn-check + label:hover {
         display: block !important;
     }
     .dashboard-title {
-        font-size: 0.7rem; /* Adjust the font size */
+        font-size: 0.9rem; /* Adjust the font size */
         margin: 0.5rem 0; /* Adjust margins if needed */
         height: auto; /* Control the height */
         width: auto; /* Control the width */
+    }
+    .btn-group {
+        display: flex;
+        justify-content: center; /* Center the buttons horizontally */
+        align-items: center; /* Center the buttons vertically (if necessary) */
+        margin: 10px 0;
+        background-color: #f4f9f8;
+        width: 100%; /* Ensure the group takes full width */
     }
     .btn-group .btn {
         padding: 0.6rem 0.4rem; /* Further decrease padding */
         font-size: 0.8rem; /* Further decrease font size */
     }
+    .parent {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 8px;
+        border: 2px solid #333; /* Border for the entire grid container */
+        padding: 10px; /* 25px for top/bottom, 10px for left/right */
+    }
+    .div4 {
+        grid-column: 2;
+    }
+    
+    .div5 {
+        grid-column-start: 1;
+    }
+}
+
 }
