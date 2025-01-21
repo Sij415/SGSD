@@ -23,7 +23,7 @@
 </header>
 <body class="add-stck">
     <div class="add-stck-title">
-        <h1><b>Coca Cola</b></h1>
+        <h1><b>Edit STock</b></h1>
     </div>
     <hr style="margin: 0 auto; width: 85%; padding: 10px;">
     <div class="add-stck-input">

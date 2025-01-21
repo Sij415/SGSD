@@ -10,34 +10,38 @@
 </head>
 
 
-    <div class="container-fluid">
+    <div class="container-fluid " >
     <div class="row flex-nowrap">
-        <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
+        <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 " style="background-color: #F2F4F0;">
             <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
-                <a href="/" class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                <a href="/" class="d-flex sgsd-redirect align-items-center pb-3 mb-md-0 me-md-auto text-dark text-decoration-none"><img src="../logo.png" class="p-1" alt="Logo" />San Gabriel Softdrinks Delivery</a>
                 <header class="main-header">
-        <nav class="main-nav">
-            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
-        </nav>
     </header>
                 <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
                     <li class="nav-item">
-                        <a href="#" class="nav-link align-middle px-0">
-                            <i class="fs-4 bi-house"></i> <span class="ms-1 d-none d-sm-inline">Home</span>
+                        <a href="../" class="nav-link align-middle px-0">
+                            <i class="fs-4 bi-house"></i> <span class="ms-1 d-none d-sm-inline">Dashboard</span>
                         </a>
                     </li>
                     <li>
                         <a href="#submenu1" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
-                            <i class="fs-4 bi-speedometer2"></i> <span class="ms-1 d-none d-sm-inline">Dashboard</span> </a>
-                        <ul class="collapse show nav flex-column ms-1" id="submenu1" data-bs-parent="#menu">
+                            <i class="fs-4 bi-speedometer2"></i> <span class="ms-1 d-none d-sm-inline">Management</span> </a>
+                        <ul class="collapse nav flex-column ms-1" id="submenu1" data-bs-parent="#menu">
                             <li class="w-100">
-                                <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Item</span> 1 </a>
+                                <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Manage Stock</span> 1 </a>
                             </li>
                             <li>
-                                <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Item</span> 2 </a>
+                                <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Manage Product</span> 2 </a>
                             </li>
+                            <li>
+                                <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Manage Orders</span> 3 </a>
+                            </li>
+                        
+                            
                         </ul>
                     </li>
+
+                    
                     <li>
                         <a href="#" class="nav-link px-0 align-middle">
                             <i class="fs-4 bi-table"></i> <span class="ms-1 d-none d-sm-inline">Orders</span></a>
@@ -96,7 +100,7 @@
             </div>
         </div>
         <div class="col py-3">
-        <body class="mng-stck">
+        <body class="pt-0">
     <div class="container">
         <div class="mng-stck-title text-center my-4">
             <h1><b>Manage</b> Stocks</h1>

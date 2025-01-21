@@ -31,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 header("Location: ../Dashboard");
                 exit();
             } else {
-                $error = "Invalid password.";
+                $error = "Invalid password or email.";
             }
         } else {
-            $error = "No user found with that email.";
+            $error = "Invalid password or email.";
         }
         $stmt->close();
     } else {

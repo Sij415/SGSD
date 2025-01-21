@@ -45,12 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">    
 </head>
 
-<header class="app-header">
-    <nav class="app-nav">
-        <a href="#" class="sidebar-btn">≡</a>
-        <a href="#" class="tooltip-btn">X</a>
-    </nav>
-</header>
+<header class="main-header">
+        <nav class="main-nav">
+            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
+        </nav>
+    </header>
 
 <body class="add-stck">
     <div class="container">
