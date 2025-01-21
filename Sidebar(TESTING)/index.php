@@ -14,14 +14,22 @@
 
 </head>
 <!-- Frontend notes: make this hidden or be linked in another file. -->
+<script>
+function openNav() {
+  document.getElementById("Sidebar").style.width = "275px";
+  document.getElementById("main").style.marginLeft = "275px";
+}
 
+function closeNav() {
+  document.getElementById("Sidebar").style.width = "0";
+  document.getElementById("main").style.marginLeft = "0";
+}
+</script>
 <!-- Import to Dashboard, ManageOrders, ManageStocks. Because this is the Sidebar as well as the heading-->
-
-<body class="mng-stck" id="body-main">
-    <div class="app-header">
+<header class="app-header">
     <nav class="app-nav">
         <a href="#" class="sidebar-btn" id="menu-toggle" onclick="openNav()">≡</a>
-        <a href="#" class="tooltip-btn">hrllo X</a>
+        <a href="#" class="tooltip-btn">X</a>
     </nav>
     
     <div id="Sidebar" class="sidebar">
@@ -44,11 +52,18 @@
             </div>
             <div class="sidebar-item">
                 <a href="#">
-                <i class="fa-solid fa-list" style="font-size:19.25px;"></i>
+                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Orders</span>
                 </a>
             </div>
+            <div class="sidebar-item">
+                <a href="#">
+                <i class="fa-solid fa-user-shield" style="font-size:13.28px;"></i>
+                <span>&nbsp;Admin</span>
+                </a>
+            </div>
         </div>
+        
         <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
         <div class="sidebar-usr">
             <div class="sidebar-pfp">
@@ -59,55 +74,21 @@
                 <h2> pogiako@gmail.io</h2>
             </div>
         </div>
-    </div>
-</div>
-
-<div>
-    <div class="mng-stck">
-    <div class="mng-stck-title">
-        <h1><b>Manage</b> Stocks</h1>
-        <h3>To view the product in detail, click the product.</h3>
-    </div>
-    <div class="mng-stck-search">
-        <input type="text" id="search" name="search" placeholder="Search...">
-        <button type="submit">X</button>
-    </div>
-    <div class="mng-stck-inv">
-        <div class="mng-stck-list">
-            <div class="mng-stck-item">
-                <div class="mng-stck-item-div-1">C</div>
-                <div class="mng-stck-item-div-2">C</div>
-                <div class="mng-stck-item-div-3">C</div>
+        <div class="sidebar-options">
+            <div class="sidebar-item">
+                <a href="#" class="sidebar-items-button">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Log out</span>
+                </a>
             </div>
-            <div class="mng-stck-item">
-                <div class="mng-stck-item-div-1">C</div>
-                <div class="mng-stck-item-div-2">C</div>
-                <div class="mng-stck-item-div-3">C</div>
+            <div class="sidebar-item">
+                <a href="#" class="sidebar-items-button">
+                    <i class="fa-solid fa-file-alt"></i>
+                    <span>Manual</span>
+                </a>
             </div>
-            <div class="mng-stck-item">
-                <div class="mng-stck-item-div-1">C</div>
-                <div class="mng-stck-item-div-2">C</div>
-                <div class="mng-stck-item-div-3">C</div>
-            </div>
-            <div class="mng-stck-item">
-                <div class="mng-stck-item-div-1">C</div>
-                <div class="mng-stck-item-div-2">C</div>
-                <div class="mng-stck-item-div-3">C</div>
-            </div>
-            <div class="mng-stck-item">
-                <div class="mng-stck-item-div-1">C</div>
-                <div class="mng-stck-item-div-2">C</div>
-                <div class="mng-stck-item-div-3">C</div>
-            </div>
-
         </div>
-    </div>
-    <div class="button-group">
-        <input class="mng-stck-add-btn" type="submit" value="Add Products">
-    </div>
-    </div>
-    </div>
-
-</body> 
+    
+</header>
  
 </html>
