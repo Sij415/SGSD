@@ -14,22 +14,14 @@
 
 </head>
 <!-- Frontend notes: make this hidden or be linked in another file. -->
-<script>
-function openNav() {
-  document.getElementById("Sidebar").style.width = "275px";
-  document.getElementById("main").style.marginLeft = "275px";
-}
 
-function closeNav() {
-  document.getElementById("Sidebar").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-}
-</script>
 <!-- Import to Dashboard, ManageOrders, ManageStocks. Because this is the Sidebar as well as the heading-->
-<header class="app-header">
+
+<body class="mng-stck" id="body-main">
+    <div class="app-header">
     <nav class="app-nav">
         <a href="#" class="sidebar-btn" id="menu-toggle" onclick="openNav()">≡</a>
-        <a href="#" class="tooltip-btn">X</a>
+        <a href="#" class="tooltip-btn">hrllo X</a>
     </nav>
     
     <div id="Sidebar" class="sidebar">
@@ -68,6 +60,54 @@ function closeNav() {
             </div>
         </div>
     </div>
-</header>
+</div>
+
+<div>
+    <div class="mng-stck">
+    <div class="mng-stck-title">
+        <h1><b>Manage</b> Stocks</h1>
+        <h3>To view the product in detail, click the product.</h3>
+    </div>
+    <div class="mng-stck-search">
+        <input type="text" id="search" name="search" placeholder="Search...">
+        <button type="submit">X</button>
+    </div>
+    <div class="mng-stck-inv">
+        <div class="mng-stck-list">
+            <div class="mng-stck-item">
+                <div class="mng-stck-item-div-1">C</div>
+                <div class="mng-stck-item-div-2">C</div>
+                <div class="mng-stck-item-div-3">C</div>
+            </div>
+            <div class="mng-stck-item">
+                <div class="mng-stck-item-div-1">C</div>
+                <div class="mng-stck-item-div-2">C</div>
+                <div class="mng-stck-item-div-3">C</div>
+            </div>
+            <div class="mng-stck-item">
+                <div class="mng-stck-item-div-1">C</div>
+                <div class="mng-stck-item-div-2">C</div>
+                <div class="mng-stck-item-div-3">C</div>
+            </div>
+            <div class="mng-stck-item">
+                <div class="mng-stck-item-div-1">C</div>
+                <div class="mng-stck-item-div-2">C</div>
+                <div class="mng-stck-item-div-3">C</div>
+            </div>
+            <div class="mng-stck-item">
+                <div class="mng-stck-item-div-1">C</div>
+                <div class="mng-stck-item-div-2">C</div>
+                <div class="mng-stck-item-div-3">C</div>
+            </div>
+
+        </div>
+    </div>
+    <div class="button-group">
+        <input class="mng-stck-add-btn" type="submit" value="Add Products">
+    </div>
+    </div>
+    </div>
+
+</body> 
  
 </html>
