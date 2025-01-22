@@ -31,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 header("Location: ../Dashboard");
                 exit();
             } else {
-                $error = "Invalid password.";
+                $error = "Invalid password or email.";
             }
         } else {
-            $error = "No user found with that email.";
+            $error = "Invalid password or email.";
         }
         $stmt->close();
     } else {
@@ -49,11 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <link rel="stylesheet" href="../style/style.css">
+    
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="../style/style.css">
 </head>
 
 <header class="main-header">
@@ -73,18 +72,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         <form action="" method="POST">
             <div class="form-group">
                 <label for="email">E-Mail</label>
+<<<<<<< HEAD
                 <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+=======
+                <input type="email" id="email" name="email" class="form-group" placeholder="Enter your email" required>
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
+<<<<<<< HEAD
                 <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+=======
+                <input type="password" id="password" name="password" class="form-group" placeholder="Enter your password" required>
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
             </div>
 
             <div class="button-group">
                 <button type="submit" name="login" class="login-btn">Login to Dashboard</button>
                 <a href="../ForgotPassword" class="forgot-btn">Forgot Password?</a>
+<<<<<<< HEAD
                 <a href="../asdasdas" class="signup-btn">Don't have an Account? Sign up</a>
+=======
+                <a href="../SignUp" class="signup-btn">Don't have an Account? Sign up</a>
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
             </div>
         </form>
     </div>

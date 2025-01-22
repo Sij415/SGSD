@@ -23,32 +23,6 @@ $result = mysqli_query($conn, $query);
 if (!$result) {
     die("Query failed: " . mysqli_error($conn));
 }
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-    $customer_name = $_POST['customer_name'];
-    $product_name = $_POST['product_name'];
-    $status = $_POST['status'];
-    $order_type = $_POST['order_type'];
-
-    // Validate input
-    if (!empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
-        $query = "INSERT INTO Orders (Customer_Name, Product_Name, Status, Order_Type) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ssss", $customer_name, $product_name, $status, $order_type);
-
-        if ($stmt->execute()) {
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
-            exit();
-        } else {
-            echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
-        }
-
-        $stmt->close();
-    } else {
-        echo "<div class='alert alert-warning'>All fields are required.</div>";
-    }
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -60,9 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     <link rel="stylesheet" href="../style/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </head>
 <header class="main-header">
         <nav class="main-nav">
@@ -70,47 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         </nav>
     </header>
 <body>
-    <!-- Add Order Button -->
-<div class="mb-4">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">Add Order</button>
-</div>
-
-<!-- Add Order Modal -->
-<div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="user_id" class="form-label">Customer Name</label>
-                        <input type="text" name="customer_name" id="customer_name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product Name</label>
-                        <input type="text" name="product_name" id="product_name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <input type="text" name="status" id="status" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="order_type" class="form-label">Order Type</label>
-                        <input type="text" name="order_type" id="order_type" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" name="add_order" class="btn btn-primary">Add Order</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
     <div class="container mt-4">
         <h1><b>Manage Orders</b></h1>
         <h3>To view the orders in detail, click the product.</h3>
