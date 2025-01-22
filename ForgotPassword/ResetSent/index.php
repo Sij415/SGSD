@@ -24,7 +24,7 @@
     <div class="login-container">
         
         <div class="logo-container">
-            <img src="assets/logo.svg" alt="SGSD Logo" class="logo">
+            <i class="fa fa-envelope-open-text" style="font-size: 50px; color: #82b370; margin-bottom: 24px;"></i>
         </div>
 
         <h1 class="main-heading">Password Request Sent</h1>

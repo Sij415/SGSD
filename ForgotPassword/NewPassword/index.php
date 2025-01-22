@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://atugatran.github.io/FontAwesome6Pro/css/all.min.css">
 
 </head>
 
@@ -23,7 +24,7 @@
     <div class="login-container">
         
         <div class="logo-container">
-            <img src="assets/logo.svg" alt="SGSD Logo" class="logo">
+        <i class="fa fa-lock" style="font-size: 50px; color: #82b370; margin-bottom: 24px;"></i>
         </div>
 
         <h1 class="main-heading">Enter your new password</h1>
