@@ -320,12 +320,13 @@ body {
     overflow-x: hidden; /* Disable horizontal scroll */
     padding-top: 60px; /* Place content 60px from the top */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
-    border-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px;
     box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.15); /* Add shadow */
   }
 
   .sidebar-items {
-    height: calc(100% - 160px); /* Use up all available space except for the top padding */
+     /* Use up all available space except for the top padding */
     overflow: hidden; /* Enable vertical scroll if content exceeds height */
   }
   
@@ -403,7 +404,7 @@ body {
   }
 
 .sidebar-usr {
-    padding: 0px 32px 32px 32px;
+    padding: 0px 32px 0px 32px;
     display: flex;
 }
 
@@ -426,6 +427,32 @@ body {
 
 .sidebar-usrname h2 {
     font-size: 0.7em !important;
+}
+
+.sidebar-options {
+    padding: 10px 0; /* Add padding for spacing */
+    display: flex;
+    justify-content: center; /* Center the sidebar options */
+    align-items: center; /* Center items vertically */
+    gap: 6px; /* Add gap between sidebar options */
+    margin-top: 8px;
+}
+.sidebar-items-button {
+    display: flex; /* Ensure flex properties are applied */
+    justify-content: center;
+    align-items: center; /* Align icon and text vertically */
+    text-decoration: none; /* Removes underline from links */
+    color: #ffffff !important; /* Adjust text color as needed */
+    font-size: 12px;
+    letter-spacing: -0.050em !important;
+    border-radius: 32px;
+    padding: 12px; /* Equal padding for consistent size */
+    background-color: #6fa062;
+    width: 100%; /* Equal width for all buttons */
+    transition: transform 0.3s; /* Smooth background color and scale transition */
+}
+.sidebar-items-button:hover {
+    transform: scale(1.05); /* Scale up on hover */
 }
   
   /* Style page content - use this if you want to push the page content to the right when you open the side navigation */
@@ -451,7 +478,7 @@ body {
 
 .app-nav {
     font-family: 'Inter', sans-serif !important;
-    max-width: 1200px;
+
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1293,6 +1320,12 @@ input[type="radio"].btn-check + label:hover {
     .quantity-input {
         display: grid;
     }
+    
+@media (max-height: 440px) {
+    .sidebar-items {
+        overflow-y: scroll;
+    }
+}
 }
 
 @media (max-width: 480px) {
@@ -1341,4 +1374,22 @@ input[type="radio"].btn-check + label:hover {
     .div5 {
         grid-column-start: 1;
     }   
+}
+
+.add-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #ffffff !important;
+    font-size: 12px;
+    letter-spacing: -0.050em !important;
+    border-radius: 10px;
+    padding: 12px;
+    border: none; white-space: nowrap;
+    background-color: #6fa062;
+    transition: transform 0.3s;
+}
+.add-btn:hover {
+    transform: scale(1.05);
 }

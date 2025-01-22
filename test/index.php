@@ -1,29 +1,8 @@
 <?php
 // Include database connection
 include '../dbconnect.php';
-session_start(); // Start the session
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
-// Check if session exists and user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // Redirect user to login page if session doesn't exist
-    header('Location: ../'); // Replace with actual login page
-    exit();
-} else {
-    // Fetch user details from session
-    $user_id = $_SESSION['user_id'];
-
-    // Get the user's first name and email from the database
-    $query = "SELECT First_Name, Email FROM Users WHERE User_ID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $user_id); // Bind the User_ID as an integer
-    $stmt->execute();
-    $stmt->bind_result($first_name, $email);
-    $stmt->fetch();
-    $stmt->close();
-
-}
 
 // Fetch order data from the database
 $query = "SELECT 
@@ -38,9 +17,7 @@ $query = "SELECT
           INNER JOIN Customers ON Users.User_ID = Customers.Customer_ID
           INNER JOIN Products ON Orders.Product_ID = Products.Product_ID";
 
-$stmt = $conn->prepare($query);
-$stmt->execute();
-$result = $stmt->get_result();
+$result = mysqli_query($conn, $query);
 
 // Check for query errors
 if (!$result) {
@@ -74,194 +51,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 
 ?>
 
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../style/style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-  <title>Responsive Sidebar</title>
-  <style>
-    .table-striped>tbody>tr:nth-child(odd)>td, 
-.table-striped>tbody>tr:nth-child(odd)>th {
-   background-color: #f4f9f8; // Choose your own color here
- }
-    /* Base styles */
-    body {
-      margin: 0;
-      
-      display: flex;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders</title>
+    <link rel="stylesheet" href="../style/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    .sidebar {
-  display: flex;
-  width: 250px;
-  height: 100vh; 
-  position: fixed;
-  top: 0;
-  left: -250px; /* Hidden by default */
-  transition: left 0.3s ease;
-  z-index: 1000;
-
- 
-
-  overflow-x: hidden;
-
-}
-
-
-    .sidebar.active {
-      left: 0;
-    }
-
-    .sidebar .close-btn {
-      display: none;
-    }
-
-    .content {
-      flex-grow: 1;
-      margin-left: 0;
-      padding-top: 2em;
-      padding: 3.5em 1em;
-      transition: margin-left 0.3s ease;
-    }
-
-    .toggle-btn {
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 0.5em 1em;
-      cursor: pointer;
-    }
-    /* Responsive styles */
-    @media (min-width: 768px) {
-      .sidebar {
-        position: relative;
-        left: 0;
-      }
-
-      .content {
-        margin-left: 1rem;/* Push content for medium screens and above */
-      }
-
-      .toggle-btn {
-        display: none;
-      }
-
-      .sidebar .close-btn {
-        display: none; /* Hide close button on larger screens */
-      }
-    }
-
-    @media (max-width: 767.98px) {
-      .sidebar .close-btn {
-        display: block; /* Show close button only on smaller screens */
-        color: #fff;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        position: absolute;
-        top: 10px;
-        right: 15px;
-      }
-    }
-  </style>
 </head>
-<body class="p-0">
-<header class="app-header">
-  <nav class="app-nav d-flex justify-content-between">
-    <!-- Sidebar button visible only on smaller screens -->
-    <a class="sidebar-btn d-md-none" id="toggleBtn">☰</a>
-    
-    <!-- "X" button aligned to the right on larger screens -->
-    <a href="#" class="d-md-flex ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
-    
-    <!-- "X" button visible on smaller screens, aligned left -->
-  </nav>
-</header>
-
-<div id="sidebar" class="sidebar d-flex flex-column">
-        <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
- 
-        <div class="sidebar-items">
-            <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-            <div class="sidebar-item">
-                <a href="#" class="sidebar-items-a">
-                <i class="fa-solid fa-border-all"></i>
-                <<span>&nbsp;Dashboard</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="./">
-                    <i class="fa-solid fa-box"></i>
-                    <span>&nbsp;ManageStocks</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="#">
-                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Orders</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="#">
-                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Orders</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="#">
-                <i class="fa-solid fa-user-shield" style="font-size:13.28px;"></i>
-                <span>&nbsp;Admin</span>
-                </a>
-            </div>
-        </div>
-        
-        <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
-        <div class="mt-auto p-2">
-        <div class="sidebar-usr">
-            <div class="sidebar-pfp">
-                <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
-            </div>
-            <div class="sidebar-usrname">
-                <h1><?php
-                echo htmlspecialchars($first_name);
-                
-                
-                
-                htmlspecialchars($email)
-                ?></h1>
-                <h2><?php
-                echo  htmlspecialchars($email)
-                
-                
-                ?></h2>
-            </div>
-        </div>
-        <div class="sidebar-options ">
-            <div class="sidebar-item">
-                <a href="#" class="sidebar-items-button">
-                    <i class="fa-solid fa-sign-out-alt"></i>
-                    <span>Log out</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="#" class="sidebar-items-button">
-                    <i class="fa-solid fa-file-alt"></i>
-                    <span>Manual</span>
-                </a>
-            </div>
-        </div></div>
- 
-        </div>
-  <div class="content">
-
+<header class="main-header">
+        <nav class="main-nav">
+            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
+        </nav>
+    </header>
+<body>
+    <!-- Add Order Button -->
+<div class="mb-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">Add Order</button>
+</div>
 
 <!-- Add Order Modal -->
 <div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
@@ -304,24 +116,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         <h3>To view the orders in detail, click the product.</h3>
 
         <!-- Search Box -->
-        <div class="d-flex align-items-center justify-content-between mb-3">
-    <!-- Search Input Group -->
-    <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
-        <button class="btn btn-outline-secondary" type="button" id="search">
-            <i class="fa fa-search"></i>
-        </button>
-    </div>
-
-    <!-- Add Order Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addOrderModal">Add Order</button>
-</div>
-
-
+        <div class="mb-3">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search...">
+        </div>
 
         <!-- Table Layout (Visible on larger screens) -->
-        <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered">
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Order ID</th>
@@ -330,7 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                         <th>Product Name</th>
                         <th>Status</th>
                         <th>Order Type</th>
-                        <th>Edit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -343,7 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                                 <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                 <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
-                                <td class="text-dark text-center"><a href=""><i class="bi bi-pencil-square"></i></a></td>
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -395,19 +194,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                 <p>No orders found.</p>
             <?php endif; ?>
     </div>
-  </div>
-  <script>
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleBtn');
-
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('active');
-    });
-
-    function closeNav() {
-      sidebar.classList.remove('active');
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

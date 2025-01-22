@@ -120,6 +120,10 @@ $conn->close();
             <input type="password" id="password" name="password" required>
         </div>
         <div class="form-field-signup">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-field-signup">
             <label for="role">Role:</label>
             <select id="role" name="role" required>
                 <option value="driver">Driver</option>
