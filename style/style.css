@@ -406,6 +406,7 @@ body {
 .sidebar-usr {
     padding: 0px 16px 0px 16px;
     display: flex;
+    
 }
 
 .sidebar-usr img {
@@ -420,6 +421,7 @@ body {
     letter-spacing: -0.025em !important;
     white-space: normal;
     overflow-wrap: break-word; /* Allow long text to wrap */
+    flex: 1; /* Occupy all remaining flex space */
 }
 
 .sidebar-usrname h1 {
@@ -430,10 +432,8 @@ body {
 }
 
 .sidebar-usrname h2 {
-    font-size: 0.8em !important;
-    white-space: normal;
-    width: 50%;
-    margin-right: 0.5em;
+    font-size: 0.8em; /* Removed !important for better specificity control */
+    width: 65%;
     line-height: 1.2; /* Adjust line height for better spacing */
 }
 
@@ -1313,6 +1313,66 @@ input[type="radio"].btn-check + label:hover {
     padding: 16px;
     margin-bottom: 0px !important;
 }
+
+body{padding: 0em;}
+.sgsd-mail-success {
+    text-align: left;
+	background: #fff;
+    font-family: 'Inter', sans-serif !important;
+    letter-spacing: -0.050em;
+}
+.sgsd-mail-success .sgsd-success-inner {
+	display: inline-block;
+    padding: 32px;
+}
+.sgsd-mail-success .sgsd-success-inner h1 {
+    font-size: 100px;
+	text-shadow: 3px 5px 2px #3333;
+	color: #82b370;
+	font-weight: 700;
+}
+.sgsd-mail-success .sgsd-success-inner h1 span {
+	display: block;
+	font-size: 0.35em;
+	color: #545454;
+	font-weight: 600;
+	text-shadow: none;
+	margin-top: 20px;
+    font-weight: 800;
+}
+.sgsd-success-inner i {
+    font-size: 0.75em;
+}
+.sgsd-mail-success .sgsd-success-inner p {
+    color: #7c8089;
+}
+.sgsd-mail-success .sgsd-success-inner .btn{
+	color:#fff;
+}
+
+/* Media query for medium devices */
+@media (max-width: 480px) {
+    .sgsd-mail-success .sgsd-success-inner {
+        padding: 16px; /* Adjust padding for smaller screens */
+    }
+    .sgsd-mail-success .sgsd-success-inner h1 {
+        font-size: 60px; /* Reduce font size for smaller screens */
+    }
+    .sgsd-mail-success .sgsd-success-inner h1 span {
+        font-size: 0.5em; /* Adjust span font size */
+    }
+}
+
+
+.container-mail {
+    background-color: #f2f4f0; /* Light gray background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 32px; /* Padding for inner content */
+    margin: 20px auto; /* Center the container */
+    max-width: 600px; /* Maximum width for the container */
+}
+
 /* Responsive adjustments */
 
 @media (max-width: 768px) {

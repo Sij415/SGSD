@@ -71,7 +71,7 @@ function closeNav() {
             </div>
             <div class="sidebar-usrname">
                 <h1>pogi ako</h1>
-                <h2> pogiako@gmail.io</h2>
+                <h2>sangabrielsoftdrinksdelivery@gmail.com</h2>
             </div>
         </div>
         <div class="sidebar-options">
