@@ -14,21 +14,6 @@
 
 </head>
 
-<script>
-/* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
-function openNav() {
-  document.getElementById("Sidebar").style.width = "275px";
-  document.getElementById("main").style.marginLeft = "275px";
-}
-
-/* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
-function closeNav() {
-  document.getElementById("Sidebar").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-}
-
-</script>
-
 <header class="main-header">
     <nav class="main-nav">
         <a href="../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
@@ -39,7 +24,7 @@ function closeNav() {
 <section class="sgsd-mail-success section">
 	<div class="container">
 		<div class="row">
-			<div class="col-lg-6 offset-lg-3 col-12">
+			<div class="col-lg-0 offset-lg-0 col-12">
 				<!-- Success Inner -->
 				<div class="sgsd-success-inner">
 					<h1><i class="fa fa-key"></i><span>You have requested to change your password.</span></h1>
