@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
-   background-color: #f4f9f8; // Choose your own color here
+   background-color: #f4f9f8;
  }
     /* Base styles */
     body {
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     <a class="sidebar-btn d-md-none" id="toggleBtn">☰</a>
     
     <!-- "X" button aligned to the right on larger screens -->
-    <a href="#" class="d-md-flex ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
+    <a href="#" class="d-md-flex d-md-none ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
     
     <!-- "X" button visible on smaller screens, aligned left -->
   </nav>
@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
             <div class="sidebar-item">
                 <a href="#" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
-                <<span>&nbsp;Dashboard</span>
+                <span>&nbsp;Dashboard</span>
                 </a>
             </div>
             <div class="sidebar-item">
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item">
+            <div class="sidebar-item d-none d-sm-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
