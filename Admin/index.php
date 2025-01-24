@@ -13,15 +13,8 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </head>
-<body>
 
-<!-- change the header to the master branch -->
-<header class="app-header">
-    <nav class="app-nav">
-        <a href="#" class="back-btn"><</a>
-        <a href="#" class="tooltip-btn">X</a>
-    </nav>
-</header>
+<body>
 
 <section class="admin">
 
@@ -60,7 +53,7 @@
 </div>
 <div style="padding: 16px;"><hr></div>
 <div class="admin-restrictions">
-    <h2 class="p-3">Adsadas</h2>
+    <h2 class="p-3" style="letter-spacing: -0.050em;"><b>This is Title</b></h2>
         <div class="d-flex justify-content-between align-items-start p-3">
             <div class="admin-restrictions-title d-flex flex-column mb-3">
                     <h3 style="letter-spacing: -0.045em;">

@@ -308,6 +308,31 @@ body {
     background-color: #d7fcca;
 }
 
+.back-btn-header {
+    background-color: #6fa062;
+    border: none !important;
+    color: #ffffff;
+    cursor: pointer;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: -0.06rem;
+    width: 50px;
+    height: 50px;
+    display: flex; /* Using flexbox for centering */
+    align-items: center; /* Centering vertically */
+    justify-content: center; /* Centering horizontally */
+    transition: background-color 0.3s;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* More subtle, balanced shadow */
+}
+
+.back-btn-header:hover {
+    color: #45a049;
+    background-color: #d7fcca;
+}
+
+
 /* Sidebar for Dashboard */
 
 /* The sidebar menu */
@@ -1299,42 +1324,6 @@ input[type="radio"].btn-check + label:hover {
     margin-bottom: 0px !important;
 }
 
-body{padding: 0em;}
-.sgsd-mail-success {
-    text-align: left;
-	background: #fff;
-    font-family: 'Inter', sans-serif !important;
-    letter-spacing: -0.050em;
-}
-.sgsd-mail-success .sgsd-success-inner {
-	display: inline-block;
-    padding: 32px;
-}
-.sgsd-mail-success .sgsd-success-inner h1 {
-    font-size: 100px;
-	text-shadow: 3px 5px 2px #3333;
-	color: #82b370;
-	font-weight: 700;
-}
-.sgsd-mail-success .sgsd-success-inner h1 span {
-	display: block;
-	font-size: 0.35em;
-	color: #545454;
-	font-weight: 600;
-	text-shadow: none;
-	margin-top: 20px;
-    font-weight: 800;
-}
-.sgsd-success-inner i {
-    font-size: 0.75em;
-}
-.sgsd-mail-success .sgsd-success-inner p {
-    color: #7c8089;
-}
-.sgsd-mail-success .sgsd-success-inner .btn{
-	color:#fff;
-}
-
 /* Admin Title */
 .admin-title h3 {
     display: block;
@@ -1373,30 +1362,6 @@ body{padding: 0em;}
     color: #6F6F6F !important;
     font-weight: 300;
     line-height: 1.5; /* Adjusted vertical spacing */
-}
-
-
-/* Media query for medium devices */
-@media (max-width: 480px) {
-    .sgsd-mail-success .sgsd-success-inner {
-        padding: 16px; /* Adjust padding for smaller screens */
-    }
-    .sgsd-mail-success .sgsd-success-inner h1 {
-        font-size: 60px; /* Reduce font size for smaller screens */
-    }
-    .sgsd-mail-success .sgsd-success-inner h1 span {
-        font-size: 0.5em; /* Adjust span font size */
-    }
-}
-
-
-.container-mail {
-    background-color: #f2f4f0; /* Light gray background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    border-radius: 8px; /* Rounded corners */
-    padding: 32px; /* Padding for inner content */
-    margin: 20px auto; /* Center the container */
-    max-width: 600px; /* Maximum width for the container */
 }
 
 /* Responsive adjustments */
