@@ -1,7 +1,5 @@
 <?php
 // Enable error reporting
-
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -18,9 +16,25 @@ if (!isset($_SESSION['user_id'])) {
 // Include the database connection
 include('../dbconnect.php');
 
+// Fetch the user's role from the database
+$user_id = $_SESSION['user_id'];
+$role = "";
 
-// The rest of your protected content will go here
+$sql = "SELECT Role, First_Name FROM users WHERE User_ID = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $role = htmlspecialchars($user['Role']);
+    $_SESSION['First_Name'] = htmlspecialchars($user['First_Name']); // Store first name in the session
+} else {
+    $role = "Unknown";
+}
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -41,8 +55,13 @@ include('../dbconnect.php');
         <div class="d-flex align-items-center mb-4">
             <h1 class="fw-bold">ANALYTICS DASHBOARD</h1>
         </div>
+
+        <!-- Welcome Message with Role -->
         <?php if (isset($_SESSION['user_id'])): ?>
-            <div class="alert alert-success">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</div>
+            <div class="alert alert-success">
+                Welcome, <strong><?php echo htmlspecialchars($_SESSION['First_Name']); ?></strong>!<br>
+                <span class="text-muted">Role: <strong><?php echo $role; ?></strong></span>
+            </div>
         <?php endif; ?>
 
         <!-- Tabs -->
