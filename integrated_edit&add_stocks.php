@@ -190,7 +190,7 @@ $result = $conn->query($query);
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <input type="hidden" id="edit_stock_id" name="stock_id">
+                    <input type="hidden" id="edit_stock_id" name="Stock_ID">
                     <div class="mb-3">
                         <label for="edit_new_stock" class="form-label">New Stock</label>
                         <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" required>
