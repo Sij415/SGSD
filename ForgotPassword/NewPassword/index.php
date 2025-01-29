@@ -73,6 +73,7 @@ $result = $stmt->get_result();
 
 $user = $result->fetch_assoc();
 
+
 if ($user === null) {
     die("<script>
         Swal.fire({
@@ -133,6 +134,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 
 

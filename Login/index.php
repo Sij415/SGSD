@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     // If no cooldown or cooldown expired, proceed with login attempt
     if (!isset($error)) {
         // Prepare query to get user data based on email
-        $sql = "SELECT * FROM Users WHERE Email = ?";
+        $sql = "SELECT * FROM Users WHERE Email = ? AND account_activation_hash IS NULL";
         $stmt = $conn->prepare($sql);
 
         if ($stmt) {
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
                 }
             } else {
-                // Email does not exist, handle cooldown
+                // Email does not exist or account_activation_hash is not null, handle cooldown
                 $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
             }
             $stmt->close();
@@ -117,7 +117,7 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             $update_stmt = $conn->prepare($update_sql);
             $update_stmt->bind_param("is", $attempts, $ip_address);
             $update_stmt->execute();
-            return "The username or password you entered is incorrect. You have " . (5 - $attempts) . " attempts remaining.";
+            return "The username or password you entered is incorrect. You have ". (5 - $attempts) . " attempts remaining. If you have not activated your account, please check your email for the activation link.";
         }
     } else {
         // First failed attempt for this IP
@@ -125,10 +125,11 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
         $insert_stmt = $conn->prepare($insert_sql);
         $insert_stmt->bind_param("ss", $email, $ip_address);
         $insert_stmt->execute();
-        return "The username or password you entered is incorrect. You have 4 attempts remaining.";
+        return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>

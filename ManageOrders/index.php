@@ -85,7 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
   <link rel="stylesheet" href="../style/style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-  <title>Responsive Sidebar</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <title>Manage Orders</title>
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
@@ -200,25 +202,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
             <div class="sidebar-item">
                 <a href="./">
                     <i class="fa-solid fa-box"></i>
-                    <span>&nbsp;ManageStocks</span>
+                    <span>&nbsp;Manage Stocks</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
+                <a href="#">
+                <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
+                <span>&nbsp;Manage Orders</span>
                 </a>
             </div>
             <div class="sidebar-item">
                 <a href="#">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Orders</span>
+                <span>&nbsp;Manage Product</span>
                 </a>
             </div>
             <div class="sidebar-item">
                 <a href="#">
-                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Orders</span>
+                <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
+                <span>&nbsp;Manage Customer</span>
                 </a>
             </div>
             <div class="sidebar-item">
                 <a href="#">
-                <i class="fa-solid fa-user-shield" style="font-size:13.28px;"></i>
-                <span>&nbsp;Admin</span>
+                <i class="bi bi-gear" style="font-size:13.28px;"></i>
+                <span>&nbsp;Admin Settings</span>
                 </a>
             </div>
         </div>
