@@ -1,6 +1,7 @@
 <?php
 // Include the database connection
 include('../dbconnect.php');
+date_default_timezone_set("Asia/Manila");
 session_start();
 
 // Check if the admin has enabled sign-ups
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
         if ($current_time < $locked_until) {
             $remaining_time = $locked_until - $current_time;
-            $error = "Too many failed attempts. Please try again in $remaining_time seconds.";
+            $error = " Too many failed attempts. Please try again in <span id='countdown'>$remaining_time</span> seconds.";
         } else {
             // Cool-down expired, reset attempts
             $reset_sql = "UPDATE IP_Cooldown SET Attempts = 0, Locked_Until = NULL WHERE IP_Address = ?";
@@ -76,9 +77,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $delete_stmt->execute();
 
                     // Store user data in session
-                    $_SESSION['user_id'] = $user['User_ID'];
-                    $_SESSION['role'] = $user['Role'];
-                    $_SESSION['first_name'] = $user['First_Name'];
+                
+                    $_SESSION['user_id'] = hash('sha256', $user['User_ID']);
+                    $_SESSION['role'] = hash('sha256', $user['Role']);
+                    $_SESSION['email'] = $user['Email'];
+                    $_SESSION['first_name'] = hash('sha256', $user['First_Name']);
+
+
+
+
+
+
+
+
+
+
+
+
+                    
 
                     // Redirect to dashboard based on the role
                     header("Location: ../Dashboard");
@@ -111,7 +127,7 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             $update_stmt = $conn->prepare($update_sql);
             $update_stmt->bind_param("iss", $attempts, $locked_until, $ip_address);
             $update_stmt->execute();
-            return "Too many failed attempts. Please try again in $cooldown_period seconds.";
+            return "Too many failed attempts. Please try again in <span id='countdown'>$cooldown_period</span> seconds.";
         } else {
             $update_sql = "UPDATE IP_Cooldown SET Attempts = ?, Last_Attempt = NOW() WHERE IP_Address = ?";
             $update_stmt = $conn->prepare($update_sql);
@@ -129,8 +145,6 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
     }
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -155,9 +169,7 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
         <h1 class="main-heading">Welcome Back</h1>
         <p class="sub-heading">Welcome back to SGSD! Please enter your details below to login.</p>
 
-        
-
-        <form action="" method="POST">
+        <form action="./" method="POST">
             <div class="form-group">
                 <label for="email">E-Mail</label>
                 <input type="email" id="email" name="email" class="form-group" placeholder="Enter your email" required>
@@ -170,7 +182,6 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             <!-- Display error message if any -->
         <?php if (isset($error)) { echo "<div class='alert alert-danger'>$error</div>"; } ?>
 
-
             <div class="button-group">
                 <button type="submit" name="login" class="login-btn">Login to Dashboard</button>
                 <a href="../ForgotPassword" class="forgot-btn">Forgot Password?</a>
@@ -180,6 +191,53 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             </div>
         </form>
     </div>
+    <script>
+    function formatTime(seconds) {
+        let years = Math.floor(seconds / (365 * 24 * 60 * 60));
+        seconds %= (365 * 24 * 60 * 60);
+
+        let months = Math.floor(seconds / (30 * 24 * 60 * 60));
+        seconds %= (30 * 24 * 60 * 60);
+
+        let days = Math.floor(seconds / (24 * 60 * 60));
+        seconds %= (24 * 60 * 60);
+
+        let hours = Math.floor(seconds / (60 * 60));
+        seconds %= (60 * 60);
+
+        let minutes = Math.floor(seconds / 60);
+        let sec = seconds % 60;
+
+        let formatted = "";
+        if (years > 0) formatted += `${years} year${years > 1 ? "s" : ""} `;
+        if (months > 0) formatted += `${months} month${months > 1 ? "s" : ""} `;
+        if (days > 0) formatted += `${days} day${days > 1 ? "s" : ""} `;
+        if (hours > 0) formatted += `${hours} hour${hours > 1 ? "s" : ""} `;
+        if (minutes > 0) formatted += `${minutes} minute${minutes > 1 ? "s" : ""} `;
+        if (sec > 0) formatted += `${sec} second${sec > 1 ? "s" : ""}`;
+
+        return formatted.trim();
+    }
+
+    let countdownElement = document.getElementById("countdown");
+
+    if (countdownElement) {
+        let timeLeft = parseInt(countdownElement.innerText);
+
+        function updateCountdown() {
+            if (timeLeft > 0) {
+                countdownElement.innerText = formatTime(timeLeft);
+                timeLeft--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                location.reload();
+            }
+        }
+
+        updateCountdown();
+    }
+</script>
+
 </body>
 
 <footer class="footer">

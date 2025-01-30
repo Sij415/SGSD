@@ -82,6 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
 
 
 
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -312,10 +315,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
                     </h5>
                 </div>
                 <div class="d-flex align-items-center">
+        
+        <input type="number" class="form-control mx-5" id="signup-amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 150px;">
         <div class="form-check form-switch me-3">
         <input class="form-check-input" type="checkbox" id="account-restrictions" name="sign_up_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
         </div>
-        <input type="number" class="form-control" id="signup-amount" name="signup_amount" placeholder="Set" value="">
+    </div>
         </div>
         <div class="d-flex justify-content-between align-items-start p-3">
             <div class="admin-restrictions-title d-flex flex-column mb-3">
@@ -329,13 +334,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
                 <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" name="admin_signup_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
                 </div>
-                
-                
             </div>
             <div class="d-flex justify-content-end p-3">
                 <button type="submit" name="save_settings" class="btn btn-primary">Save Settings</button>
+           
             </div>
-        </form>
+            </form>
         </div>
 <div style="padding: 16px;"><hr></div>
 </section>

@@ -6,18 +6,30 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // Redirect to the homepage if no valid session
-    header("Location: ../");
-    exit();
-}
 
+// echo $_SESSION['user_id'];
+// echo $_SESSION['role'];
+// echo $_SESSION['first_name'];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$required_role = 'admin';
 // Include the database connection
 include('../dbconnect.php');
-
+include('../check_session.php');
 
 // The rest of your protected content will go here
 
