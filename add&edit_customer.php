@@ -2,7 +2,7 @@
 // Include the database connection file
 include 'dbconnect.php';
 
-// Handle adding stock
+// Handle adding customer
 if (isset($_POST['add_customer'])) {
     $customer_id = $_POST['Customer_ID'];
     $product_id = $_POST['Product_ID'];
@@ -35,7 +35,7 @@ if (isset($_POST['add_customer'])) {
     if ($stmt->execute()) {
         $success_message = "Customer record added successfully.";
     } else {
-        $error_message = "Error adding stock: " . $stmt->error;
+        $error_message = "Error adding customer record: " . $stmt->error;
     }
 
     $stmt->close();
