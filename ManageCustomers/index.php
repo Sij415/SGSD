@@ -16,7 +16,7 @@ $query = "SELECT First_Name, Email FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_id); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($first_name, $email);
+$stmt->bind_result($user_first_name, $email);
 $stmt->fetch();
 $stmt->close();
 
@@ -26,10 +26,7 @@ $stmt->close();
 
 
 
-
-
-
-// Handle adding stock
+// Handle adding customer
 if (isset($_POST['add_customer'])) {
     $customer_id = $_POST['Customer_ID'];
     $product_id = $_POST['Product_ID'];
@@ -62,12 +59,11 @@ if (isset($_POST['add_customer'])) {
     if ($stmt->execute()) {
         $success_message = "Customer record added successfully.";
     } else {
-        $error_message = "Error adding stock: " . $stmt->error;
+        $error_message = "Error adding customer record: " . $stmt->error;
     }
 
     $stmt->close();
 }
-
 
 // Handle editing customer
 if (isset($_POST['edit_customer'])) {
@@ -274,7 +270,7 @@ $result = $conn->query($query);
 
 
 
-                echo htmlspecialchars($first_name);
+                echo htmlspecialchars($user_first_name);
                 
                 
                 
