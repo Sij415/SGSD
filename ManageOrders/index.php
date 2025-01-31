@@ -5,25 +5,20 @@ session_start(); // Start the session
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Check if session exists and user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // Redirect user to login page if session doesn't exist
-    header('Location: ../'); // Replace with actual login page
-    exit();
-} else {
-    // Fetch user details from session
-    $user_id = $_SESSION['user_id'];
 
-    // Get the user's first name and email from the database
-    $query = "SELECT First_Name, Email FROM Users WHERE User_ID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $user_id); // Bind the User_ID as an integer
-    $stmt->execute();
-    $stmt->bind_result($first_name, $email);
-    $stmt->fetch();
-    $stmt->close();
+// Fetch user details from session
+$user_id = $_SESSION['email'];
+// Get the user's first name and email from the database
+$query = "SELECT First_Name, Email FROM Users WHERE Email = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $user_id); // Bind the email as a string
+$stmt->execute();
+$stmt->bind_result($first_name, $email);
+$stmt->fetch();
+$stmt->close();
 
-}
+
+
 
 // Fetch order data from the database
 $query = "SELECT 

@@ -1,6 +1,33 @@
 <?php
-// Include the database connection file
+// Include database connection
+
+$required_role = 'admin';
+include('../check_session.php');
 include '../dbconnect.php';
+ // Start the session
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+
+// Fetch user details from session
+$user_id = $_SESSION['email'];
+// Get the user's first name and email from the database
+$query = "SELECT First_Name, Email FROM Users WHERE Email = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $user_id); // Bind the email as a string
+$stmt->execute();
+$stmt->bind_result($first_name, $email);
+$stmt->fetch();
+$stmt->close();
+
+
+
+
+
+
+
+
+
 
 // Handle adding stock
 if (isset($_POST['add_customer'])) {
@@ -41,6 +68,7 @@ if (isset($_POST['add_customer'])) {
     $stmt->close();
 }
 
+
 // Handle editing customer
 if (isset($_POST['edit_customer'])) {
     $customer_id = $_POST['Customer_ID'];
@@ -64,6 +92,11 @@ if (isset($_POST['edit_customer'])) {
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
+
+
+
+
+
 ?>
 
 
@@ -230,6 +263,17 @@ $result = $conn->query($query);
             </div>
             <div class="sidebar-usrname">
                 <h1><?php
+                
+
+
+
+
+
+
+
+
+
+
                 echo htmlspecialchars($first_name);
                 
                 
