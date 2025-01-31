@@ -218,33 +218,33 @@ $result = $conn->query($query);
         <div class="sidebar-items">
             <hr style="width: 75%; margin: 0 auto; padding: 12px;">
             <div class="sidebar-item">
-                <a href="#" class="sidebar-items-a">
+                <a href="./Dashboard" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
                 <span>&nbsp;Dashboard</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./">
+                <a href="./ManageStocks">
                     <i class="fa-solid fa-box"></i>
                     <span>&nbsp;Manage Stocks</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="#">
+                <a href="./ManageOrders">
                 <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Orders</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageProducts">
+                <a href="./ManageProduct">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Products</span>
+                <span>&nbsp;Manage Product</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="/ManageCustomers">
+                <a href="./ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Customers</span>
+                <span>&nbsp;Manage Customer</span>
                 </a>
             </div>
             <div class="sidebar-item">
