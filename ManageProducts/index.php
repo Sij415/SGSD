@@ -21,84 +21,52 @@ $stmt->fetch();
 $stmt->close();
 
 
-// Handle adding stock
-if (isset($_POST['add_stock'])) {
-    $user_id = $_POST['User_ID'];
+// Handle adding product
+if (isset($_POST['add_product'])) {
     $product_id = $_POST['Product_ID'];
-    $old_stock = $_POST['Old_Stock'];
-    $new_stock = $_POST['New_Stock'];
-    $threshold = $_POST['Threshold'];
+    $product_name = $_POST['Product_Name'];
+    $product_type= $_POST['Product_Type'];
+    $price = $_POST['Price'];
 
-    // Insert User_ID if it doesn't exist
-    $user_check_query = "SELECT User_ID FROM Users WHERE User_ID = ?";
-    $user_stmt = $conn->prepare($user_check_query);
-    $user_stmt->bind_param("i", $user_id);
-    $user_stmt->execute();
-    $user_result = $user_stmt->get_result();
-
-    if ($user_result->num_rows === 0) {
-        $insert_user_query = "INSERT INTO Users (User_ID) VALUES (?)";
-        $insert_user_stmt = $conn->prepare($insert_user_query);
-        $insert_user_stmt->bind_param("i", $user_id);
-        $insert_user_stmt->execute();
-        $insert_user_stmt->close();
-    }
-
-    $user_stmt->close();
-
-    // Insert Product_ID if it doesn't exist
-    $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
-    $product_stmt = $conn->prepare($product_check_query);
-    $product_stmt->bind_param("i", $product_id);
-    $product_stmt->execute();
-    $product_result = $product_stmt->get_result();
-
-    if ($product_result->num_rows === 0) {
-        $insert_product_query = "INSERT INTO Products (Product_ID) VALUES (?)";
-        $insert_product_stmt = $conn->prepare($insert_product_query);
-        $insert_product_stmt->bind_param("i", $product_id);
-        $insert_product_stmt->execute();
-        $insert_product_stmt->close();
-    }
-
-    $product_stmt->close();
-
-    // Proceed with inserting into Stocks table
-    $query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
+    // Proceed with inserting into Product table
+    $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iiiii", $user_id, $product_id, $old_stock, $new_stock, $threshold);
+    $stmt->bind_param("issi", $product_id, $product_name, $product_type, $price);
 
     if ($stmt->execute()) {
-        $success_message = "Stock added successfully.";
+        $success_message = "Product added successfully.";
     } else {
-        $error_message = "Error adding stock: " . $stmt->error;
+        $error_message = "Error adding product: " . $stmt->error;
     }
 
     $stmt->close();
 }
 
-// Handle editing stock
-if (isset($_POST['edit_stock'])) {
-    $stock_id = $_POST['Stock_ID'];
-    $new_stock = $_POST['New_Stock'];
-    $threshold = $_POST['Threshold'];
+// Handle editing product
+if (isset($_POST['edit_product'])) {
+    $product_id = $_POST['Product_ID'];
+    $new_productname = $_POST['New_ProductName'];
+    $new_producttype = $_POST['New_ProductType'];
+    $new_price = $_POST['New_Price'];
 
-    $query = "UPDATE Stocks SET New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iii", $new_stock, $threshold, $stock_id);
+    $stmt->bind_param("ssii", $new_productname, $new_producttype, $new_price, $product_id);
 
     if ($stmt->execute()) {
-        $success_message = "Stock updated successfully.";
+        $success_message = "Product updated successfully.";
     } else {
-        $error_message = "Error updating stock: " . $stmt->error;
+        $error_message = "Error updating product: " . $stmt->error;
     }
 
     $stmt->close();
 }
 
-// Fetch stocks
-$query = "SELECT * FROM Stocks";
+// Fetch products
+$query = "SELECT * FROM Products";
 $result = $conn->query($query);
+
+
 
 
 
@@ -117,7 +85,7 @@ $result = $conn->query($query);
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <title>Manage Stocks</title>
+  <title>Manage Product</title>
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
@@ -314,8 +282,8 @@ $result = $conn->query($query);
 
 
     <div class="container mt-4">
-        <h1><b>Manage Stocks</b></h1>
-        <h3>Add and Edit Stocks</h3>
+        <h1><b>Manage Products</b></h1>
+        <h3>Add and Edit Products</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
 
 
@@ -343,12 +311,10 @@ $result = $conn->query($query);
             <table class="table table-striped table-bordered">
                 <thead>
                 <tr>
-                <th>Stock ID</th>
-            <th>User ID</th>
             <th>Product ID</th>
-            <th>Old Stock</th>
-            <th>New Stock</th>
-            <th>Threshold</th>
+            <th>Product Name</th>
+            <th>Product Type</th>
+            <th>Price</th>
             <th>Edit</th>
             
         </tr>
@@ -357,12 +323,10 @@ $result = $conn->query($query);
                     <?php if (mysqli_num_rows($result) > 0): ?>
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
-                            <td><?php echo $row['Stock_ID']; ?></td>
-                <td><?php echo $row['User_ID']; ?></td>
                 <td><?php echo $row['Product_ID']; ?></td>
-                <td><?php echo $row['Old_Stock']; ?></td>
-                <td><?php echo $row['New_Stock']; ?></td>
-                <td><?php echo $row['Threshold']; ?></td>
+                <td><?php echo $row['Product_Name']; ?></td>
+                <td><?php echo $row['Product_Type']; ?></td>
+                <td><?php echo $row['Price']; ?></td>
         
 
 
@@ -370,10 +334,12 @@ $result = $conn->query($query);
 
 
                 <td class="text-dark text-center">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStocktModal" 
-                    data-stock-id="<?php echo $row['Stock_ID']; ?>" 
-                            data-new-stock="<?php echo $row['New_Stock']; ?>" 
-                            data-threshold="<?php echo $row['Threshold']; ?>">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                    data-product-id="<?php echo $row['Product_ID']; ?>" 
+                            data-product-name="<?php echo $row['Product_Name']; ?>" 
+                            data-product-type="<?php echo $row['Product_Type']; ?>"
+                            data-price="<?php echo $row['Price']; ?>">
+                    
                         <i class="bi bi-pencil-square"></i>
                     </a>
                 </td>
@@ -405,37 +371,30 @@ $result = $conn->query($query);
                      
                      
 
-                      class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal" 
-                      data-stock-id="<?php echo $row['Stock_ID']; ?>" 
-                            data-new-stock="<?php echo $row['New_Stock']; ?>" 
-                            data-threshold="<?php echo $row['Threshold']; ?>"
+                      class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                            data-product-id="<?php echo $row['Product_ID']; ?>" 
+                            data-product-name="<?php echo $row['Product_Name']; ?>" 
+                            data-product-type="<?php echo $row['Product_Type']; ?>"
+                            data-price="<?php echo $row['Price']; ?>"
                             style="cursor: pointer;">
-                
                     
-            
+
                      
 
                     <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['Stock_ID']); ?></h5>
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                         <div class="row">
-
-                            <div class="col-6">
-                                <p class="card-text"><strong>User ID:</strong> <?php echo htmlspecialchars($row['User_ID']); ?></p>
-                            </div>
 
                             <div class="col-6">
                                 <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?></p>
                             </div>
 
                             <div class="col-6">
-                                <p class="card-text"><strong>Old Stock:</strong> <?php echo htmlspecialchars($row['Old_Stock']); ?></p>
+                                <p class="card-text"><strong>Product Type:</strong> <?php echo htmlspecialchars($row['Product_Type']); ?></p>
                             </div>
-                            
+
                             <div class="col-6">
-                                <p class="card-text"><strong>New Stock:</strong> <?php echo htmlspecialchars($row['New_Stock']); ?></p>
-                            </div>
-                            <div class="col-6">
-                                <p class="card-text"><strong>Threshold:</strong> <?php echo htmlspecialchars($row['Threshold']); ?></p>
+                                <p class="card-text"><strong>Price:</strong> <?php echo htmlspecialchars($row['Price']); ?></p>
                             </div>
 
                         
@@ -445,7 +404,7 @@ $result = $conn->query($query);
             </div>
         <?php endwhile; ?>
     <?php else: ?>
-        <p>No Stock found.</p>
+        <p>No Product found.</p>
     <?php endif; ?>
 </div>
 
@@ -454,63 +413,63 @@ $result = $conn->query($query);
 
 
 
-<!-- Add Stock Modal -->
-<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label for="user_id" class="form-label">User ID</label>
-                        <input type="number" class="form-control" id="User_ID" name="User_ID" required>
-                    </div>
-                    <div class="mb-3">
                         <label for="product_id" class="form-label">Product ID</label>
                         <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
                     </div>
                     <div class="mb-3">
-                        <label for="old_stock" class="form-label">Old Stock</label>
-                        <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" required>
+                        <label for="product_name" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="Product_Name" name="Product_Name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="new_stock" class="form-label">New Stock</label>
-                        <input type="number" class="form-control" id="New_Stock" name="New_Stock" required>
+                        <label for="product_type" class="form-label">Product Type</label>
+                        <input type="text" class="form-control" id="Product_Type" name="Product_Type" required>
                     </div>
                     <div class="mb-3">
-                        <label for="threshold" class="form-label">Threshold</label>
-                        <input type="number" class="form-control" id="Threshold" name="Threshold" required>
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" class="form-control" id="Price" name="Price" required>
                     </div>
-                    <button type="submit" name="add_stock" class="btn btn-primary">Add Stock</button>
+                    <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Stock Modal -->
-<div class="modal fade" id="editStockModal" tabindex="-1" aria-labelledby="editStockModalLabel" aria-hidden="true">
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editStockModalLabel">Edit Stock</h5>
+                <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <input type="hidden" id="edit_stock_id" name="Stock_ID">
+                    <input type="hidden" id="edit_product_id" name="Product_ID">
                     <div class="mb-3">
-                        <label for="edit_new_stock" class="form-label">New Stock</label>
-                        <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" required>
+                        <label for="edit_product_name" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
                     </div>
                     <div class="mb-3">
-                        <label for="edit_threshold" class="form-label">Threshold</label>
-                        <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
+                        <label for="edit_product_type" class="form-label">Product Type</label>
+                        <input type="text" class="form-control" id="edit_product_type" name="New_ProductType">
                     </div>
-                    <button type="submit" name="edit_stock" class="btn btn-primary">Save Changes</button>
+                    <div class="mb-3">
+                        <label for="edit_price" class="form-label">Price</label>
+                        <input type="number" class="form-control" id="edit_price" name="New_Price">
+                    </div>
+                    <button type="submit" name="edit_product" class="btn btn-primary">Save Changes</button>
                 </form>
             </div>
         </div>
@@ -532,21 +491,28 @@ const sidebar = document.getElementById('sidebar');
       sidebar.classList.remove('active');
     }
 
- // Populate edit modal with existing data
- const editStockModal = document.getElementById('editStockModal');
+
+
+
+
+
+     // Populate edit modal with existing data
+     const editStockModal = document.getElementById('editProductModal');
     editStockModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        const stockId = button.getAttribute('data-stock-id');
-        const newStock = button.getAttribute('data-new-stock');
-        const threshold = button.getAttribute('data-threshold');
+        const productId = button.getAttribute('data-product-id');
+        const productName = button.getAttribute('data-product-name');
+        const productType = button.getAttribute('data-product-type');
+        const price = button.getAttribute('data-price');
 
-        document.getElementById('edit_stock_id').value = stockId;
-        document.getElementById('edit_new_stock').value = newStock;
-        document.getElementById('edit_threshold').value = threshold;
+        document.getElementById('edit_product_id').value = productId;
+        document.getElementById('edit_product_name').value = productName;
+        document.getElementById('edit_product_type').value = productType;
+        document.getElementById('edit_price').value = price;
     });
 
-    // Handle adding a stock
-    document.getElementById('addStockForm').addEventListener('submit', function (e) {
+    // Handle adding a product
+    document.getElementById('addProductForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
         const formData = new FormData(this);
@@ -558,17 +524,17 @@ const sidebar = document.getElementById('sidebar');
         .then(response => response.text())
         .then(data => {
             if (data === 'success') {
-                alert('Stock added successfully!');
+                alert('Product added successfully!');
                 location.reload(); // Reload page to reflect changes
             } else {
-                alert('Failed to add stock: ' + data);
+                alert('Failed to add product: ' + data);
             }
         })
         .catch(error => console.error('Error:', error));
     });
 
-    // Handle editing a stock
-    document.getElementById('editStockForm').addEventListener('submit', function (e) {
+    // Handle editing a product
+    document.getElementById('editProductForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
         const formData = new FormData(this);
@@ -580,16 +546,15 @@ const sidebar = document.getElementById('sidebar');
         .then(response => response.text())
         .then(data => {
             if (data === 'success') {
-                alert('Stock updated successfully!');
+                alert('Product updated successfully!');
                 location.reload(); // Reload page to reflect changes
             } else {
-                alert('Failed to update stock: ' + data);
+                alert('Failed to update product: ' + data);
             }
         })
         .catch(error => console.error('Error:', error));
     });
+
+  
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>

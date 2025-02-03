@@ -36,7 +36,7 @@ try {
 
     if ($stmt->affected_rows > 0) {
         // Include mailer configuration
-        $mail = require "./mailer.php";
+        $mail = require "../mailer.php";
         if (!$mail) {
             throw new Exception("Failed to load mailer configuration.");
         }
@@ -46,8 +46,43 @@ try {
         $mail->Subject = "Password Reset";
         $mail->isHTML(true);
         $mail->Body = <<<END
-            <p>Click <a href="http://10.147.20.116/ForgotPassword/NewPassword?token=$token">here</a> 
-            to reset your password.</p>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Email Template</title>
+        </head>
+        <body style="padding: 1em; font-family: Arial, sans-serif; background-color: #f2f4f0; max-height: 600px; display: flex; align-items: center; justify-content: center; margin: 0; height: auto; padding-top: 80px;">
+            <table style="width: 100%; background-color: #f2f4f0; border-spacing: 0; border-collapse: collapse;">
+                <tr>
+                    <td style="display: flex; justify-content: center; align-items: center;">
+                        <table style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; padding: 32px; margin: 20px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-spacing: 0; max-height: 600px; overflow: hidden;">
+                            <tr>
+                                <td style="text-align: center;">
+                                    <h1 style="font-size: 40px; color: #82b370; font-weight: bold; margin-bottom: 10px;">🔑</h1>
+                                    <h2 style="font-size: 24px; color: #545454; font-weight: 600; margin: 0;">You have requested to change your password.</h2>
+                                    <p style="font-size: 16px; color: #7c8089; line-height: 1.5; margin: 20px 0;">
+                                        If you wish to proceed, please click the button below to initiate the password reset process.
+                                    </p>
+                                    <a href="http://10.147.20.116/ForgotPassword/NewPassword?token=$token style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Reset Password</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; padding-top: 40px;">
+                                    <p style="font-size: 14px; color: #7c8089; margin: 0;">© SGSD 2025. All rights reserved.</p>
+                                    <p style="font-size: 14px; margin: 5px 0;">
+                                        <a href="#" style="color: #82b370; text-decoration: none;">Privacy Policy</a> | 
+                                        <a href="#" style="color: #82b370; text-decoration: none;">Terms of Service</a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
         END;
 
         try {

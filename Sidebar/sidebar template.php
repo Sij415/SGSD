@@ -148,31 +148,31 @@ $stmt->close();
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="../ManageStocks">
+                <a href="./ManageStocks">
                     <i class="fa-solid fa-box"></i>
                     <span>&nbsp;Manage Stocks</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="../ManageOrders">
+                <a href="./ManageOrders">
                 <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Orders</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="../ManageProducts">
+                <a href="./ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="../ManageCustomers">
+                <a href="./ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Customer</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="../AdminSettings">
+                <a href="./AdminSettings">
                 <i class="bi bi-gear" style="font-size:13.28px;"></i>
                 <span>&nbsp;Admin Settings</span>
                 </a>
@@ -217,103 +217,10 @@ $stmt->close();
  
         </div>
   <div class="content">
-
-
-
-  <div class="dashboard">
-    <!-- Dashboard-title -->
-    <div class="dashboard-title">
-        <h1><b>ANALYTICS</b> DASHBOARD</h1>
-            <div class="btn-group" style="z-index: 999;" role="group" aria-label="Basic radio toggle button group">
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio1">DAILY</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked>
-                <label class="btn btn-outline-primary" for="btnradio2">WEEKLY</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio3">MONTHLY</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio4">YEARLY</label>
-            </div>
-    </div>
-    <div class="dashboard-summary">
-    <div class="parent">
-        <div class="div1">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Revenue</h5>
-                    <h2 class='fw-bold mb-2'>₱ 2,343</h2>
-                    <span class='badge red'>-0.102%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='revenueBarChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="div2">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Orders</h5>
-                    <h2 class='fw-bold mb-2'>45</h2>
-                    <span class='badge green'>+1.2%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='ordersLineChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="div3">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Customers</h5>
-                    <h2 class='fw-bold mb-2'>12</h2>
-                    <span class='badge green'>+0.96%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='customersLineChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="div4">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Items Sold</h5>
-                    <h2 class='fw-bold mb-2'>34</h2>
-                    <span class='badge red'>-1.1%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='itemsSoldBarChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-    <div class="dashboard-top">
-        <h1><b>TOP</b> SELLING</h1>
-    </div>
-    <div class="dashboard-top-grid">
-                <div class="div1"><div class="doughnut-container">
-                <canvas id="topSellingChart"></canvas></div>
-
-            </div>
-    <hr>
-    </div> 
-
-
-
-
-
-</div>
-
-
   
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
@@ -325,79 +232,6 @@ $stmt->close();
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-
-
-    
-
-// Revenue Bar Chart
-// Revenue Bar Chart
-new Chart(document.getElementById('revenueBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    data: [12, 19, 3, 5, 2],
-                    backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Orders Line Chart
-        new Chart(document.getElementById('ordersLineChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{ data: [10, 15, 5, 2, 20], borderColor: '#9fb0a1', tension: 0.4 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Customers Line Chart
-        new Chart(document.getElementById('customersLineChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{ data: [5, 10, 15, 10, 20], borderColor: '#9fb0a1', tension: 0.4 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Items Sold Bar Chart
-        new Chart(document.getElementById('itemsSoldBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    data: [8, 15, 10, 5, 7],
-                    backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Doughnut Chart for Top Selling
-        new Chart(document.getElementById('topSellingChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Coca Cola', 'Royal', 'Sprite', 'Pepsi', 'Mountain Dew'],
-                datasets: [{
-                    data: [43, 21, 13, 12, 8],
-                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']
-                }]
-            },
-            options: { responsive: true }
-        });
-
-
-
-
-
-
-
-
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

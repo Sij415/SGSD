@@ -1,112 +1,96 @@
 <?php
 session_start();
 include('../dbconnect.php');
+date_default_timezone_set("Asia/Manila");
 
-// Check if user is logged in and if session variables are set
-if (!isset($_SESSION['user_id'], $_SESSION['user_email'], $_SESSION['user_role'])) {
-    // If session variables are not set, redirect to login
-    header('Location: ../login.php');
+// 1. Verify Session and User ID
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../');
     exit();
 }
-
-// Get session values
 $user_id = $_SESSION['user_id'];
-$user_email = $_SESSION['user_email'];
-$user_role = $_SESSION['user_role'];
+$user_email = $_SESSION['email'];  // Get the email directly from session
+$session_role = $_SESSION['role'];
+$session_first_name = $_SESSION['first_name'];
 
-// IP address of the user
+// 3. Retrieve User Data (Based on User Email ONLY)
+$sql = "SELECT User_ID, First_Name, Email, Role FROM Users WHERE Email = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $user_email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$row = $result->fetch_assoc();
+$user_first_name = $row['First_Name'];
+$user_role = $row['Role'];
+$user_id_from_db = $row['User_ID'];  // User ID from the database
+
+// *** REMOVE ANY OLD AUTHENTICATION CHECK USING SESSION VARIABLES (role, first name, user_id) ***
+
+// 5. Role Check (After retrieving user data based on user_email)
+if (isset($required_roles)) {
+    $required_roles = explode(',', $required_roles);  // Convert to array
+    if (!in_array($user_role, $required_roles)) {
+        header('Location: ../NotAllowed');
+        exit();
+    }
+}
+
+// 6. IP Cooldown (Consider Account Lockout as a stronger alternative)
 $ip_address = $_SERVER['REMOTE_ADDR'];
 
-// Check if the user is blocked due to failed login attempts
-$sql = "SELECT * FROM IP_Cooldown WHERE Email = ? AND IP_Address = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ss", $user_email, $ip_address);
-$stmt->execute();
-$result = $stmt->get_result();
+$check_sql = "SELECT Attempts, Locked_Until FROM IP_Cooldown WHERE IP_Address = ?";
+$stmt_check = $conn->prepare($check_sql);
+$stmt_check->bind_param("s", $ip_address);
+$stmt_check->execute();
+$result_check = $stmt_check->get_result();
 
-if ($result->num_rows > 0) {
-    // User has attempted login before, fetch data
-    $row = $result->fetch_assoc();
-    $attempts = $row['Attempts'];
-    $locked_until = strtotime($row['Locked_Until']);
-    $last_attempt = strtotime($row['Last_Attempt']);
-    
-    // Check if the user is locked out
-    if ($locked_until > time()) {
-        // User is still locked, redirect to not allowed page
-        header('Location: ../not_allowed.php');
-        exit();
+if ($row_check = $result_check->fetch_assoc()) {
+    $attempts = $row_check['Attempts'];
+    $locked_until = new DateTime($row_check['Locked_Until']);
+    $now = new DateTime();
+
+    if ($attempts >= 10) {
+        if ($locked_until > $now) {
+            // Extend ban to 1 year
+            $update_sql = "UPDATE IP_Cooldown SET Locked_Until = DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE IP_Address = ?";
+        } else {
+            // Reset attempts if the lock time has passed
+            $update_sql = "UPDATE IP_Cooldown SET Attempts = 1, Last_Attempt = NOW(), Locked_Until = DATE_ADD(NOW(), INTERVAL 1 DAY) WHERE IP_Address = ?";
+        }
+    } else {
+        // Increment attempts and extend ban by 1 day
+        $update_sql = "UPDATE IP_Cooldown SET Attempts = Attempts + 1, Last_Attempt = NOW(), Locked_Until = DATE_ADD(Locked_Until, INTERVAL 1 DAY) WHERE IP_Address = ?";
     }
 
-    // Check if the number of attempts exceeded limit (e.g., 5 attempts)
-    if ($attempts >= 5 && (time() - $last_attempt) < 600) {
-        // Lock the account for 10 minutes
-        $locked_until = date('Y-m-d H:i:s', time() + 600);
-        $update_sql = "UPDATE IP_Cooldown SET Locked_Until = ? WHERE Email = ? AND IP_Address = ?";
-        $stmt = $conn->prepare($update_sql);
-        $stmt->bind_param("sss", $locked_until, $user_email, $ip_address);
-        $stmt->execute();
-
-        // Redirect user to not allowed page
-        header('Location: ../not_allowed.php');
-        exit();
-    }
+    $stmt_update = $conn->prepare($update_sql);
+    $stmt_update->bind_param("s", $ip_address);
+    $stmt_update->execute();
+} else {
+    // First-time offender
+    $log_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt, Locked_Until) VALUES (NULL, ?, 1, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY))";
+    $stmt_log = $conn->prepare($log_sql);
+    $stmt_log->bind_param("s", $ip_address);
+    $stmt_log->execute();
 }
 
-// Validate user session in the database
-$sql = "SELECT User_ID, Email, Role FROM Users WHERE User_ID = ? AND Email = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $user_id, $user_email);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
-    // Invalid session, log the IP and add to IP_Cooldown table
-    $log_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) 
-                VALUES (?, ?, 1, NOW()) 
-                ON DUPLICATE KEY UPDATE Attempts = Attempts + 1, Last_Attempt = NOW()";
-    $stmt = $conn->prepare($log_sql);
-    $stmt->bind_param("ss", $user_email, $ip_address);
-    $stmt->execute();
-
-    // Redirect user to not allowed page
-    header('Location: ../not_allowed.php');
+if ($result->num_rows !== 1) {
+    session_destroy();
+    header('Location: ../CoolDown');
     exit();
 }
 
-// Role-based access control
-switch ($user_role) {
-    case 'admin':
-        // Pages available only to admin
-        break;
-
-    case 'admin_and_staff':
-        // Pages available only to admin and staff
-        if (!in_array($user_role, ['admin', 'staff'])) {
-            header('Location: ../not_allowed.php');
-            exit();
-        }
-        break;
-
-    case 'admin_and_driver':
-        // Pages available only to admin and driver
-        if (!in_array($user_role, ['admin', 'driver'])) {
-            header('Location: ../not_allowed.php');
-            exit();
-        }
-        break;
-
-    default:
-        // If role is invalid, redirect to not allowed
-        header('Location: ../not_allowed.php');
-        exit();
-}
-
-// Ensure no further code is executed if blocked
-if (isset($_SESSION['login_attempts_blocked']) && (time() - $_SESSION['login_attempts_blocked']) < 600) {
-    header('Location: ../not_allowed.php');
+// 4. Compare Hashed User ID, Role, and First Name with Database Values
+if ($user_id !== hash('sha256', $user_id_from_db) || 
+    $session_role !== hash('sha256', $user_role) || 
+    $session_first_name !== hash('sha256', $user_first_name)) {
+    session_destroy();
+    header('Location: ../CoolDown');
     exit();
 }
+
+$stmt_check->close();
+// ... rest of your code ...
 
 $stmt->close();
 $conn->close();

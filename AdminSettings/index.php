@@ -1,4 +1,6 @@
 <?php
+// Include database connection
+
 $required_role = 'admin';
 include('../check_session.php');
 include '../dbconnect.php';
@@ -21,7 +23,68 @@ $stmt->close();
 
 
 
+
+
+
+
+
+// Fetch settings data from the database
+$query = "SELECT * FROM Settings WHERE Setting_Key = 'AdminSignUpEnabled' OR Setting_Key = 'AdminSignUpEnabled'";
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$result = $stmt->get_result();
+$settings = [];
+while ($row = $result->fetch_assoc()) {
+    $settings[$row['Setting_Key']] = $row['Value'];
+}
+$stmt->close();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
+    // Retrieve form values
+    $sign_up_enabled = isset($_POST['AdminSignUpEnabled']) ? 1 : 0;
+    $admin_signup_enabled = isset($_POST['AdminSignUpEnabled']) ? 1 : 0;
+    $sign_up_amount = isset($_POST['signup_amount']) ? $_POST['signup_amount'] : 0;
+
+    // Update the settings in the database
+    $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'AdminSignUpEnabled'";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $sign_up_enabled);
+    $stmt->execute();
+
+    $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'AdminSignUpEnabled'";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $admin_signup_enabled);
+    $stmt->execute();
+
+    // Optionally, update the sign up amount
+    $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'MaxSignUps'";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $sign_up_amount);
+    $stmt->execute();
+
+    $stmt->close();
+    header("Location: " . $_SERVER['PHP_SELF']); // Reload page to reflect changes
+    exit();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ?>
+
+
+
+
 
 
 
@@ -142,7 +205,7 @@ $stmt->close();
         <div class="sidebar-items">
             <hr style="width: 75%; margin: 0 auto; padding: 12px;">
             <div class="sidebar-item">
-                <a href="./Dashboard" class="sidebar-items-a">
+                <a href="../Dashboard" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
                 <span>&nbsp;Dashboard</span>
                 </a>
@@ -162,13 +225,13 @@ $stmt->close();
             <div class="sidebar-item">
                 <a href="../ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Product</span>
+                <span>&nbsp;Manage Products</span>
                 </a>
             </div>
             <div class="sidebar-item">
                 <a href="../ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Customer</span>
+                <span>&nbsp;Manage Customers</span>
                 </a>
             </div>
             <div class="sidebar-item">
@@ -191,7 +254,6 @@ $stmt->close();
                 
                 
                 
-
                 ?></h1>
                 <h2><?php
                 echo  htmlspecialchars($user_email)
@@ -217,103 +279,76 @@ $stmt->close();
  
         </div>
   <div class="content">
+  <section class="admin">
 
-
-
-  <div class="dashboard">
-    <!-- Dashboard-title -->
-    <div class="dashboard-title">
-        <h1><b>ANALYTICS</b> DASHBOARD</h1>
-            <div class="btn-group" style="z-index: 999;" role="group" aria-label="Basic radio toggle button group">
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio1">DAILY</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked>
-                <label class="btn btn-outline-primary" for="btnradio2">WEEKLY</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio3">MONTHLY</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio4">YEARLY</label>
-            </div>
+<div class="admin-main">
+    <div class="admin-title">
+    <h1><b>Admin</b> Settings</h1>
+    <h3>Customize and control system preferences</h3>
+    <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
     </div>
-    <div class="dashboard-summary">
-    <div class="parent">
-        <div class="div1">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Revenue</h5>
-                    <h2 class='fw-bold mb-2'>₱ 2,343</h2>
-                    <span class='badge red'>-0.102%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='revenueBarChart'></canvas>
-                    </div>
-                </div>
-            </div>
+
+
+<div class="admin-ip">
+    <div class="p-3">
+        <div class="admin-ip-title d-flex flex-column mb-3">
+            <h3 style="letter-spacing: -0.045em;">
+                <b>Current</b> IP address:
+                <small class="text-muted"><?php
+               echo $_SERVER['REMOTE_ADDR'];?></small>
+            </h3>
+            <h5 class="text-muted mb-3" style="width: 90%;">
+                Your IP address uniquely identifies your device on the internet and is essential for communication with other devices and accessing online services.
+            </h5>
         </div>
-        <div class="div2">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Orders</h5>
-                    <h2 class='fw-bold mb-2'>45</h2>
-                    <span class='badge green'>+1.2%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='ordersLineChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="div3">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Customers</h5>
-                    <h2 class='fw-bold mb-2'>12</h2>
-                    <span class='badge green'>+0.96%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='customersLineChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="div4">
-            <div class=''>
-                <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Items Sold</h5>
-                    <h2 class='fw-bold mb-2'>34</h2>
-                    <span class='badge red'>-1.1%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='itemsSoldBarChart'></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
-
-
-    <div class="dashboard-top">
-        <h1><b>TOP</b> SELLING</h1>
+<div style="padding: 16px;"><hr></div>
+<div class="admin-restrictions">
+    <h2 class="p-3" style="letter-spacing: -0.050em;"><b>Restrictions</b></h2>
+    <form action="" method="POST">
+        <div class="d-flex justify-content-between align-items-start p-3">
+            <div class="admin-restrictions-title d-flex flex-column mb-3">
+                    <h3 style="letter-spacing: -0.045em;">
+                        <b>Sign Up</b> Restrictions
+                    </h3>
+                    <h5 class="text-muted mb-3" style="width: 90%;">
+                        Toggle the restrictions to allow User account creation.
+                    </h5>
+                </div>
+                <div class="d-flex align-items-center">
+        
+        <input type="number" class="form-control mx-5" id="signup-amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 150px;">
+        <div class="form-check form-switch me-3">
+        <input class="form-check-input" type="checkbox" id="account-restrictions" name="sign_up_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
+        </div>
     </div>
-    <div class="dashboard-top-grid">
-                <div class="div1"><div class="doughnut-container">
-                <canvas id="topSellingChart"></canvas></div>
-
+        </div>
+        <div class="d-flex justify-content-between align-items-start p-3">
+            <div class="admin-restrictions-title d-flex flex-column mb-3">
+                    <h3 style="letter-spacing: -0.045em;">
+                        <b>Admin</b> Sign Up
+                    </h3>
+                    <h5 class="text-muted mb-3" style="width: 90%;">
+                        Toggle the restrictions to allow admin sign up.
+                    </h5>
+                </div>
+                <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="admin_signup_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
+                </div>
             </div>
-    <hr>
-    </div> 
-
-
-
-
-
-</div>
-
-
-  
+            <div class="d-flex justify-content-end p-3">
+                <button type="submit" name="save_settings" class="btn btn-primary">Save Settings</button>
+           
+            </div>
+            </form>
+        </div>
+<div style="padding: 16px;"><hr></div>
+</section>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
@@ -325,79 +360,6 @@ $stmt->close();
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-
-
-    
-
-// Revenue Bar Chart
-// Revenue Bar Chart
-new Chart(document.getElementById('revenueBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    data: [12, 19, 3, 5, 2],
-                    backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Orders Line Chart
-        new Chart(document.getElementById('ordersLineChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{ data: [10, 15, 5, 2, 20], borderColor: '#9fb0a1', tension: 0.4 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Customers Line Chart
-        new Chart(document.getElementById('customersLineChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{ data: [5, 10, 15, 10, 20], borderColor: '#9fb0a1', tension: 0.4 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Items Sold Bar Chart
-        new Chart(document.getElementById('itemsSoldBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    data: [8, 15, 10, 5, 7],
-                    backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Doughnut Chart for Top Selling
-        new Chart(document.getElementById('topSellingChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Coca Cola', 'Royal', 'Sprite', 'Pepsi', 'Mountain Dew'],
-                datasets: [{
-                    data: [43, 21, 13, 12, 8],
-                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']
-                }]
-            },
-            options: { responsive: true }
-        });
-
-
-
-
-
-
-
-
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
