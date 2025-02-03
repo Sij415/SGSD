@@ -224,7 +224,7 @@ $result = $conn->query($query);
         <div class="sidebar-items">
             <hr style="width: 75%; margin: 0 auto; padding: 12px;">
             <div class="sidebar-item">
-                <a href="./Dashboard" class="sidebar-items-a">
+                <a href="../Dashboard" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
                 <span>&nbsp;Dashboard</span>
                 </a>
