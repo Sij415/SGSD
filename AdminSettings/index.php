@@ -23,7 +23,7 @@ $stmt->close();
 
 
 
-echo $user_email;
+
 
 
 
