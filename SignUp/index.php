@@ -307,6 +307,88 @@ $conn->close();
 
 
 </div>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', function(event) {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (password.length < 8) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must be at least 8 characters long.',
+                    confirmButtonText: 'OK'
+                });
+                event.preventDefault();
+                return;
+            }
+
+            if (!/[A-Z]/.test(password)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must contain at least one uppercase letter.',
+                    confirmButtonText: 'OK'
+                });
+                event.preventDefault();
+                return;
+            }
+
+            if (!/[a-z]/.test(password)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must contain at least one lowercase letter.',
+                    confirmButtonText: 'OK'
+                });
+                event.preventDefault();
+                return;
+            }
+
+            if (!/[0-9]/.test(password)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must contain at least one number.',
+                    confirmButtonText: 'OK'
+                });
+                event.preventDefault();
+                return;
+            }
+
+            if (!/[\W_]/.test(password)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Weak Password',
+                    text: 'Password must contain at least one special character.',
+                    confirmButtonText: 'OK'
+                });
+                event.preventDefault();
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Passwords Do Not Match',
+                    text: 'Please make sure the password and confirm password fields match.',
+                    confirmButtonText: 'OK'
+                });
+                event.preventDefault();
+                return;
+            }
+        });
+    });
+</script>
 </body>
 <footer class="footer">
     © SGSD 2025

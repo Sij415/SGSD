@@ -12,8 +12,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 
-
-
 <header class="main-header">
     <nav class="main-nav">
         <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
@@ -31,7 +29,7 @@
         <h1 class="main-heading">Enter your new password</h1>
         <p class="sub-heading">Your new password must be different from your previous password.</p>
 
-        <form action="" method="POST">
+        <form action="./" method="POST">
             <div class="form-group">
                 <input type="password" name="password" id="password" placeholder="Enter new password" required>
             </div>
@@ -45,6 +43,91 @@
             </div>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('password_confirmation');
+            const form = document.querySelector('form');
+
+            form.addEventListener('submit', function(event) {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+
+                // Check password length
+                if (password.length < 8) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Weak Password',
+                        text: 'Password must be at least 8 characters long.',
+                        confirmButtonText: 'OK'
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                // Check for uppercase letter
+                if (!/[A-Z]/.test(password)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Weak Password',
+                        text: 'Password must contain at least one uppercase letter.',
+                        confirmButtonText: 'OK'
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                // Check for lowercase letter
+                if (!/[a-z]/.test(password)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Weak Password',
+                        text: 'Password must contain at least one lowercase letter.',
+                        confirmButtonText: 'OK'
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                // Check for number
+                if (!/[0-9]/.test(password)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Weak Password',
+                        text: 'Password must contain at least one number.',
+                        confirmButtonText: 'OK'
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                // Check for special character
+                if (!/[\W_]/.test(password)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Weak Password',
+                        text: 'Password must contain at least one special character.',
+                        confirmButtonText: 'OK'
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                // Check if passwords match
+                if (password !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Passwords Do Not Match',
+                        text: 'Please make sure the password and confirm password fields match.',
+                        confirmButtonText: 'OK'
+                    });
+                    event.preventDefault();
+                    return;
+                }
+            });
+        });
+    </script>
 </body>
 
 <footer class="footer">
@@ -52,6 +135,7 @@
 </footer>
 
 </html>
+
 
 <?php
 
