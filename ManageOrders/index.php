@@ -189,37 +189,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         <div class="sidebar-items">
             <hr style="width: 75%; margin: 0 auto; padding: 12px;">
             <div class="sidebar-item">
-                <a href="./Dashboard" class="sidebar-items-a">
+                <a href="../Dashboard" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
                 <span>&nbsp;Dashboard</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageStocks">
+                <a href="../ManageStocks">
                     <i class="fa-solid fa-box"></i>
                     <span>&nbsp;Manage Stocks</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageOrders">
+                <a href="../ManageOrders">
                 <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Orders</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageProducts">
+                <a href="../ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageCustomers">
+                <a href="../ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Customer</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./AdminSettings">
+                <a href="../AdminSettings">
                 <i class="bi bi-gear" style="font-size:13.28px;"></i>
                 <span>&nbsp;Admin Settings</span>
                 </a>

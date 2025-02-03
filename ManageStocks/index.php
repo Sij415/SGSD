@@ -230,31 +230,31 @@ $result = $conn->query($query);
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageStocks">
+                <a href="../ManageStocks">
                     <i class="fa-solid fa-box"></i>
                     <span>&nbsp;Manage Stocks</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageOrders">
+                <a href="../ManageOrders">
                 <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Orders</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageProducts">
+                <a href="../ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageCustomers">
+                <a href="../ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Customer</span>
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./AdminSettings">
+                <a href="../AdminSettings">
                 <i class="bi bi-gear" style="font-size:13.28px;"></i>
                 <span>&nbsp;Admin Settings</span>
                 </a>
