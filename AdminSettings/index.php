@@ -294,7 +294,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
         <div class="admin-ip-title d-flex flex-column mb-3">
             <h3 style="letter-spacing: -0.045em;">
                 <b>Current</b> IP address:
-                <small class="text-muted">PLACEHOLDER</small>
+                <small class="text-muted"><?php
+               echo $_SERVER['REMOTE_ADDR'];?></small>
             </h3>
             <h5 class="text-muted mb-3" style="width: 90%;">
                 Your IP address uniquely identifies your device on the internet and is essential for communication with other devices and accessing online services.
