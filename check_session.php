@@ -8,12 +8,10 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ../');
     exit();
 }
-
 $user_id = $_SESSION['user_id'];
 $user_email = $_SESSION['email'];  // Get the email directly from session
 $session_role = $_SESSION['role'];
 $session_first_name = $_SESSION['first_name'];
-
 
 // 3. Retrieve User Data (Based on User Email ONLY)
 $sql = "SELECT User_ID, First_Name, Email, Role FROM Users WHERE Email = ?";
@@ -22,22 +20,20 @@ $stmt->bind_param("s", $user_email);
 $stmt->execute();
 $result = $stmt->get_result();
 
-
 $row = $result->fetch_assoc();
 $user_first_name = $row['First_Name'];
 $user_role = $row['Role'];
 $user_id_from_db = $row['User_ID'];  // User ID from the database
 
-
-
-
-
 // *** REMOVE ANY OLD AUTHENTICATION CHECK USING SESSION VARIABLES (role, first name, user_id) ***
 
 // 5. Role Check (After retrieving user data based on user_email)
-if (isset($required_role) && $user_role !== $required_role) {
-    header('Location: ../NotAllowed');
-    exit();
+if (isset($required_roles)) {
+    $required_roles = explode(',', $required_roles);  // Convert to array
+    if (!in_array($user_role, $required_roles)) {
+        header('Location: ../NotAllowed');
+        exit();
+    }
 }
 
 // 6. IP Cooldown (Consider Account Lockout as a stronger alternative)
@@ -59,20 +55,17 @@ if ($row_check = $result_check->fetch_assoc()) {
             // Extend ban to 1 year
             $update_sql = "UPDATE IP_Cooldown SET Locked_Until = DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE IP_Address = ?";
         } else {
-             // Reset attempts if the lock time has passed
+            // Reset attempts if the lock time has passed
             $update_sql = "UPDATE IP_Cooldown SET Attempts = 1, Last_Attempt = NOW(), Locked_Until = DATE_ADD(NOW(), INTERVAL 1 DAY) WHERE IP_Address = ?";
         }
-
     } else {
         // Increment attempts and extend ban by 1 day
         $update_sql = "UPDATE IP_Cooldown SET Attempts = Attempts + 1, Last_Attempt = NOW(), Locked_Until = DATE_ADD(Locked_Until, INTERVAL 1 DAY) WHERE IP_Address = ?";
-
     }
 
     $stmt_update = $conn->prepare($update_sql);
     $stmt_update->bind_param("s", $ip_address);
     $stmt_update->execute();
-
 } else {
     // First-time offender
     $log_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt, Locked_Until) VALUES (NULL, ?, 1, NOW(), DATE_ADD(NOW(), INTERVAL 1 DAY))";
@@ -81,44 +74,20 @@ if ($row_check = $result_check->fetch_assoc()) {
     $stmt_log->execute();
 }
 
-
-
-
-
-
-
-
-
 if ($result->num_rows !== 1) {
     session_destroy();
     header('Location: ../CoolDown');
     exit();
 }
 
-
 // 4. Compare Hashed User ID, Role, and First Name with Database Values
-if ($user_id!== hash('sha256', $user_id_from_db) || 
+if ($user_id !== hash('sha256', $user_id_from_db) || 
     $session_role !== hash('sha256', $user_role) || 
     $session_first_name !== hash('sha256', $user_first_name)) {
     session_destroy();
     header('Location: ../CoolDown');
-    
     exit();
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 $stmt_check->close();
 // ... rest of your code ...

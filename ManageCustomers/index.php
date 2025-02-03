@@ -6,17 +6,17 @@ include('../check_session.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 
 // Fetch user details from session
-$user_id = $_SESSION['email'];
+$user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
-$query = "SELECT First_Name, Email FROM Users WHERE Email = ?";
+$query = "SELECT First_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_id); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name, $email);
+$stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -33,6 +33,7 @@ if (isset($_POST['add_customer'])) {
     $first_name = $_POST['First_Name'];
     $last_name = $_POST['Last_Name'];
     $contact_number = $_POST['Contact_Number'];
+    
 
     // Insert Product_ID if it doesn't exist
     $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
@@ -65,12 +66,15 @@ if (isset($_POST['add_customer'])) {
     $stmt->close();
 }
 
+
 // Handle editing customer
 if (isset($_POST['edit_customer'])) {
     $customer_id = $_POST['Customer_ID'];
     $new_fname = $_POST['New_FirstName'];
     $new_lname = $_POST['New_LastName'];
     $new_contactnum = $_POST['New_ContactNum'];
+    echo "Customer ID: $customer_id, First Name: $new_fname, Last Name: $new_lname, Contact Number: $new_contactnum";
+
 
     $query = "UPDATE Customers SET First_Name = ?, Last_Name = ?, Contact_Number = ? WHERE Customer_ID = ?";
     $stmt = $conn->prepare($query);
@@ -84,6 +88,7 @@ if (isset($_POST['edit_customer'])) {
 
     $stmt->close();
 }
+
 
 // Fetch customers
 $query = "SELECT * FROM Customers";
@@ -232,7 +237,7 @@ $result = $conn->query($query);
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageProduct">
+                <a href="./ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
                 </a>
@@ -274,10 +279,9 @@ $result = $conn->query($query);
                 
                 
                 
-                htmlspecialchars($email)
                 ?></h1>
                 <h2><?php
-                echo  htmlspecialchars($email)
+                echo  htmlspecialchars($user_email)
                 
                 
                 ?></h2>
@@ -356,7 +360,7 @@ $result = $conn->query($query);
 
                 <td class="text-dark text-center">
                     <a href="#" data-bs-toggle="modal" data-bs-target="#editCustomerModal" 
-                    ata-customer-id="<?php echo $row['Customer_ID']; ?>" 
+                    data-customer-id="<?php echo $row['Customer_ID']; ?>" 
                     data-first-name="<?php echo $row['First_Name']; ?>" 
                     data-last-name="<?php echo $row['Last_Name']; ?>"
                     data-contact-number="<?php echo $row['Contact_Number']; ?>">
@@ -364,7 +368,7 @@ $result = $conn->query($query);
                     </a>
                 </td>
 
-                    </button>
+                
                 </td>
             </tr>
                                 
@@ -481,7 +485,7 @@ $result = $conn->query($query);
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="">
+                <form method="POST" action="./">
                     <input type="hidden" id="edit_customer_id" name="Customer_ID">
                     <div class="mb-3">
                         <label for="edit_new_stock" class="form-label">First Name</label>
@@ -544,7 +548,7 @@ const sidebar = document.getElementById('sidebar');
 
         const formData = new FormData(this);
 
-        fetch('your_php_file.php', {
+        fetch('./p', {
             method: 'POST',
             body: formData
         })
@@ -566,7 +570,7 @@ const sidebar = document.getElementById('sidebar');
 
         const formData = new FormData(this);
 
-        fetch('../', {
+        fetch('./', {
             method: 'POST',
             body: formData
         })

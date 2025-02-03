@@ -217,6 +217,90 @@ $stmt->close();
  
         </div>
   <div class="content">
+
+
+
+  <div class="dashboard">
+    <!-- Dashboard-title -->
+    <div class="dashboard-title">
+        <h1><b>ANALYTICS</b> DASHBOARD</h1>
+            <div class="btn-group" style="z-index: 999;" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio1">DAILY</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked>
+                <label class="btn btn-outline-primary" for="btnradio2">WEEKLY</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio3">MONTHLY</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio4">YEARLY</label>
+            </div>
+    </div>
+    <div class="dashboard-summary">
+    <div class="parent">
+        <div class="div1">
+            <div class='col-md-3'>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Revenue</h5>
+                    <h2 class='fw-bold mb-2'>₱ 2,343</h2>
+                    <span class='badge red'>-0.102%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='revenueBarChart'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="div2">
+            <div class='col-md-3'>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Orders</h5>
+                    <h2 class='fw-bold mb-2'>45</h2>
+                    <span class='badge green'>+1.2%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='ordersLineChart'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="div3">
+            <div class='col-md-3'>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Customers</h5>
+                    <h2 class='fw-bold mb-2'>12</h2>
+                    <span class='badge green'>+0.96%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='customersLineChart'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="div4">
+            <div class='col-md-3'>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Items Sold</h5>
+                    <h2 class='fw-bold mb-2'>34</h2>
+                    <span class='badge red'>-1.1%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='itemsSoldBarChart'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <div class="dashboard-top">
+        <h1><b>TOP</b> SELLING</h1>
+    </div>
+    <div class="dashboard-top-grid">
+                <div class="div1">1</div>
+                <div class="div2">2</div>
+            </div>
+    <hr>
+</div> 
   
   </div>
 
@@ -232,6 +316,34 @@ $stmt->close();
     function closeNav() {
       sidebar.classList.remove('active');
     }
+
+
+
+
+
+
+// Revenue Bar Chart
+new Chart(document.getElementById('revenueBarChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                datasets: [{
+                    data: [12, 19, 3, 5, 2],
+                    backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+
+
+
+
+
+
+
+
+
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

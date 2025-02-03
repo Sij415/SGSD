@@ -1,5 +1,5 @@
 <?php
-$required_role = 'admin';
+$required_roles = 'admin';
 include('../check_session.php');
 include '../dbconnect.php';
 // Check if session exists and user is logged in

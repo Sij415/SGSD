@@ -7,13 +7,13 @@ error_reporting(E_ALL);
 
 
 // Fetch user details from session
-$user_id = $_SESSION['email'];
+$user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
-$query = "SELECT First_Name, Email FROM Users WHERE Email = ?";
+$query = "SELECT First_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_id); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($first_name, $email);
+$stmt->bind_result($first_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                 </a>
             </div>
             <div class="sidebar-item">
-                <a href="./ManageProduct">
+                <a href="./ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
                 </a>
@@ -238,10 +238,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                 
                 
                 
-                htmlspecialchars($email)
                 ?></h1>
                 <h2><?php
-                echo  htmlspecialchars($email)
+                echo  htmlspecialchars($user_email)
                 
                 
                 ?></h2>
