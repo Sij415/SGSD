@@ -306,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
 </div>
 <div style="padding: 16px;"><hr></div>
 <div class="admin-restrictions">
-    <h2 class="p-3" style="letter-spacing: -0.050em;"><b>This is Title</b></h2>
+    <h2 class="p-3" style="letter-spacing: -0.050em;"><b>Restrictions</b></h2>
     <form action="" method="POST">
         <div class="d-flex justify-content-between align-items-start p-3">
             <div class="admin-restrictions-title d-flex flex-column mb-3">
