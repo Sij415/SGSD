@@ -1,17 +1,31 @@
 <?php
-$required_roles = 'admin';
+// Include database connection
+
+$required_role = 'admin';
 include('../check_session.php');
 include '../dbconnect.php';
-// Check if session exists and user is logged in
+ // Start the session
+ini_set('display_errors', 1);
 
-    // Get the user's first name and email from the database
-    $query = "SELECT First_Name, Email FROM Users WHERE User_ID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $user_id); // Bind the User_ID as an integer
-    $stmt->execute();
-    $stmt->bind_result($first_name, $email);
-    $stmt->fetch();
-    $stmt->close();
+
+
+// Fetch user details from session
+$user_email = $_SESSION['email'];
+// Get the user's first name and email from the database
+$query = "SELECT First_Name FROM Users WHERE Email = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $user_id); // Bind the email as a string
+$stmt->execute();
+$stmt->bind_result($user_first_name);
+$stmt->fetch();
+$stmt->close();
+
+
+
+
+echo $user_email;
+
+
 
 
 // Fetch settings data from the database
@@ -236,14 +250,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
             </div>
             <div class="sidebar-usrname">
                 <h1><?php
-                echo htmlspecialchars($first_name);
+                echo htmlspecialchars($user_first_name);
                 
                 
                 
-                htmlspecialchars($email)
                 ?></h1>
                 <h2><?php
-                echo  htmlspecialchars($email)
+                echo  htmlspecialchars($user_email)
                 
                 
                 ?></h2>
