@@ -172,20 +172,12 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
         <form action="./" method="POST">
             <div class="form-group">
                 <label for="email">E-Mail</label>
-<<<<<<< HEAD
-                <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
-=======
                 <input type="email" id="email" name="email" class="form-group" placeholder="Enter your email" required>
->>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-<<<<<<< HEAD
-                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
-=======
                 <input type="password" id="password" name="password" class="form-group" placeholder="Enter your password" required>
->>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
             </div>
             <!-- Display error message if any -->
         <?php if (isset($error)) { echo "<div class='alert alert-danger'>$error</div>"; } ?>
