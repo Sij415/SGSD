@@ -1,9 +1,12 @@
 <?php
 // Include database connection
+
+$required_role = 'admin';
+include('../check_session.php');
 include '../dbconnect.php';
-session_start(); // Start the session
+ // Start the session
 ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 
 // Fetch user details from session
@@ -13,9 +16,11 @@ $query = "SELECT First_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_id); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($first_name);
+$stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
+
+
 
 
 
@@ -234,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
             </div>
             <div class="sidebar-usrname">
                 <h1><?php
-                echo htmlspecialchars($first_name);
+                echo htmlspecialchars($user_first_name);
                 
                 
                 
