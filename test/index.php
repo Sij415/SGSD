@@ -3,22 +3,31 @@ session_start();  // Start the session to access session variables
 
 // Check if the form is submitted and update session variables accordingly
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (!empty($_POST['user_id'])) {
-        $_SESSION['user_id'] = $_POST['user_id'];
-    }
-    if (!empty($_POST['email'])) {
-        $_SESSION['email'] = $_POST['email'];
-    }
-    if (!empty($_POST['role'])) {
-        $_SESSION['role'] = $_POST['role'];
-    }
-    if (!empty($_POST['first_name'])) {
-        $_SESSION['first_name'] = $_POST['first_name'];
-    }
+    if (isset($_POST['delete_all'])) {
+        // Delete all session variables
+        session_unset();
+        session_destroy();
+        // Redirect to avoid form resubmission issues
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    } else {
+        if (!empty($_POST['user_id'])) {
+            $_SESSION['user_id'] = $_POST['user_id'];
+        }
+        if (!empty($_POST['email'])) {
+            $_SESSION['email'] = $_POST['email'];
+        }
+        if (!empty($_POST['role'])) {
+            $_SESSION['role'] = $_POST['role'];
+        }
+        if (!empty($_POST['first_name'])) {
+            $_SESSION['first_name'] = $_POST['first_name'];
+        }
 
-    // Redirect to refresh session data (avoiding form resubmission issues)
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
+        // Redirect to refresh session data (avoiding form resubmission issues)
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
 }
 ?>
 
@@ -46,6 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <p>Email: <?php echo $_SESSION['email'] ?? 'Not set'; ?></p>
     <p>Role: <?php echo $_SESSION['role'] ?? 'Not set'; ?></p>
     <p>First Name: <?php echo $_SESSION['first_name'] ?? 'Not set'; ?></p>
+
+    <!-- Button to delete all session data -->
+    <form method="POST">
+        <button type="submit" name="delete_all" id="delete_all_button">Delete All Session Data</button>
+    </form>
 
     <script>
         document.getElementById('submit_button').onclick = function(event) {

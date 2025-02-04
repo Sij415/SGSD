@@ -208,7 +208,7 @@ $stmt->close();
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-sm-block">
+            <div class="sidebar-item d-none d--block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
@@ -238,6 +238,16 @@ $stmt->close();
                 <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
                 <label class="btn btn-outline-primary" for="btnradio4">YEARLY</label>
             </div>
+            <div class="container-fluid">
+    <div class="row">
+        <div class="col-12 text-right">
+            <div><?php echo "Current Customers: 10" ?></div>
+        </div>
+    </div>
+</div>
+
+
+    </div>
     </div>
     <div class="dashboard-summary">
     <div class="parent">
@@ -329,8 +339,10 @@ $stmt->close();
 
 
 
-
+    </script>
     
+    
+    <script> 
 
 // Revenue Bar Chart
 // Revenue Bar Chart
