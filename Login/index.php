@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
         if ($current_time < $locked_until) {
             $remaining_time = $locked_until - $current_time;
-            $error = " Too many failed attempts. Please try again in <span id='countdown'>$remaining_time</span> seconds.";
+            $error = "Too many failed attempts. Please try again in <span id='countdown'>$remaining_time</span> seconds.";
         } else {
             // Cool-down expired, reset attempts
             $reset_sql = "UPDATE IP_Cooldown SET Attempts = 0, Locked_Until = NULL WHERE IP_Address = ?";
@@ -65,7 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             $stmt->execute();
             $result = $stmt->get_result();
 
-            if ($result->num_rows > 0) {
+            // If the email doesn't exist, only add IP to cooldown table with NULL email
+            if ($result->num_rows == 0) {
+                // Add the IP address to the cooldown table with NULL email
+                handleCooldown($ip_address, NULL, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
+            } else {
                 $user = $result->fetch_assoc();
 
                 // Verify password
@@ -77,24 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $delete_stmt->execute();
 
                     // Store user data in session
-                
                     $_SESSION['user_id'] = hash('sha256', $user['User_ID']);
                     $_SESSION['role'] = hash('sha256', $user['Role']);
                     $_SESSION['email'] = $user['Email'];
                     $_SESSION['first_name'] = hash('sha256', $user['First_Name']);
-
-
-
-
-
-
-
-
-
-
-
-
-                    
 
                     // Redirect to dashboard based on the role
                     header("Location: ../Dashboard");
@@ -103,9 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     // Invalid password, handle cooldown
                     $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
                 }
-            } else {
-                // Email does not exist or account_activation_hash is not null, handle cooldown
-                $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
             }
             $stmt->close();
         } else {
@@ -136,15 +123,18 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             return "The username or password you entered is incorrect. You have ". (5 - $attempts) . " attempts remaining. If you have not activated your account, please check your email for the activation link.";
         }
     } else {
-        // First failed attempt for this IP
+        // First failed attempt for this IP, insert NULL email
         $insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
         $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("ss", $email, $ip_address);
+        $insert_stmt->bind_param("ss", $email, $ip_address);  // Bind NULL email
         $insert_stmt->execute();
         return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
     }
 }
 ?>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
