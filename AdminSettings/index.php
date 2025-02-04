@@ -28,16 +28,19 @@ $stmt->close();
 
 
 
-// Fetch settings data from the database
-$query = "SELECT * FROM Settings WHERE Setting_Key = 'AdminSignUpEnabled' OR Setting_Key = 'AdminSignUpEnabled'";
+$query = "SELECT * FROM Settings";
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
+
 $settings = [];
 while ($row = $result->fetch_assoc()) {
     $settings[$row['Setting_Key']] = $row['Value'];
 }
-$stmt->close();
+
+
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
     // Retrieve form values
@@ -336,6 +339,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
                 </div>
                 <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" name="admin_signup_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
+                <?php
+                // echo $settings['AdminSignUpEnabled'];?>
                 </div>
             </div>
             <div class="d-flex justify-content-end p-3">
