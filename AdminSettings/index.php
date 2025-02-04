@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
     $sign_up_amount = isset($_POST['signup_amount']) ? $_POST['signup_amount'] : 0;
 
     // Update the settings in the database
-    $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'AdminSignUpEnabled'";
+    $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'SignUpEnabled'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $sign_up_enabled);
     $stmt->execute();
@@ -324,7 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
         
         <input type="number" class="form-control mx-5" id="signup-amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 150px;">
         <div class="form-check form-switch me-3">
-        <input class="form-check-input" type="checkbox" id="account-restrictions" name="sign_up_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
+        <input class="form-check-input" type="checkbox" id="account-restrictions" name="sign_up_enabled" <?php echo ($settings['SignUpEnabled'] == 1) ? 'checked' : ''; ?>>
         </div>
     </div>
         </div>
