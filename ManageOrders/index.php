@@ -259,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-sm-block">
+            <div class="sidebar-item d-none d-md-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
