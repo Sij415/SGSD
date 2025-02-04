@@ -44,8 +44,9 @@ while ($row = $result->fetch_assoc()) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
     // Retrieve form values
-    $sign_up_enabled = isset($_POST['AdminSignUpEnabled']) ? 1 : 0;
-    $admin_signup_enabled = isset($_POST['AdminSignUpEnabled']) ? 1 : 0;
+    $sign_up_enabled = isset($_POST['sign_up_enabled']) ? 1 : 0;
+    $admin_signup_enabled = isset($_POST['admin_signup_enabled']) ? 1 : 0;
+
     $sign_up_amount = isset($_POST['signup_amount']) ? $_POST['signup_amount'] : 0;
 
     // Update the settings in the database
@@ -53,11 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $sign_up_enabled);
     $stmt->execute();
-
+    
     $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'AdminSignUpEnabled'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $admin_signup_enabled);
     $stmt->execute();
+   
 
     // Optionally, update the sign up amount
     $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'MaxSignUps'";
@@ -101,7 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <title>Responsive Sidebar</title>
+  <link rel="icon"  href="../logo.png">
+  <title>Admin Settings</title>
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {

@@ -35,6 +35,7 @@ $stmt->close();
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="icon"  href="../logo.png">
   <title>Responsive Sidebar</title>
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
