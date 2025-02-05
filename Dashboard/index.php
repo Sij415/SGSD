@@ -333,7 +333,7 @@ $stmt->close();
 
 // Revenue Bar Chart
 // Revenue Bar Chart
-new Chart(document.getElementById('revenueBarChart'), {
+/**new Chart(document.getElementById('revenueBarChart'), {
             type: 'bar',
             data: {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
@@ -389,13 +389,38 @@ new Chart(document.getElementById('revenueBarChart'), {
                 }]
             },
             options: { responsive: true }
-        });
+        }); **/
 
+        <script>
+    $(document).ready(function() {
+    $.ajax({
+        url: 'fetch_data.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            // Orders Chart
+            new Chart(document.getElementById('ordersLineChart'), {
+                type: 'line',
+                data: {
+                    labels: data.orders_data.map(item => item.Date),
+                    datasets: [{ data: data.orders_data.map(item => item.order_count), borderColor: '#9fb0a1', tension: 0.4 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
 
-
-
-
-
+            // Customers Chart
+            new Chart(document.getElementById('customersLineChart'), {
+                type: 'line',
+                data: {
+                    labels: data.customers_data.map(item => item.Date),
+                    datasets: [{ data: data.customers_data.map(item => item.customer_count), borderColor: '#9fb0a1', tension: 0.4 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+    });
+});
+</script>
 
 
   </script>
