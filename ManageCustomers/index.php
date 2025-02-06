@@ -127,20 +127,16 @@ $result = $conn->query($query);
     }
 
     .sidebar {
-  display: flex;
-  width: 250px;
-  height: 100vh; 
-  position: fixed;
-  top: 0;
-  left: -250px; /* Hidden by default */
-  transition: left 0.3s ease;
-  z-index: 1000;
-
- 
-
-  overflow-x: hidden;
-
-}
+        display: flex;
+        width: 250px;
+        height: 100vh; 
+        position: fixed;
+        top: 0;
+        left: -250px; /* Hidden by default */
+        transition: left 0.3s ease;
+        z-index: 1000;
+        overflow-x: hidden;
+    }
 
 
     .sidebar.active {
@@ -167,7 +163,7 @@ $result = $conn->query($query);
       cursor: pointer;
     }
     /* Responsive styles */
-    @media (min-width: 768px) {
+    @media (min-width: 824px) {
       .sidebar {
         position: relative;
         left: 0;
@@ -186,7 +182,7 @@ $result = $conn->query($query);
       }
     }
 
-    @media (max-width: 767.98px) {
+    @media (max-width: 824px) {
       .sidebar .close-btn {
         display: block; /* Show close button only on smaller screens */
         color: #fff;
@@ -470,7 +466,7 @@ $result = $conn->query($query);
                         <label for="contact_number" class="form-label">Contact Number</label>
                         <input type="text" class="form-control" id="Contact_Number" name="Contact_Number" required>
                     </div>
-                    <button type="submit" name="add_customer" class="btn btn-primary">Add Customer</button>
+                    <button type="submit" name="add_customer" class="btn btn-primary" id="btn-add">Add Customer</button>
                 </form>
             </div>
         </div>

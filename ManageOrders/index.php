@@ -300,7 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" name="add_order" class="btn btn-primary">Add Order</button>
+                    <button type="submit" name="add_order" class="btn btn-primary" id="btn-add">Add Order</button>
                 </div>
             </form>
         </div>

@@ -102,36 +102,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 }
 
 // Function to handle cooldown logic
-function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $cooldown_period) {
-    global $conn;
+// function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $cooldown_period) {
+//     global $conn;
 
-    if ($cooldown_result->num_rows > 0) {
-        $attempts = $cooldown_data['Attempts'] + 1;
+//     if ($cooldown_result->num_rows > 0) {
+//         $attempts = $cooldown_data['Attempts'] + 1;
 
-        if ($attempts >= 5) {
-            $locked_until = date("Y-m-d H:i:s", time() + $cooldown_period);
-            $update_sql = "UPDATE IP_Cooldown SET Attempts = ?, Last_Attempt = NOW(), Locked_Until = ? WHERE IP_Address = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("iss", $attempts, $locked_until, $ip_address);
-            $update_stmt->execute();
-            return "Too many failed attempts. Please try again in <span id='countdown'>$cooldown_period</span> seconds.";
-        } else {
-            $update_sql = "UPDATE IP_Cooldown SET Attempts = ?, Last_Attempt = NOW() WHERE IP_Address = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("is", $attempts, $ip_address);
-            $update_stmt->execute();
-            return "The username or password you entered is incorrect. You have ". (5 - $attempts) . " attempts remaining. If you have not activated your account, please check your email for the activation link.";
-        }
-    } else {
-        // First failed attempt for this IP, insert NULL email
-        $insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
-        $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("ss", $email, $ip_address);  // Bind NULL email
-        $insert_stmt->execute();
-        return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
-    }
-}
-?>
+//         if ($attempts >= 5) {
+//             $locked_until = date("Y-m-d H:i:s", time() + $cooldown_period);
+//             $update_sql = "UPDATE IP_Cooldown SET Attempts = ?, Last_Attempt = NOW(), Locked_Until = ? WHERE IP_Address = ?";
+//             $update_stmt = $conn->prepare($update_sql);
+//             $update_stmt->bind_param("iss", $attempts, $locked_until, $ip_address);
+//             $update_stmt->execute();
+//             return "Too many failed attempts. Please try again in <span id='countdown'>$cooldown_period</span> seconds.";
+//         } else {
+//             $update_sql = "UPDATE IP_Cooldown SET Attempts = ?, Last_Attempt = NOW() WHERE IP_Address = ?";
+//             $update_stmt = $conn->prepare($update_sql);
+//             $update_stmt->bind_param("is", $attempts, $ip_address);
+//             $update_stmt->execute();
+//             return "The username or password you entered is incorrect. You have ". (5 - $attempts) . " attempts remaining. If you have not activated your account, please check your email for the activation link.";
+//         }
+//     } else {
+//         // First failed attempt for this IP, insert NULL email
+//         $insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
+//         $insert_stmt = $conn->prepare($insert_sql);
+//         $insert_stmt->bind_param("ss", $email, $ip_address);  // Bind NULL email
+//         $insert_stmt->execute();
+//         return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
+//     }
+// }
+// ?>
 
 
 
