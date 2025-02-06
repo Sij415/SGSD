@@ -33,6 +33,8 @@ $stmt->close();
   <link rel="stylesheet" href="../style/style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <title>Responsive Sidebar</title>
@@ -244,7 +246,7 @@ $stmt->close();
             <div class=''>
                 <div class='card p-3 text-center'>
                     <h5 class='mb-2'>Revenue</h5>
-                    <h2 class='fw-bold mb-2'>₱ 2,343</h2>
+                    <!-- <h2 class='fw-bold mb-2'>₱ 2,343</h2> -->
                     <span class='badge red'>-0.102%</span>
                     <div class='chart-container mt-3'>
                         <canvas id='revenueBarChart'></canvas>
@@ -256,7 +258,7 @@ $stmt->close();
             <div class=''>
                 <div class='card p-3 text-center'>
                     <h5 class='mb-2'>Orders</h5>
-                    <h2 class='fw-bold mb-2'>45</h2>
+                    <!-- <h2 class='fw-bold mb-2'>45</h2> -->
                     <span class='badge green'>+1.2%</span>
                     <div class='chart-container mt-3'>
                         <canvas id='ordersLineChart'></canvas>
@@ -268,7 +270,7 @@ $stmt->close();
             <div class=''>
                 <div class='card p-3 text-center'>
                     <h5 class='mb-2'>Customers</h5>
-                    <h2 class='fw-bold mb-2'>12</h2>
+                    <!-- <h2 class='fw-bold mb-2'>12</h2> -->
                     <span class='badge green'>+0.96%</span>
                     <div class='chart-container mt-3'>
                         <canvas id='customersLineChart'></canvas>
@@ -280,7 +282,7 @@ $stmt->close();
             <div class=''>
                 <div class='card p-3 text-center'>
                     <h5 class='mb-2'>Items Sold</h5>
-                    <h2 class='fw-bold mb-2'>34</h2>
+                    <!-- <h2 class='fw-bold mb-2'>34</h2> -->
                     <span class='badge red'>-1.1%</span>
                     <div class='chart-container mt-3'>
                         <canvas id='itemsSoldBarChart'></canvas>
@@ -314,6 +316,7 @@ $stmt->close();
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
@@ -376,7 +379,7 @@ $stmt->close();
                 }]
             },
             options: { responsive: true, plugins: { legend: { display: false } } }
-        });
+        }); **/
 
         // Doughnut Chart for Top Selling
         new Chart(document.getElementById('topSellingChart'), {
@@ -389,34 +392,72 @@ $stmt->close();
                 }]
             },
             options: { responsive: true }
-        }); **/
+        });
+        </script>
 
-        <script>
-    $(document).ready(function() {
+<script>
+$(document).ready(function () {
     $.ajax({
         url: 'fetch_data.php',
         method: 'GET',
         dataType: 'json',
-        success: function(data) {
-            // Orders Chart
-            new Chart(document.getElementById('ordersLineChart'), {
-                type: 'line',
+        success: function (data) {
+            // Revenue Chart (Bar)
+            new Chart(document.getElementById('revenueBarChart'), {
+                type: 'bar',
                 data: {
-                    labels: data.orders_data.map(item => item.Date),
-                    datasets: [{ data: data.orders_data.map(item => item.order_count), borderColor: '#9fb0a1', tension: 0.4 }]
+                    labels: data.revenue_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.revenue_data.map(item => item.revenue),
+                        backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
+                    }]
                 },
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
-            // Customers Chart
+            // Orders Chart (Line)
+            new Chart(document.getElementById('ordersLineChart'), {
+                type: 'line',
+                data: {
+                    labels: data.orders_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.orders_data.map(item => item.order_count),
+                        borderColor: '#9fb0a1',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Customers Chart (Line)
             new Chart(document.getElementById('customersLineChart'), {
                 type: 'line',
                 data: {
                     labels: data.customers_data.map(item => item.Date),
-                    datasets: [{ data: data.customers_data.map(item => item.customer_count), borderColor: '#9fb0a1', tension: 0.4 }]
+                    datasets: [{
+                        data: data.customers_data.map(item => item.customer_count),
+                        borderColor: '#9fb0a1',
+                        tension: 0.4
+                    }]
                 },
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
+
+            // Items Sold Chart (Bar)
+            new Chart(document.getElementById('itemsSoldBarChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.items_sold_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.items_sold_data.map(item => item.items_sold),
+                        backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching data:", error);
         }
     });
 });
