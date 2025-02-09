@@ -3,7 +3,6 @@
 include('../dbconnect.php');
 date_default_timezone_set("Asia/Manila");
 session_start();
-date_default_timezone_set('Asia/Manila'); // Set timezone to Philippine Time
 
 
 // Check if the admin has enabled sign-ups
