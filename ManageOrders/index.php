@@ -11,32 +11,29 @@ ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-// Get the user's first name and email from the database
+
+// Get the user's first name from the database
 $query = "SELECT First_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_id); // Bind the email as a string
+$stmt->bind_param("s", $user_email);
 $stmt->execute();
 $stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
 
-
-
-
-
-
 // Fetch order data from the database
 $query = "SELECT 
             Orders.Order_ID, 
-            Users.User_ID, 
+            Users.User_ID,  -- Include User_ID
             Customers.First_Name AS Customer_Name, 
             Products.Product_Name, 
             Orders.Status, 
             Orders.Order_Type 
           FROM Orders
-          INNER JOIN Users ON Orders.User_ID = Users.User_ID
-          INNER JOIN Customers ON Users.User_ID = Customers.Customer_ID
-          INNER JOIN Products ON Orders.Product_ID = Products.Product_ID";
+          INNER JOIN Users ON Orders.User_ID = Users.User_ID  -- Join Users table to get User_ID
+          INNER JOIN Products ON Orders.Product_ID = Products.Product_ID
+          INNER JOIN Transactions ON Orders.Order_ID = Transactions.Order_ID
+          INNER JOIN Customers ON Transactions.Customer_ID = Customers.Customer_ID";
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
@@ -47,6 +44,7 @@ if (!$result) {
     die("Query failed: " . mysqli_error($conn));
 }
 
+// Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $customer_name = $_POST['customer_name'];
     $product_name = $_POST['product_name'];
@@ -55,9 +53,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 
     // Validate input
     if (!empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
-        $query = "INSERT INTO Orders (Customer.First_Name, Product_Name, Status, Order_Type) VALUES (?, ?, ?, ?)";
+        // Get Customer_ID from Customers table
+        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("ssss", $customer_name, $product_name, $status, $order_type);
+        $stmt->bind_param("s", $customer_name);
+        $stmt->execute();
+        $stmt->bind_result($customer_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (!$customer_id) {
+            echo "<div class='alert alert-danger'>Customer not found.</div>";
+            exit();
+        }
+
+        // Get Product_ID from Products table
+        $query = "SELECT Product_ID FROM Products WHERE Product_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $product_name);
+        $stmt->execute();
+        $stmt->bind_result($product_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (!$product_id) {
+            echo "<div class='alert alert-danger'>Product not found.</div>";
+            exit();
+        }
+
+        // Insert into Orders table
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type) VALUES (?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iiss", $customer_id, $product_id, $status, $order_type);
 
         if ($stmt->execute()) {
             header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
@@ -71,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         echo "<div class='alert alert-warning'>All fields are required.</div>";
     }
 }
-
 ?>
 
 
@@ -88,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <title>Manage Orders</title>
-  <link rel="icon"  href="../logo.png">
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
@@ -259,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-md-block">
+            <div class="sidebar-item d-none d-sm-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
