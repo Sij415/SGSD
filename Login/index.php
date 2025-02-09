@@ -4,7 +4,6 @@ include('../dbconnect.php');
 date_default_timezone_set("Asia/Manila");
 session_start();
 
-
 // Check if the admin has enabled sign-ups
 $signup_enabled_query = "SELECT Value FROM Settings WHERE Setting_Key = 'SignUpEnabled'";
 $signup_enabled_result = $conn->query($signup_enabled_query);
@@ -66,10 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             $stmt->execute();
             $result = $stmt->get_result();
 
-            // If the email doesn't exist, only add IP to cooldown table with NULL email
+            // If the email doesn't exist, handle cooldown
             if ($result->num_rows == 0) {
                 // Add the IP address to the cooldown table with NULL email
-                handleCooldown($ip_address, NULL, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
+                $error = handleCooldown($ip_address, NULL, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
             } else {
                 $user = $result->fetch_assoc();
 
@@ -127,15 +126,12 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
         // First failed attempt for this IP, insert NULL email
         $insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
         $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("ss", $email, $ip_address);  // Bind NULL email
+        $insert_stmt->bind_param("ss", $email, $ip_address);
         $insert_stmt->execute();
         return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
     }
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
