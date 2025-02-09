@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 
     // Validate input
     if (!empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
-        $query = "INSERT INTO Orders (Customer_Name, Product_Name, Status, Order_Type) VALUES (?, ?, ?, ?)";
+        $query = "INSERT INTO Orders (Customer.First_Name, Product_Name, Status, Order_Type) VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ssss", $customer_name, $product_name, $status, $order_type);
 
