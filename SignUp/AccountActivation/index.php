@@ -46,7 +46,6 @@
             $stmt->execute();
             $result = $stmt->get_result();
             $user = $result->fetch_assoc();
-            echo $user;
 
             if ($user === null) {
                // Invalid or expired token
