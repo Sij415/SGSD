@@ -48,16 +48,16 @@
             $user = $result->fetch_assoc();
 
             if ($user === null) {
-                // Invalid or expired token
-                // echo "<script>
-                //     Swal.fire({
-                //         icon: 'error',
-                //         title: 'Invalid Token',
-                //         text: 'The token you provided is either invalid or has expired.',
-                //         showConfirmButton: false,
-                //         timer: 3000
-                //     });
-                // </script>";
+               // Invalid or expired token
+                echo "<script>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Token',
+                        text: 'The token you provided is either invalid or has expired.',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                </script>";
                 exit;
             } else {
                 // Update user record to nullify the activation hash
