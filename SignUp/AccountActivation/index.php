@@ -34,6 +34,7 @@
 
         if ($token) {
             $token_hash = hash("sha256", $token);
+            echo $token_hash;
 
             // Database connection
             $mysqli = require "../../dbconnect.php";
