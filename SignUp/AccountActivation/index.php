@@ -61,9 +61,9 @@
                 exit;
             } else {
                 // Update user record to nullify the activation hash
-                $sql = "UPDATE Users SET account_activation_hash = NULL WHERE id = ?";
+                $sql = "UPDATE Users SET account_activation_hash = NULL WHERE account_activation_hash = ?";
                 $stmt = $mysqli->prepare($sql);
-                $stmt->bind_param("s", $user["id"]);
+                $stmt->bind_param("s", $token_hash);
 
                 if ($stmt->execute()) {
                     // Success message
