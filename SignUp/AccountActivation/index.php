@@ -10,7 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
+    <link rel="icon"  href="../../logo.png">
 </head>
 
 <body>
@@ -34,6 +34,7 @@
 
         if ($token) {
             $token_hash = hash("sha256", $token);
+            echo $token_hash;
 
             // Database connection
             $mysqli = require "../../dbconnect.php";
@@ -48,15 +49,15 @@
 
             if ($user === null) {
                 // Invalid or expired token
-                echo "<script>
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Invalid Token',
-                        text: 'The token you provided is either invalid or has expired.',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                </script>";
+                // echo "<script>
+                //     Swal.fire({
+                //         icon: 'error',
+                //         title: 'Invalid Token',
+                //         text: 'The token you provided is either invalid or has expired.',
+                //         showConfirmButton: false,
+                //         timer: 3000
+                //     });
+                // </script>";
                 exit;
             } else {
                 // Update user record to nullify the activation hash
