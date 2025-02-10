@@ -1,6 +1,7 @@
 <?php
 $required_role = 'admin';
 include('../check_session.php');
+
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);

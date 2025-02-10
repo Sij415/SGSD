@@ -3,6 +3,7 @@
 include('../dbconnect.php');
 date_default_timezone_set("Asia/Manila");
 session_start();
+error_reporting(E_ALL);
 
 // Check if the admin has enabled sign-ups
 $signup_enabled_query = "SELECT Value FROM Settings WHERE Setting_Key = 'SignUpEnabled'";
@@ -68,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             // If the email doesn't exist, handle cooldown
             if ($result->num_rows == 0) {
                 // Add the IP address to the cooldown table with NULL email
+
                 $error = handleCooldown($ip_address, NULL, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
             } else {
                 $user = $result->fetch_assoc();
@@ -91,6 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     exit();
                 } else {
                     // Invalid password, handle cooldown
+                    
                     $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
                 }
             }
