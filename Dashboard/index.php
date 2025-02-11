@@ -125,7 +125,7 @@ $stmt->close();
     }
   </style>
 </head>
-<body class="p-0">
+<body>
 <header class="app-header">
   <nav class="app-nav d-flex justify-content-between">
     <!-- Sidebar button visible only on smaller screens -->
@@ -140,7 +140,7 @@ $stmt->close();
 
 <div id="sidebar" class="sidebar d-flex flex-column">
         <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+        <a href="#" class="sgsd-title mt-5"><b>SGSD</b></a>
  
         <div class="sidebar-items">
             <hr style="width: 75%; margin: 0 auto; padding: 12px;">
@@ -220,9 +220,6 @@ $stmt->close();
  
         </div>
   <div class="content">
-
-
-
   <div class="dashboard">
     <!-- Dashboard-title -->
     <div class="dashboard-title">
@@ -243,51 +240,66 @@ $stmt->close();
     </div>
     <div class="dashboard-summary">
     <div class="parent">
-        <div class="div1">
-            <div class=''>
+        <div class="div1 p-0">
                 <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Revenue</h5>
-                    <!-- <h2 class='fw-bold mb-2'>₱ 2,343</h2> -->
+                    <h5 class='mb-2 text-start'>Revenue</h5>
+                    <h4 class='fw-bold mb-2 text-start'>₱ 2,343</h4>
                     <span class='badge red'>-0.102%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='revenueBarChart'></canvas>
-                    </div>
+                        <canvas id='revenueBarChart' style="max-width:100%; height: auto;"></canvas>
                 </div>
-            </div>
         </div>
         <div class="div2">
             <div class=''>
                 <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Orders</h5>
-                    <!-- <h2 class='fw-bold mb-2'>45</h2> -->
+                    <h5 class='mb-2 text-start'>Orders</h5>
+                    <h4 class='fw-bold mb-2 text-start'>₱ 2,343</h4>
                     <span class='badge green'>+1.2%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='ordersLineChart'></canvas>
-                    </div>
+                        <canvas id='ordersLineChart' style="max-width:100%; height: auto;"></canvas>
                 </div>
             </div>
         </div>
         <div class="div3">
             <div class=''>
                 <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Customers</h5>
-                    <!-- <h2 class='fw-bold mb-2'>12</h2> -->
+                    <h5 class='mb-2 text-start'>Customers</h5>
+                    <h4 class='fw-bold mb-2 text-start'>₱ 2,343</h4>
                     <span class='badge green'>+0.96%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='customersLineChart'></canvas>
-                    </div>
+                        <canvas id='customersLineChart' style="max-width:100%; height: auto;"></canvas>
                 </div>
             </div>
         </div>
         <div class="div4">
             <div class=''>
                 <div class='card p-3 text-center'>
-                    <h5 class='mb-2'>Items Sold</h5>
-                    <!-- <h2 class='fw-bold mb-2'>34</h2> -->
+                    <h5 class='mb-2 text-start'>Items Sold</h5>
+                    <h4 class='fw-bold mb-2 text-start'>₱ 2,343</h4>
                     <span class='badge red'>-1.1%</span>
-                    <div class='chart-container mt-3'>
-                        <canvas id='itemsSoldBarChart'></canvas>
-                    </div>
+                        <canvas id='itemsSoldBarChart' style="max-width:100%; height: auto;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<div class="dashboard-summary-static">
+    <div class="parent-static">
+        <div class="div1-static p-0">
+                <div class='card-static p-3 text-center'>
+                    <h5 class='mb-2 text-start'>Revenue</h5>
+                    <h4 class='fw-bold mb-2 text-start'>₱ 2,343</h4>
+                    <span class='badge-static red'>-0.102%</span>
+                        <canvas id='revenueBarChart' style="max-width:100%; height: auto;"></canvas>
+                </div>
+        </div>
+        <div class="div2-static">
+            <div class=''>
+                <div class='card-static p-3 text-center'>
+                    <h5 class='mb-2 text-start'>Orders</h5>
+                    <h4 class='fw-bold mb-2 text-start'>₱ 2,343</h4>
+                    <span class='badge-static green'>+1.2%</span>
+                        <canvas id='ordersLineChart' style="max-width:100%; height: auto;"></canvas>
                 </div>
             </div>
         </div>
@@ -299,10 +311,12 @@ $stmt->close();
         <h1><b>TOP</b> SELLING</h1>
     </div>
     <div class="dashboard-top-grid">
-                <div class="div1"><div class="doughnut-container">
-                <canvas id="topSellingChart"></canvas></div>
-
+        <div class="div1">
+            <div class="doughnut-container">
+                <canvas id="topSellingChart"></canvas>
             </div>
+        </div>
+    </div>
     <hr>
     </div> 
 

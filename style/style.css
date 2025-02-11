@@ -318,7 +318,6 @@ body {
     left: 0;
     background-color: #f2f4f0; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
-    padding-top: 60px; /* Place content 60px from the top */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
     border-top-right-radius: 24px;
     border-bottom-right-radius: 24px;
@@ -330,8 +329,8 @@ body {
     overflow: hidden; /* Enable vertical scroll if content exceeds height */
   }
   
-  /* The sidebar links */
-  .sidebar-items a {
+/* The sidebar links */
+.sidebar-items a {
     padding: 8px 8px 8px 32px;
     text-decoration: none;
     font-size: 22px;
@@ -339,9 +338,9 @@ body {
     display: block;
     transition: 0.3s;
     letter-spacing: -0.045em;
-  }
+}
 
-.sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol {
+.sgsd-title {
     padding: 8px 8px 8px 32px;
     text-decoration: none;
     font-size: 22px;
@@ -351,7 +350,7 @@ body {
     letter-spacing: -0.045em;  
 }
 
-.sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol:hover {
+.sgsd-title:hover {
     color: #3e6b32;
 }
 
@@ -377,6 +376,8 @@ body {
     border-top-right-radius: 56px;
     border-bottom-right-radius: 56px;
   }
+
+
   
   /* Position and style the close button (top right corner) */
   .sidebar .closebtn {
@@ -458,6 +459,7 @@ body {
     background-color: #6fa062;
     width: 100%; /* Equal width for all buttons */
     transition: transform 0.3s; /* Smooth background color and scale transition */
+    white-space: nowrap; /* Prevent text from wrapping to a new line */
 }
 .sidebar-items-button:hover {
     transform: scale(1.05); /* Scale up on hover */
@@ -543,7 +545,6 @@ body.dashboard {
     height: 100%;
     overflow-x: hidden;
     transition: width 0.3s ease;
-    padding-top: 60px;
 }
 
 .dashboard-title .btn-group {
@@ -611,6 +612,7 @@ input[type="radio"].btn-check + label:hover {
 .input[type="radio"].btn-check:checked + label {
     border-radius: 5px;
 }
+
 .dashboard-summary {
     display: grid;
     padding: 0px 32px 0px 32px;
@@ -622,27 +624,16 @@ input[type="radio"].btn-check + label:hover {
 /* Grid container */
 .parent {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
     gap: 8px;
-    border: 2px solid #333; /* Border for the entire grid container */
     padding: 10px; /* 25px for top/bottom, 10px for left/right */
 }
 
 /* Individual grid items */
 .parent > div {
-    border: 2px solid #333; /* Border for each grid item */
-    padding: 100px 10px; /* 25px for top/bottom, 10px for left/right */
     text-align: center;
     background-color: #f4f4f4;
-}
-
-.div4 {
-    grid-column: span 2 / span 2;
-}
-
-.div5 {
-    grid-column-start: 3;
 }
 
 .dashboard-top {
@@ -652,16 +643,54 @@ input[type="radio"].btn-check + label:hover {
 }
 
 .dashboard-top-grid {
+    display: block;
+    gap: 8px;
+    padding: 48px;
+}
+
+.dashboard-top-grid > div {
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+/* Dashboard Static */
+
+.dashboard-summary-static {
+    display: grid;
+    padding: 0px 32px 0px 32px;
+    margin-bottom: 1.5em;
+}
+
+/* Column styling */
+
+/* Grid container */
+.parent-static {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(1, 1fr);
     gap: 8px;
-    padding: 0px 32px 32px 32px;
+    padding: 10px; /* 25px for top/bottom, 10px for left/right */
 }
 
-.dashboard-top-grid > div {
-    border: 2px solid #333; /* Border for each grid item */
-    padding: 100px 10px; /* 25px for top/bottom, 10px for left/right */
+/* Individual grid items */
+.parent-static > div {
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+.dashboard-top-static {
+    display: flex;
+    padding: 0px 32px 0px 32px;
+    font-size: 0.8em;
+}
+
+.dashboard-top-grid-static {
+    display: block;
+    gap: 8px;
+    padding: 48px;
+}
+
+.dashboard-top-grid-static > div {
     text-align: center;
     background-color: #f4f4f4;
 }
@@ -1358,6 +1387,30 @@ body{padding: 0em;}
     max-width: 600px; /* Maximum width for the container */
 }
 
+/* Modal */
+
+.modal-header, .modal-body {
+    padding: 1.9em !important;
+}
+
+.modal-header h5 {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: -0.050em;
+}
+
+.btn-primary {
+    background-color: #6fa062 !important;
+    border-color: #6fa062 !important;
+    font-weight: 800;
+    letter-spacing: -0.050em;
+    border-radius: 12px !important;
+}
+
+.modal-content {
+    border-radius: 24px !important;
+}
 /* Responsive adjustments */
 
 @media (max-width: 768px) {
@@ -1417,7 +1470,6 @@ body{padding: 0em;}
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(2, 1fr);
         gap: 8px;
-        border: 2px solid #333; /* Border for the entire grid container */
         padding: 10px; /* 25px for top/bottom, 10px for left/right */
     }
     .div4 {

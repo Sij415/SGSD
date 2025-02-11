@@ -135,13 +135,8 @@ $result = $conn->query($query);
   left: -250px; /* Hidden by default */
   transition: left 0.3s ease;
   z-index: 1000;
-
- 
-
   overflow-x: hidden;
-
 }
-
 
     .sidebar.active {
       left: 0;
