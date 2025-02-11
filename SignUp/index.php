@@ -1,3 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="../style/style.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="icon"  href="../logo.png">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <?php
 
 include('../dbconnect.php');
@@ -16,7 +55,7 @@ $max_signups = $max_signups_result->fetch_assoc()['Value'] ?? 0;
 
 
 
-if ($max_signups <= 0 ||0 != $signup_enabled) {
+if ($max_signups <= 0 & 0 != $sign_up_enabled) {
     header("Location: ../"); // Adjust this URL to match your actual login page
     exit();
 }
@@ -180,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <p style="font-size: 16px; color: #7c8089; line-height: 1.5; margin: 20px 0;">
                                                 If you wish to proceed, please click the button below to initiate the account activation.
                                             </p>
-                                            <a href="http://10.147.20.116/ForgotPassword/NewPassword?token=$activation_token" style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Activate Account</a>
+                                            <a href="http://10.147.20.116/SignUp/AccountActivation?token=$activation_token" style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Activate Account</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -235,22 +274,6 @@ $conn->close();
 
 
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
-    <link rel="stylesheet" href="../style/style.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="icon"  href="../logo.png">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-</head>
 
 
 

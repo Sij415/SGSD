@@ -333,7 +333,7 @@ $result = $conn->query($query);
     </div>
 
     <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Stock</button>
     
 </div>
 

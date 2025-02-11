@@ -613,7 +613,7 @@ input[type="radio"].btn-check + label:hover {
 }
 .dashboard-summary {
     display: grid;
-    padding: 0;
+    padding: 0px 32px 0px 32px;
     margin-bottom: 1.5em;
 }
 
@@ -1334,49 +1334,6 @@ body{padding: 0em;}
 .sgsd-mail-success .sgsd-success-inner .btn{
 	color:#fff;
 }
-
-/* Modal */
-.modal-header {
-    padding: 1.6rem !important; /* Existing padding */
-    border-bottom: 1px solid #a8a8a8 !important; /* Divider */
-}
-
-.modal-title {
-    font-weight: 700;
-    letter-spacing: -0.050em;
-}
-
-.btn-close {
-    background-color: #6fa062 !important; /* Button background color */
-    color: white !important;  
-    border: none !important; /* Remove border */
-    padding: 20px !important; /* Add some padding */
-    cursor: pointer !important; /* Change cursor to pointer */
-    font-size: 16px !important; /* Increase font size */
-    border-radius: 12px !important; /* Rounded corners */
-    width: auto !important;
-    height: auto !important;
-}
-
-.modal-body {
-    padding: 1.8rem !important;
-}
-
-.modal-body label {
-    letter-spacing: -0.050em;
-}
-
-#btn-add {
-    background-color: #6fa062 !important;
-    color: white !important;
-    border: none !important;
-    cursor: pointer !important;
-    font-size: 1rem !important;
-    text-decoration: none !important;
-    text-align: center !important;
-    transition: background-color 0.3s !important;
-}
-
 
 /* Media query for medium devices */
 @media (max-width: 480px) {
