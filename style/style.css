@@ -1411,6 +1411,14 @@ body{padding: 0em;}
 .modal-content {
     border-radius: 24px !important;
 }
+
+/* Desktop view */
+
+.bi-pencil-square {
+    font-size: 1.2em;
+    font-weight: 800 !important;
+    color: #6fa062;
+}
 /* Responsive adjustments */
 
 @media (max-width: 768px) {

@@ -288,7 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
   <section class="admin">
 
 <div class="admin-main">
-    <div class="admin-title">
+    <div class="admin-title p-3">
     <h1><b>Admin</b> Settings</h1>
     <h3>Customize and control system preferences</h3>
     <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
