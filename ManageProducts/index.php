@@ -311,7 +311,6 @@ $result = $conn->query($query);
             <table class="table table-striped table-bordered">
                 <thead>
                 <tr>
-            <th>Product ID</th>
             <th>Product Name</th>
             <th>Product Type</th>
             <th>Price</th>
@@ -323,7 +322,6 @@ $result = $conn->query($query);
                     <?php if (mysqli_num_rows($result) > 0): ?>
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
-                <td><?php echo $row['Product_ID']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Product_Type']; ?></td>
                 <td><?php echo $row['Price']; ?></td>
@@ -384,10 +382,6 @@ $result = $conn->query($query);
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                         <div class="row">
-
-                            <div class="col-6">
-                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?></p>
-                            </div>
 
                             <div class="col-6">
                                 <p class="card-text"><strong>Product Type:</strong> <?php echo htmlspecialchars($row['Product_Type']); ?></p>
