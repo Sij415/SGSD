@@ -7,6 +7,8 @@ include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
 
+//Initialize the variable
+$product_id = '';
 
 
 // Fetch user details from session
@@ -299,8 +301,8 @@ $result = $conn->query($query);
         </button>
     </div>
 
-    <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+    <!-- Add Product Button -->
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
     
 </div>
 
@@ -413,14 +415,9 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
-                    </div>
                     <div class="mb-3">
                         <label for="product_name" class="form-label">Product Name</label>
                         <input type="text" class="form-control" id="Product_Name" name="Product_Name" required>
@@ -446,7 +443,6 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
