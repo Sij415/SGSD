@@ -363,7 +363,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
       <table class="table table-striped table-bordered">
         <thead>
           <tr>
-            <th>Order ID</th>
             <th>Stocked By</th>
             <th>Customer Name</th>
             <th>Product Name</th>
@@ -376,7 +375,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
           <?php if (mysqli_num_rows($result) > 0): ?>
             <?php while ($row = mysqli_fetch_assoc($result)): ?>
               <tr>
-                <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
                 <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Customer_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
@@ -410,9 +408,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
               <div class="card-body">
                 <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                 <div class="row">
-                  <div class="col-6">
-                    <p class="card-text"><strong>Order ID:</strong> <?php echo htmlspecialchars($row['Order_ID']); ?></p>
-                  </div>
                   <div class="col-6">
                     <p class="card-text"><strong>First Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
                   </div>
