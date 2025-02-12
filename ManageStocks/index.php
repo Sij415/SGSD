@@ -83,9 +83,19 @@ if (isset($_POST['edit_stock'])) {
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
-    $query = "UPDATE Stocks SET New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    // Fetch current New_Stock before updating
+    $query = "SELECT New_Stock FROM Stocks WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iii", $new_stock, $threshold, $stock_id);
+    $stmt->bind_param("i", $stock_id);
+    $stmt->execute();
+    $stmt->bind_result($current_stock);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Update stock: move New_Stock to Old_Stock, then update New_Stock
+    $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iiii", $current_stock, $new_stock, $threshold, $stock_id);
 
     if ($stmt->execute()) {
         $success_message = "Stock updated successfully.";
