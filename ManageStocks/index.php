@@ -96,20 +96,18 @@ if (isset($_POST['edit_stock'])) {
     $stmt->close();
 }
 
-// Fetch stocks
+// UPDATED QUERY
 $query = "SELECT Stocks.Stock_ID, 
-                 Stocks.User_ID, 
+                 Users.First_Name AS First_Name, 
                  Products.Product_Name, 
                  Stocks.Old_Stock, 
                  Stocks.New_Stock, 
                  Stocks.Threshold 
           FROM Stocks
-          INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID";
+          INNER JOIN Users ON Stocks.User_ID = Users.User_ID
+          INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID"; 
+
 $result = $conn->query($query);
-
-
-
-
 ?>
 
 
@@ -351,7 +349,7 @@ $result = $conn->query($query);
                 <thead>
                 <tr>
                 <th>Stock ID</th>
-            <th>User ID</th>
+            <th>Stocked By</th>
             <th>Product Name</th>
             <th>Old Stock</th>
             <th>New Stock</th>
@@ -365,7 +363,7 @@ $result = $conn->query($query);
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
                             <td><?php echo $row['Stock_ID']; ?></td>
-                <td><?php echo $row['User_ID']; ?></td>
+                <td><?php echo $row['First_Name']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Old_Stock']; ?></td>
                 <td><?php echo $row['New_Stock']; ?></td>
@@ -427,11 +425,11 @@ $result = $conn->query($query);
                         <div class="row">
 
                             <div class="col-6">
-                                <p class="card-text"><strong>User ID:</strong> <?php echo htmlspecialchars($row['User_ID']); ?></p>
+                                <p class="card-text"><strong>User Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
-                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_Name']); ?></p>
+                                <p class="card-text"><strong>Product Name:</strong> <?php echo htmlspecialchars($row['Product_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
@@ -472,12 +470,12 @@ $result = $conn->query($query);
             <div class="modal-body">
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label for="user_id" class="form-label">User ID</label>
-                        <input type="number" class="form-control" id="User_ID" name="User_ID" required>
+                        <label for="user_id" class="form-label">First_Name</label>
+                        <input type="number" class="form-control" id="First_Name" name="First_Name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
+                        <label for="product_id" class="form-label">Product Name</label>
+                        <input type="number" class="form-control" id="Product_Name" name="Product_Name" required>
                     </div>
                     <div class="mb-3">
                         <label for="old_stock" class="form-label">Old Stock</label>
