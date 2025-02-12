@@ -262,7 +262,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <form method="POST" action="">
           <div class="modal-header">
             <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
@@ -303,7 +302,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <form method="POST" action="">
           <div class="modal-header">
             <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <input type="hidden" id="edit_order_id" name="Order_ID">
