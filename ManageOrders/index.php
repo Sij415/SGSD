@@ -279,7 +279,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </div>
             <div class="mb-3">
               <label for="order_type" class="form-label">Order Type</label>
-              <input type="text" name="order_type" id="order_type" class="form-control" required>
+              <select name="order_type" id="order_type" class="form-control" required>
+                <option value="">Select Order Type</option>
+                <option value="Inbound">Inbound</option>
+                <option value="Outbound">Outbound</option>
+              </select>
+
             </div>
           </div>
           <div class="modal-footer">
@@ -312,11 +317,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </div>
             <div class="mb-3">
               <label for="edit_status" class="form-label">Status</label>
-              <input type="text" class="form-control" id="edit_status" name="New_Status">
+              <select class="form-control" id="edit_status" name="New_Status">
+                <option value="">Select Status</option>
+                <option value="To Pick Up">To Pick Up</option>
+                <option value="In Transit">In Transit</option>
+                <option value="Delivered">Delivered</option>
+              </select>
             </div>
             <div class="mb-3">
               <label for="edit_order_type" class="form-label">Order Type</label>
-              <input type="text" class="form-control" id="edit_order_type" name="New_OrderType">
+              <select class="form-control" id="edit_order_type" name="New_OrderType">
+                 <option value="Inbound">Inbound</option>
+                 <option value="Outbound">Outbound</option>
+              </select>
+
             </div>
           </div>
           <div class="modal-footer">
