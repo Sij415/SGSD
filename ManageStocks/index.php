@@ -347,7 +347,7 @@ $result = $conn->query($query);
     </div>
 
     <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Stock</button>
     
 </div>
 
@@ -358,7 +358,6 @@ $result = $conn->query($query);
             <table class="table table-striped table-bordered">
                 <thead>
                 <tr>
-                <th>Stock ID</th>
             <th>Stocked By</th>
             <th>Product Name</th>
             <th>Old Stock</th>
@@ -372,7 +371,6 @@ $result = $conn->query($query);
                     <?php if (mysqli_num_rows($result) > 0): ?>
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
-                            <td><?php echo $row['Stock_ID']; ?></td>
                 <td><?php echo $row['First_Name']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Old_Stock']; ?></td>
@@ -385,7 +383,7 @@ $result = $conn->query($query);
 
 
                 <td class="text-dark text-center">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStocktModal" 
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
                     data-stock-id="<?php echo $row['Stock_ID']; ?>" 
                             data-new-stock="<?php echo $row['New_Stock']; ?>" 
                             data-threshold="<?php echo $row['Threshold']; ?>">
@@ -475,17 +473,39 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="user_id" class="form-label">First_Name</label>
-                        <input type="number" class="form-control" id="First_Name" name="First_Name" required>
+                    <!-- Stocked By (User Selection) -->
+                        <div class="mb-3">
+                        <label for="user_id" class="form-label">Stocked By</label>
+                        <select class="form-control" id="user_id" name="user_id" required>
+                            <option value="">Select User</option>
+                            <?php
+                            // Fetch users from the Users table
+                            $query = "SELECT User_ID, First_Name FROM Users";
+                            $result = $conn->query($query);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['User_ID'] . "'>" . $row['First_Name'] . "</option>";
+                            }
+                            ?>
+                        </select>
                     </div>
+
+                    <!-- Product Name (Product Selection) -->
                     <div class="mb-3">
                         <label for="product_id" class="form-label">Product Name</label>
-                        <input type="number" class="form-control" id="Product_Name" name="Product_Name" required>
+                        <select class="form-control" id="product_id" name="product_id" required>
+                            <option value="">Select Product</option>
+                            <?php
+                            // Fetch products from the Products table
+                            $query = "SELECT Product_ID, Product_Name FROM Products";
+                            $result = $conn->query($query);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['Product_ID'] . "'>" . $row['Product_Name'] . "</option>";
+                            }
+                            ?>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="old_stock" class="form-label">Old Stock</label>
@@ -512,7 +532,6 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editStockModalLabel">Edit Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
