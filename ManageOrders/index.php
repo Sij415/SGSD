@@ -20,7 +20,7 @@ $stmt->close();
 // Fetch order data from the database
 $query = "SELECT 
             Orders.Order_ID, 
-            Users.User_ID,  
+            Users.First_Name AS First_Name,
             Customers.First_Name AS Customer_Name, 
             Products.Product_Name, 
             Orders.Status, 
@@ -364,7 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <thead>
           <tr>
             <th>Order ID</th>
-            <th>User ID</th>
+            <th>Stocked By</th>
             <th>Customer Name</th>
             <th>Product Name</th>
             <th>Status</th>
@@ -377,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <?php while ($row = mysqli_fetch_assoc($result)): ?>
               <tr>
                 <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
-                <td><?php echo htmlspecialchars($row['User_ID']); ?></td>
+                <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Customer_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Status']); ?></td>
@@ -414,7 +414,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     <p class="card-text"><strong>Order ID:</strong> <?php echo htmlspecialchars($row['Order_ID']); ?></p>
                   </div>
                   <div class="col-6">
-                    <p class="card-text"><strong>User ID:</strong> <?php echo htmlspecialchars($row['User_ID']); ?></p>
+                    <p class="card-text"><strong>First Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
                   </div>
                   <div class="col-6">
                     <p class="card-text"><strong>Customer Name:</strong> <?php echo htmlspecialchars($row['Customer_Name']); ?></p>
