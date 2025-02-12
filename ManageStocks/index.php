@@ -352,7 +352,7 @@ $result = $conn->query($query);
                 <tr>
                 <th>Stock ID</th>
             <th>User ID</th>
-            <th>Product ID</th>
+            <th>Product Name</th>
             <th>Old Stock</th>
             <th>New Stock</th>
             <th>Threshold</th>
@@ -366,7 +366,7 @@ $result = $conn->query($query);
                             <tr>
                             <td><?php echo $row['Stock_ID']; ?></td>
                 <td><?php echo $row['User_ID']; ?></td>
-                <td><?php echo $row['Product_ID']; ?></td>
+                <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Old_Stock']; ?></td>
                 <td><?php echo $row['New_Stock']; ?></td>
                 <td><?php echo $row['Threshold']; ?></td>
