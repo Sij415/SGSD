@@ -97,7 +97,14 @@ if (isset($_POST['edit_stock'])) {
 }
 
 // Fetch stocks
-$query = "SELECT * FROM Stocks";
+$query = "SELECT Stocks.Stock_ID, 
+                 Stocks.User_ID, 
+                 Products.Product_Name, 
+                 Stocks.Old_Stock, 
+                 Stocks.New_Stock, 
+                 Stocks.Threshold 
+          FROM Stocks
+          INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID";
 $result = $conn->query($query);
 
 
@@ -424,7 +431,7 @@ $result = $conn->query($query);
                             </div>
 
                             <div class="col-6">
-                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?></p>
+                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
