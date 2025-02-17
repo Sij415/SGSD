@@ -24,7 +24,8 @@ $query = "SELECT
             Customers.First_Name AS Customer_Name, 
             Products.Product_Name, 
             Orders.Status, 
-            Orders.Order_Type 
+            Orders.Order_Type,
+            Orders.Amount
           FROM Orders
           INNER JOIN Users ON Orders.User_ID = Users.User_ID
           INNER JOIN Products ON Orders.Product_ID = Products.Product_ID
@@ -368,6 +369,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <th>Product Name</th>
             <th>Status</th>
             <th>Order Type</th>
+            <th>Amount</th>
             <th>Edit</th>
           </tr>
         </thead>
@@ -380,6 +382,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Status']); ?></td>
                 <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
+                <td><?php echo htmlspecialchars($row['Amount']); ?></td>
                 <td> <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"><i class="bi bi-pencil-square"></i></a></td>
               </tr>
             <?php endwhile; ?>
