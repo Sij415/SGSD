@@ -340,8 +340,8 @@ $result = $conn->query($query);
                 <tr>
             <th>Customer ID</th>
             <th>Product ID</th>
-            <th>First_Name</th>
-            <th>Last_Name</th>
+            <th>First Name</th>
+            <th>Last Name</th>
             <th>Contact Number</th>
             <th>Edit</th>
             
