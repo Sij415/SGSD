@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
+//echo 'User ID: ' . $_SESSION['user_id'];
 
 // Get the user's first name from the database
 $query = "SELECT First_Name FROM Users WHERE Email = ?";
@@ -25,7 +26,8 @@ $query = "SELECT
             Products.Product_Name, 
             Orders.Status, 
             Orders.Order_Type,
-            Orders.Amount
+            Orders.Quantity,
+            Orders.Total_Price
           FROM Orders
           INNER JOIN Users ON Orders.User_ID = Users.User_ID
           INNER JOIN Products ON Orders.Product_ID = Products.Product_ID
@@ -39,6 +41,49 @@ $result = $stmt->get_result();
 // Check for query errors
 if (!$result) {
     die("Query failed: " . mysqli_error($conn));
+}
+
+// Handle adding a new order
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
+  $customer_name = $_POST['Customer_Name'];
+  $product_name = $_POST['Product_Name'];
+  $status = $_POST['Status'];
+  $order_type = $_POST['Order_Type'];
+  $quantity = $_POST['Quantity'];
+  $totalprice = $_POST['Total_Price'];
+
+  // Validate input
+  if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
+      // Get Product_ID and Price
+      $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("s", $product_name);
+      $stmt->execute();
+      $stmt->bind_result($product_id, $price);
+      $stmt->fetch();
+      $stmt->close();
+
+      if (!$product_id) {
+          echo "<div class='alert alert-danger'>Product not found.</div>";
+          exit();
+      }
+
+      // Insert into Orders table
+      $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("iissid", $_SESSION['user_id'], $product_id, $status, $order_type, $quantity, $total_price);
+
+      if ($stmt->execute()) {
+          header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show new data
+          exit();
+      } else {
+          echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
+      }
+
+      $stmt->close();
+  } else {
+      echo "<div class='alert alert-warning'>All fields are required.</div>";
+  }
 }
 
 // Handle editing an order
@@ -266,25 +311,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label for="user_id" class="form-label">Customer Name</label>
-              <input type="text" name="customer_name" id="customer_name" class="form-control" required>
+              <label for="customer_name" class="form-label">Customer Name</label>
+              <input type="text" name="Customer_Name" id="Customer_Name" class="form-control" required>
             </div>
             <div class="mb-3">
-              <label for="product_id" class="form-label">Product Name</label>
-              <input type="text" name="product_name" id="product_name" class="form-control" required>
+              <label for="product_name" class="form-label">Product Name</label>
+              <input type="text" name="Product_Name" id="Product_Name" class="form-control" required>
             </div>
             <div class="mb-3">
-              <label for="status" class="form-label">Status</label>
-              <input type="text" name="status" id="status" class="form-control" required>
+              <label for="add_status" class="form-label">Status</label>
+              <select class="form-control" id="Status" name="Status">
+                <option value="">Select Status</option>
+                <option value="To Pick Up">To Pick Up</option>
+                <option value="In Transit">In Transit</option>
+                <option value="Delivered">Delivered</option>
+              </select>
             </div>
             <div class="mb-3">
               <label for="order_type" class="form-label">Order Type</label>
-              <select name="order_type" id="order_type" class="form-control" required>
+              <select name="Order_Type" id="Order_Type" class="form-control" required>
                 <option value="">Select Order Type</option>
                 <option value="Inbound">Inbound</option>
                 <option value="Outbound">Outbound</option>
               </select>
-
+            </div>
+            <div class="mb-3">
+              <label for="quantity" class="form-label">Quantity</label>
+              <input type="number" name="Quantity" id="Quantity" class="form-control" required>
             </div>
           </div>
           <div class="modal-footer">
@@ -369,7 +422,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <th>Product Name</th>
             <th>Status</th>
             <th>Order Type</th>
-            <th>Amount</th>
+            <th>Quantity</th>
+            <th>Total Price</th>
             <th>Edit</th>
           </tr>
         </thead>
@@ -382,7 +436,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Status']); ?></td>
                 <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
-                <td><?php echo htmlspecialchars($row['Amount']); ?></td>
+                <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
+                <td><?php echo htmlspecialchars($row['Total_Price']); ?></td>
                 <td> <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"><i class="bi bi-pencil-square"></i></a></td>
               </tr>
             <?php endwhile; ?>
