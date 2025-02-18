@@ -83,9 +83,19 @@ if (isset($_POST['edit_stock'])) {
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
-    $query = "UPDATE Stocks SET New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    // Fetch current New_Stock before updating
+    $query = "SELECT New_Stock FROM Stocks WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iii", $new_stock, $threshold, $stock_id);
+    $stmt->bind_param("i", $stock_id);
+    $stmt->execute();
+    $stmt->bind_result($current_stock);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Update stock: move New_Stock to Old_Stock, then update New_Stock
+    $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iiii", $current_stock, $new_stock, $threshold, $stock_id);
 
     if ($stmt->execute()) {
         $success_message = "Stock updated successfully.";
@@ -96,13 +106,18 @@ if (isset($_POST['edit_stock'])) {
     $stmt->close();
 }
 
-// Fetch stocks
-$query = "SELECT * FROM Stocks";
+// UPDATED QUERY
+$query = "SELECT Stocks.Stock_ID, 
+                 Users.First_Name AS First_Name, 
+                 Products.Product_Name, 
+                 Stocks.Old_Stock, 
+                 Stocks.New_Stock, 
+                 Stocks.Threshold 
+          FROM Stocks
+          INNER JOIN Users ON Stocks.User_ID = Users.User_ID
+          INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID"; 
+
 $result = $conn->query($query);
-
-
-
-
 ?>
 
 
@@ -118,7 +133,6 @@ $result = $conn->query($query);
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <title>Manage Stocks</title>
-  <link rel="icon"  href="../logo.png">
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
@@ -300,7 +314,7 @@ $result = $conn->query($query);
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-md-block">
+            <div class="sidebar-item d-none d-sm-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
@@ -333,7 +347,7 @@ $result = $conn->query($query);
     </div>
 
     <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Stock</button>
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Customer</button>
     
 </div>
 
@@ -345,8 +359,8 @@ $result = $conn->query($query);
                 <thead>
                 <tr>
                 <th>Stock ID</th>
-            <th>User ID</th>
-            <th>Product ID</th>
+            <th>Stocked By</th>
+            <th>Product Name</th>
             <th>Old Stock</th>
             <th>New Stock</th>
             <th>Threshold</th>
@@ -359,8 +373,8 @@ $result = $conn->query($query);
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
                             <td><?php echo $row['Stock_ID']; ?></td>
-                <td><?php echo $row['User_ID']; ?></td>
-                <td><?php echo $row['Product_ID']; ?></td>
+                <td><?php echo $row['First_Name']; ?></td>
+                <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Old_Stock']; ?></td>
                 <td><?php echo $row['New_Stock']; ?></td>
                 <td><?php echo $row['Threshold']; ?></td>
@@ -371,7 +385,7 @@ $result = $conn->query($query);
 
 
                 <td class="text-dark text-center">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStocktModal" 
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
                     data-stock-id="<?php echo $row['Stock_ID']; ?>" 
                             data-new-stock="<?php echo $row['New_Stock']; ?>" 
                             data-threshold="<?php echo $row['Threshold']; ?>">
@@ -421,11 +435,11 @@ $result = $conn->query($query);
                         <div class="row">
 
                             <div class="col-6">
-                                <p class="card-text"><strong>User ID:</strong> <?php echo htmlspecialchars($row['User_ID']); ?></p>
+                                <p class="card-text"><strong>User Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
-                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?></p>
+                                <p class="card-text"><strong>Product Name:</strong> <?php echo htmlspecialchars($row['Product_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
@@ -466,12 +480,12 @@ $result = $conn->query($query);
             <div class="modal-body">
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label for="user_id" class="form-label">User ID</label>
-                        <input type="number" class="form-control" id="User_ID" name="User_ID" required>
+                        <label for="user_id" class="form-label">First_Name</label>
+                        <input type="number" class="form-control" id="First_Name" name="First_Name" required>
                     </div>
                     <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
+                        <label for="product_id" class="form-label">Product Name</label>
+                        <input type="number" class="form-control" id="Product_Name" name="Product_Name" required>
                     </div>
                     <div class="mb-3">
                         <label for="old_stock" class="form-label">Old Stock</label>

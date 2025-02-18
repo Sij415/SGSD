@@ -113,6 +113,7 @@ $result = $conn->query($query);
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <title>Manage Customers</title>
+  <link rel="icon"  href="../logo.png">
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
@@ -197,6 +198,12 @@ $result = $conn->query($query);
         right: 15px;
       }
     }
+
+
+th {
+    cursor: pointer;
+}
+
   </style>
 </head>
 <body class="p-0">
@@ -294,7 +301,7 @@ $result = $conn->query($query);
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-sm-block">
+            <div class="sidebar-item d-none d-md-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
@@ -318,13 +325,13 @@ $result = $conn->query($query);
 
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
-    <!-- Search Input Group -->
-    <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
-        <button class="btn btn-outline-secondary" type="button" id="search">
-            <i class="fa fa-search"></i>
-        </button>
-    </div>
+<!-- Search Input Group -->
+<div class="input-group">
+    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+    <button class="btn btn-outline-secondary" type="button" id="search">
+        <i class="fa fa-search"></i>
+    </button>
+</div>
 
     <!-- Add Customer Button -->
     <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
@@ -333,56 +340,47 @@ $result = $conn->query($query);
 
 
 
-        <!-- Table Layout (Visible on larger screens) -->
-        <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered">
-                <thead>
-                <tr>
-            <th>Customer ID</th>
-            <th>Product ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Contact Number</th>
-            <th>Edit</th>
-            
-        </tr>
-                </thead>
-                <tbody>
-                    <?php if (mysqli_num_rows($result) > 0): ?>
-                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                            <tr>
-                <td><?php echo $row['Customer_ID']; ?></td>
-                <td><?php echo $row['Product_ID']; ?></td>
-                <td><?php echo $row['First_Name']; ?></td>
-                <td><?php echo $row['Last_Name']; ?></td>
-                <td><?php echo $row['Contact_Number']; ?></td>
-                
-
-                <td class="text-dark text-center">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#editCustomerModal" 
-                    data-customer-id="<?php echo $row['Customer_ID']; ?>" 
-                    data-first-name="<?php echo $row['First_Name']; ?>" 
-                    data-last-name="<?php echo $row['Last_Name']; ?>"
-                    data-contact-number="<?php echo $row['Contact_Number']; ?>">
-                        <i class="bi bi-pencil-square"></i>
-                    </a>
-                </td>
-
-                
-                </td>
+<!-- Table Layout (Visible on larger screens) -->
+<div class="table-responsive d-none d-md-block">
+    <table class="table table-striped table-bordered" id="customersTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Customer ID <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(1)">Product ID <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(2)">First Name <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(3)">Last Name <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(4)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
+                <th>Edit</th>
             </tr>
-                                
-                                
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6">No orders found.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+        </thead>
+        <tbody>
+            <?php if (mysqli_num_rows($result) > 0): ?>
+                <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                    <tr>
+                        <td><?php echo $row['Customer_ID']; ?></td>
+                        <td><?php echo $row['Product_ID']; ?></td>
+                        <td><?php echo $row['First_Name']; ?></td>
+                        <td><?php echo $row['Last_Name']; ?></td>
+                        <td><?php echo $row['Contact_Number']; ?></td>
+                        <td class="text-dark text-center">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#editCustomerModal"
+                            data-customer-id="<?php echo $row['Customer_ID']; ?>"
+                            data-first-name="<?php echo $row['First_Name']; ?>"
+                            data-last-name="<?php echo $row['Last_Name']; ?>"
+                            data-contact-number="<?php echo $row['Contact_Number']; ?>">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="6">No customers found.</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
 
         <div class="row d-block d-md-none">
     <?php
@@ -508,6 +506,48 @@ $result = $conn->query($query);
 
 <script>
 
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('customersTable');
+    const rows = Array.from(table.rows).slice(1);
+    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
+
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+        if (isNumeric) {
+            return parseFloat(cellA) - parseFloat(cellB);
+        } else {
+            return cellA.localeCompare(cellB);
+        }
+    });
+
+    // Re-append sorted rows to the table body
+    const tbody = table.getElementsByTagName('tbody')[0];
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('customersTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j]) {
+                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        tr[i].style.display = found ? '' : 'none';
+    }
+}
 
 
 
