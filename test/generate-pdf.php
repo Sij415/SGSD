@@ -35,7 +35,7 @@ $html .= '<table border="1" width="100%" cellpadding="5" cellspacing="0">
                 <th>Time</th>
                 <th>Customer</th>
                 <th>Product</th>
-                <th>Amount</th>
+                <th>Quantity</th>
                 <th>Processed By</th>
             </tr>';
 
@@ -46,7 +46,7 @@ while ($row = $result->fetch_assoc()) {
                 <td>{$row['Time']}</td>
                 <td>{$row['Customer_First']} {$row['Customer_Last']}</td>
                 <td>{$row['Product_Name']}</td>
-                <td>{$row['Amount']}</td>
+                <td>{$row['Quantity']}</td>
                 <td>{$row['Staff_First']} {$row['Staff_Last']}</td>
               </tr>";
 }
