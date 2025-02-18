@@ -17,7 +17,7 @@ $dompdf = new Dompdf($options);
 // Fetch transaction data from the database
 $query = "SELECT t.Transaction_ID, t.Date, t.Time, 
                  c.First_Name AS Customer_First, c.Last_Name AS Customer_Last,
-                 p.Product_Name, o.Amount, u.First_Name AS Staff_First, u.Last_Name AS Staff_Last
+                 p.Product_Name, o.Quantity, u.First_Name AS Staff_First, u.Last_Name AS Staff_Last
           FROM Transactions t
           INNER JOIN Orders o ON t.Order_ID = o.Order_ID
           INNER JOIN Customers c ON t.Customer_ID = c.Customer_ID
