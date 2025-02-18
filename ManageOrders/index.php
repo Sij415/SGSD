@@ -7,12 +7,11 @@ ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-//echo 'User ID: ' . $_SESSION['user_id'];
 
 // Get the user's first name from the database
 $query = "SELECT First_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_email);
+$stmt->bind_param("s", $user_id);
 $stmt->execute();
 $stmt->bind_result($user_first_name);
 $stmt->fetch();
