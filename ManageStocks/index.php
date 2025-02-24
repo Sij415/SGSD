@@ -368,20 +368,26 @@ $result = $conn->query($query);
         </tr>
                 </thead>
                 <tbody>
-                    <?php if (mysqli_num_rows($result) > 0): ?>
-                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                            <tr>
+                <?php if (mysqli_num_rows($result) > 0): ?>
+                    <?php 
+                        $firstRow = true;
+                        while ($row = mysqli_fetch_assoc($result)): 
+                            if ($firstRow) {
+                                $rowClass = ""; // Keep first row unchanged
+                                $firstRow = false;
+                            } else {
+                                    $rowClass = ($row['New_Stock'] <= $row['Threshold']) ? "table-danger" : "";
+                            }
+                    ?>
+                <tr class="<?php echo $rowClass; ?>">
+
+
                 <td><?php echo $row['First_Name']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Old_Stock']; ?></td>
                 <td><?php echo $row['New_Stock']; ?></td>
                 <td><?php echo $row['Threshold']; ?></td>
         
-
-
-
-
-
                 <td class="text-dark text-center">
                     <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
                     data-stock-id="<?php echo $row['Stock_ID']; ?>" 
@@ -403,30 +409,32 @@ $result = $conn->query($query);
                             <td colspan="6">No orders found.</td>
                         </tr>
                     <?php endif; ?>
-                </tbody>
+                </>
             </table>
         </div>
 
         <div class="row d-block d-md-none">
     <?php
     $result->data_seek(0);
-    
-    if (mysqli_num_rows($result) > 0): ?>
-        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-            <div class="col-12 col-md-6 mb-3">
-                <div class="card shadow-sm" 
-                     
-                     
+    $firstCard = true;
 
-                      class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal" 
-                      data-stock-id="<?php echo $row['Stock_ID']; ?>" 
-                            data-new-stock="<?php echo $row['New_Stock']; ?>" 
-                            data-threshold="<?php echo $row['Threshold']; ?>"
-                            style="cursor: pointer;">
-                
-                    
-            
-                     
+    if (mysqli_num_rows($result) > 0): ?>
+        <?php while ($row = mysqli_fetch_assoc($result)): 
+            if ($firstCard) {
+                $cardClass = ""; // Keep first card unchanged
+                $firstCard = false;
+            } else {
+                $cardClass = ($row['New_Stock'] <= $row['Threshold']) ? "bg-danger text-white" : "";
+            }
+        ?>
+            <div class="col-12 col-md-6 mb-3">
+                <div class="card shadow-sm <?php echo $cardClass; ?>" data-bs-toggle="modal" data-bs-target="#editStockModal"
+                    data-stock-id="<?php echo $row['Stock_ID']; ?>"
+                    data-new-stock="<?php echo $row['New_Stock']; ?>"
+                    data-threshold="<?php echo $row['Threshold']; ?>"
+                    style="cursor: pointer;">
+
+
 
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['Stock_ID']); ?></h5>
@@ -552,7 +560,53 @@ $result = $conn->query($query);
 </div>
 <script>
 
+function updateRowColors() {
+    let firstRow = true;
+    document.querySelectorAll('tbody tr').forEach(row => {
+        if (firstRow) {
+            firstRow = false; // Skip first row
+            return;
+        }
+        
+        let newStock = parseInt(row.querySelector('[data-new-stock]')?.getAttribute('data-new-stock') || "0");
+        let threshold = parseInt(row.querySelector('[data-threshold]')?.getAttribute('data-threshold') || "0");
 
+        row.classList.remove('table-danger'); // Reset any existing colors
+
+        if (newStock <= threshold) {
+            row.classList.add('table-danger'); // Red if below threshold
+        }
+    });
+
+    let firstCard = true;
+    document.querySelectorAll('.card.shadow-sm').forEach(card => {
+        if (firstCard) {
+            firstCard = false; // Skip first card
+            return;
+        }
+
+        let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
+        let threshold = parseInt(card.getAttribute('data-threshold') || "0");
+
+        card.classList.remove('bg-danger', 'text-white'); // Reset existing colors
+
+        if (newStock <= threshold) {
+            card.classList.add('bg-danger', 'text-white'); // Red if below threshold
+        }
+    });
+}
+
+// Run function on page load
+document.addEventListener('DOMContentLoaded', updateRowColors);
+
+// Run after adding or editing stock
+document.getElementById('addStockForm')?.addEventListener('submit', function () {
+    setTimeout(updateRowColors, 1000);
+});
+
+document.getElementById('editStockForm')?.addEventListener('submit', function () {
+    setTimeout(updateRowColors, 1000);
+});
 
 
 const sidebar = document.getElementById('sidebar');
