@@ -127,97 +127,93 @@ $stmt->close();
 <body class="p-0">
 <header class="app-header">
   <nav class="app-nav d-flex justify-content-between">
-    <!-- Sidebar button visible only on smaller screens -->
     <a class="sidebar-btn d-md-none" id="toggleBtn">☰</a>
-    
-    <!-- "X" button aligned to the right on larger screens -->
     <a href="#" class="d-md-flex d-md-none ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
-    
-    <!-- "X" button visible on smaller screens, aligned left -->
   </nav>
 </header>
 
 <div id="sidebar" class="sidebar d-flex flex-column">
-        <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
- 
-        <div class="sidebar-items">
-            <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-            <div class="sidebar-item">
-                <a href="./Dashboard" class="sidebar-items-a">
-                <i class="fa-solid fa-border-all"></i>
-                <span>&nbsp;Dashboard</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageStocks">
-                    <i class="fa-solid fa-box"></i>
-                    <span>&nbsp;Manage Stocks</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageOrders">
-                <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Orders</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageProducts">
-                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Product</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageCustomers">
-                <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Customer</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../AdminSettings">
-                <i class="bi bi-gear" style="font-size:13.28px;"></i>
-                <span>&nbsp;Admin Settings</span>
-                </a>
-            </div>
-        </div>
-        
-        <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
-        <div class="mt-auto p-2">
-        <div class="sidebar-usr">
-            <div class="sidebar-pfp">
-                <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
-            </div>
-            <div class="sidebar-usrname">
-                <h1><?php
-                echo htmlspecialchars($user_first_name);
-                
-                
-                
-
-                ?></h1>
-                <h2><?php
-                echo  htmlspecialchars($user_email)
-                
-                
-                ?></h2>
-            </div>
-        </div>
-        <div class="sidebar-options ">
-            <div class="sidebar-item">
-                <a href="#" class="sidebar-items-button">
-                    <i class="fa-solid fa-sign-out-alt"></i>
-                    <span>Log out</span>
-                </a>
-            </div>
-            <div class="sidebar-item d-none d-sm-block">
-                <a href="#" class="sidebar-items-button">
-                    <i class="fa-solid fa-file-alt"></i>
-                    <span>Manual</span>
-                </a>
-            </div>
-        </div></div>
- 
-        </div>
+  <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
+  <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+  
+  <div class="sidebar-items">
+    <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+    <div class="sidebar-item">
+      <a href="./Dashboard" class="sidebar-items-a">
+        <i class="fa-solid fa-border-all"></i>
+        <span>&nbsp;Dashboard</span>
+      </a>
+    </div>
+    
+    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+    <div class="sidebar-item">
+      <a href="../ManageStocks">
+        <i class="fa-solid fa-box"></i>
+        <span>&nbsp;Manage Stocks</span>
+      </a>
+    </div>
+    <?php endif; ?>
+    
+    <div class="sidebar-item">
+      <a href="../ManageOrders">
+        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Orders</span>
+      </a>
+    </div>
+    
+    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+    <div class="sidebar-item">
+      <a href="../ManageProducts">
+        <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Product</span>
+      </a>
+    </div>
+    <?php endif; ?>
+    
+    <?php if ($user_role === 'admin') : ?>
+    <div class="sidebar-item">
+      <a href="../ManageCustomers">
+        <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Customer</span>
+      </a>
+    </div>
+    <div class="sidebar-item">
+      <a href="../AdminSettings">
+        <i class="bi bi-gear" style="font-size:13.28px;"></i>
+        <span>&nbsp;Admin Settings</span>
+      </a>
+    </div>
+    <?php endif; ?>
+  </div>
+  
+  <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+  <div class="mt-auto p-2">
+    <div class="sidebar-usr">
+      <div class="sidebar-pfp">
+        <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
+      </div>
+      <div class="sidebar-usrname">
+        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+        <h2><?php echo htmlspecialchars($user_email); ?></h2>
+      </div>
+    </div>
+    
+    <div class="sidebar-options ">
+      <div class="sidebar-item">
+        <a href="#" class="sidebar-items-button">
+          <i class="fa-solid fa-sign-out-alt"></i>
+          <span>Log out</span>
+        </a>
+      </div>
+      <div class="sidebar-item d-none d-sm-block">
+        <a href="#" class="sidebar-items-button">
+          <i class="fa-solid fa-file-alt"></i>
+          <span>Manual</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="content">
 
 
@@ -329,57 +325,6 @@ $stmt->close();
       sidebar.classList.remove('active');
     }
 
-
-
-
-    
-
-// Revenue Bar Chart
-// Revenue Bar Chart
-/**new Chart(document.getElementById('revenueBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    data: [12, 19, 3, 5, 2],
-                    backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Orders Line Chart
-        new Chart(document.getElementById('ordersLineChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{ data: [10, 15, 5, 2, 20], borderColor: '#9fb0a1', tension: 0.4 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Customers Line Chart
-        new Chart(document.getElementById('customersLineChart'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{ data: [5, 10, 15, 10, 20], borderColor: '#9fb0a1', tension: 0.4 }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Items Sold Bar Chart
-        new Chart(document.getElementById('itemsSoldBarChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    data: [8, 15, 10, 5, 7],
-                    backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        }); **/
 
         // Doughnut Chart for Top Selling
         new Chart(document.getElementById('topSellingChart'), {
