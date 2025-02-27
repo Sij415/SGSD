@@ -21,19 +21,30 @@ $stmt->fetch();
 $stmt->close();
 
 
-
-
-
-
-
-// Handle adding customer
-if (isset($_POST['add_customer'])) {
-    $customer_id = $_POST['Customer_ID'];
+// Handle adding stock
+if (isset($_POST['add_stock'])) {
+    $user_id = $_POST['User_ID'];
     $product_id = $_POST['Product_ID'];
-    $first_name = $_POST['First_Name'];
-    $last_name = $_POST['Last_Name'];
-    $contact_number = $_POST['Contact_Number'];
-    
+    $old_stock = $_POST['Old_Stock'];
+    $new_stock = $_POST['New_Stock'];
+    $threshold = $_POST['Threshold'];
+
+    // Insert User_ID if it doesn't exist
+    $user_check_query = "SELECT User_ID FROM Users WHERE User_ID = ?";
+    $user_stmt = $conn->prepare($user_check_query);
+    $user_stmt->bind_param("i", $user_id);
+    $user_stmt->execute();
+    $user_result = $user_stmt->get_result();
+
+    if ($user_result->num_rows === 0) {
+        $insert_user_query = "INSERT INTO Users (User_ID) VALUES (?)";
+        $insert_user_stmt = $conn->prepare($insert_user_query);
+        $insert_user_stmt->bind_param("i", $user_id);
+        $insert_user_stmt->execute();
+        $insert_user_stmt->close();
+    }
+
+    $user_stmt->close();
 
     // Insert Product_ID if it doesn't exist
     $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
@@ -52,48 +63,42 @@ if (isset($_POST['add_customer'])) {
 
     $product_stmt->close();
 
-    // Proceed with inserting into Customer table
-    $query = "INSERT INTO Customers (Customer_ID, Product_ID, First_Name, Last_Name, Contact_Number) VALUES (?, ?, ?, ?, ?)";
+    // Proceed with inserting into Stocks table
+    $query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iisss", $customer_id, $product_id, $first_name, $last_name, $contact_number);
+    $stmt->bind_param("iiiii", $user_id, $product_id, $old_stock, $new_stock, $threshold);
 
     if ($stmt->execute()) {
-        $success_message = "Customer record added successfully.";
+        $success_message = "Stock added successfully.";
     } else {
-        $error_message = "Error adding customer record: " . $stmt->error;
+        $error_message = "Error adding stock: " . $stmt->error;
     }
 
     $stmt->close();
 }
 
+// Handle editing stock
+if (isset($_POST['edit_stock'])) {
+    $stock_id = $_POST['Stock_ID'];
+    $new_stock = $_POST['New_Stock'];
+    $threshold = $_POST['Threshold'];
 
-// Handle editing customer
-if (isset($_POST['edit_customer'])) {
-    $customer_id = $_POST['Customer_ID'];
-    $new_fname = $_POST['New_FirstName'];
-    $new_lname = $_POST['New_LastName'];
-    $new_contactnum = $_POST['New_ContactNum'];
-    echo "Customer ID: $customer_id, First Name: $new_fname, Last Name: $new_lname, Contact Number: $new_contactnum";
-
-
-    $query = "UPDATE Customers SET First_Name = ?, Last_Name = ?, Contact_Number = ? WHERE Customer_ID = ?";
+    $query = "UPDATE Stocks SET New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("sssi", $new_fname, $new_lname, $new_contactnum, $customer_id);
+    $stmt->bind_param("iii", $new_stock, $threshold, $stock_id);
 
     if ($stmt->execute()) {
-        $success_message = "Customer record updated successfully.";
+        $success_message = "Stock updated successfully.";
     } else {
-        $error_message = "Error updating customer record: " . $stmt->error;
+        $error_message = "Error updating stock: " . $stmt->error;
     }
 
     $stmt->close();
 }
 
-
-// Fetch customers
-$query = "SELECT * FROM Customers";
+// Fetch stocks
+$query = "SELECT * FROM Stocks";
 $result = $conn->query($query);
-
 
 
 
@@ -112,7 +117,7 @@ $result = $conn->query($query);
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <title>Manage Customers</title>
+  <title>Manage Stocks</title>
   <link rel="icon"  href="../logo.png">
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
@@ -199,11 +204,11 @@ $result = $conn->query($query);
       }
     }
 
+    th {
+        cursor: pointer;
+    }
 
-th {
-    cursor: pointer;
-}
-
+    
   </style>
 </head>
 <body class="p-0">
@@ -316,8 +321,8 @@ th {
 
 
     <div class="container mt-4">
-        <h1><b>Manage Customers</b></h1>
-        <h3>Add and Edit Customers</h3>
+        <h1><b>Manage Stocks</b></h1>
+        <h3>Add and Edit Stocks</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
 
 
@@ -334,7 +339,7 @@ th {
 </div>
 
     <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Stock</button>
     
 </div>
 
@@ -342,14 +347,15 @@ th {
 
 <!-- Table Layout (Visible on larger screens) -->
 <div class="table-responsive d-none d-md-block">
-    <table class="table table-striped table-bordered" id="customersTable">
+    <table class="table table-striped table-bordered" id="stocksTable">
         <thead>
             <tr>
-                <th onclick="sortTable(0)">Customer ID <i class="bi bi-arrow-down-up"></i></th>
-                <th onclick="sortTable(1)">Product ID <i class="bi bi-arrow-down-up"></i></th>
-                <th onclick="sortTable(2)">First Name <i class="bi bi-arrow-down-up"></i></th>
-                <th onclick="sortTable(3)">Last Name <i class="bi bi-arrow-down-up"></i></th>
-                <th onclick="sortTable(4)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(0)">Stock ID <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(1)">User ID <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(2)">Product ID <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(3)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(4)">New Stock <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(5)">Threshold <i class="bi bi-arrow-down-up"></i></th>
                 <th>Edit</th>
             </tr>
         </thead>
@@ -357,17 +363,17 @@ th {
             <?php if (mysqli_num_rows($result) > 0): ?>
                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
                     <tr>
-                        <td><?php echo $row['Customer_ID']; ?></td>
+                        <td><?php echo $row['Stock_ID']; ?></td>
+                        <td><?php echo $row['User_ID']; ?></td>
                         <td><?php echo $row['Product_ID']; ?></td>
-                        <td><?php echo $row['First_Name']; ?></td>
-                        <td><?php echo $row['Last_Name']; ?></td>
-                        <td><?php echo $row['Contact_Number']; ?></td>
+                        <td><?php echo $row['Old_Stock']; ?></td>
+                        <td><?php echo $row['New_Stock']; ?></td>
+                        <td><?php echo $row['Threshold']; ?></td>
                         <td class="text-dark text-center">
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#editCustomerModal"
-                            data-customer-id="<?php echo $row['Customer_ID']; ?>"
-                            data-first-name="<?php echo $row['First_Name']; ?>"
-                            data-last-name="<?php echo $row['Last_Name']; ?>"
-                            data-contact-number="<?php echo $row['Contact_Number']; ?>">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
+                            data-stock-id="<?php echo $row['Stock_ID']; ?>" 
+                            data-new-stock="<?php echo $row['New_Stock']; ?>" 
+                            data-threshold="<?php echo $row['Threshold']; ?>">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
                         </td>
@@ -375,7 +381,7 @@ th {
                 <?php endwhile; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="6">No customers found.</td>
+                    <td colspan="7">No stocks found.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -390,21 +396,25 @@ th {
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
             <div class="col-12 col-md-6 mb-3">
                 <div class="card shadow-sm" 
-                     data-bs-toggle="modal" 
+                     
+                     
 
-                     data-bs-target="#editCustomerModal" 
-                     data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>" 
-                     data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>" 
-                     data-last-name="<?php echo htmlspecialchars($row['Last_Name']); ?>"
-                     data-contact-number="<?php echo htmlspecialchars($row['Contact_Number']); ?>"
-                     style="cursor: pointer;">
+                      class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal" 
+                      data-stock-id="<?php echo $row['Stock_ID']; ?>" 
+                            data-new-stock="<?php echo $row['New_Stock']; ?>" 
+                            data-threshold="<?php echo $row['Threshold']; ?>"
+                            style="cursor: pointer;">
+                
+                    
+            
+                     
 
                     <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['First_Name']); ?></h5>
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['Stock_ID']); ?></h5>
                         <div class="row">
 
                             <div class="col-6">
-                                <p class="card-text"><strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?></p>
+                                <p class="card-text"><strong>User ID:</strong> <?php echo htmlspecialchars($row['User_ID']); ?></p>
                             </div>
 
                             <div class="col-6">
@@ -412,23 +422,24 @@ th {
                             </div>
 
                             <div class="col-6">
-                                <p class="card-text"><strong>First Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
+                                <p class="card-text"><strong>Old Stock:</strong> <?php echo htmlspecialchars($row['Old_Stock']); ?></p>
+                            </div>
+                            
+                            <div class="col-6">
+                                <p class="card-text"><strong>New Stock:</strong> <?php echo htmlspecialchars($row['New_Stock']); ?></p>
+                            </div>
+                            <div class="col-6">
+                                <p class="card-text"><strong>Threshold:</strong> <?php echo htmlspecialchars($row['Threshold']); ?></p>
                             </div>
 
-                            <div class="col-6">
-                                <p class="card-text"><strong>Last Name:</strong> <?php echo htmlspecialchars($row['Last_Name']); ?></p>
-                            </div>
-
-                            <div class="col-6">
-                                <p class="card-text"><strong>Contact Number:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?></p>
-                            </div>
+                        
                         </div>
                     </div>
                 </div>
             </div>
         <?php endwhile; ?>
     <?php else: ?>
-        <p>No customers found.</p>
+        <p>No Stock found.</p>
     <?php endif; ?>
 </div>
 
@@ -437,78 +448,72 @@ th {
 
 
 
-<!-- Add Customer Modal -->
-<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+<!-- Add Stock Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCustomerModalLabel">Add Customer</h5>
+                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label for="customer_id" class="form-label">Customer ID</label>
-                        <input type="number" class="form-control" id="Customer_ID" name="Customer_ID" required>
+                        <label for="user_id" class="form-label">User ID</label>
+                        <input type="number" class="form-control" id="User_ID" name="User_ID" required>
                     </div>
                     <div class="mb-3">
                         <label for="product_id" class="form-label">Product ID</label>
                         <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
                     </div>
                     <div class="mb-3">
-                        <label for="first_name" class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="First_Name" name="First_Name" required>
+                        <label for="old_stock" class="form-label">Old Stock</label>
+                        <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" required>
                     </div>
                     <div class="mb-3">
-                        <label for="last_name" class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="Last_Name" name="Last_Name" required>
+                        <label for="new_stock" class="form-label">New Stock</label>
+                        <input type="number" class="form-control" id="New_Stock" name="New_Stock" required>
                     </div>
                     <div class="mb-3">
-                        <label for="contact_number" class="form-label">Contact Number</label>
-                        <input type="text" class="form-control" id="Contact_Number" name="Contact_Number" required>
+                        <label for="threshold" class="form-label">Threshold</label>
+                        <input type="number" class="form-control" id="Threshold" name="Threshold" required>
                     </div>
-                    <button type="submit" name="add_customer" class="btn btn-primary">Add Customer</button>
+                    <button type="submit" name="add_stock" class="btn btn-primary">Add Stock</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Customer Modal -->
-<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+<!-- Edit Stock Modal -->
+<div class="modal fade" id="editStockModal" tabindex="-1" aria-labelledby="editStockModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+                <h5 class="modal-title" id="editStockModalLabel">Edit Stock</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="./">
-                    <input type="hidden" id="edit_customer_id" name="Customer_ID">
+                <form method="POST" action="">
+                    <input type="hidden" id="edit_stock_id" name="Stock_ID">
                     <div class="mb-3">
-                        <label for="edit_new_stock" class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="edit_first_name" name="New_FirstName">
+                        <label for="edit_new_stock" class="form-label">New Stock</label>
+                        <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" required>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_threshold" class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="edit_last_name" name="New_LastName">
+                        <label for="edit_threshold" class="form-label">Threshold</label>
+                        <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_contactnum" class="form-label">Contact Number</label>
-                        <input type="text" class="form-control" id="edit_contact_num" name="New_ContactNum">
-                    </div>
-                    <button type="submit" name="edit_customer" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" name="edit_stock" class="btn btn-primary">Save Changes</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
 <script>
 
-
 function sortTable(columnIndex) {
-    const table = document.getElementById('customersTable');
+    const table = document.getElementById('stocksTable');
     const rows = Array.from(table.rows).slice(1);
     const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
 
@@ -528,10 +533,12 @@ function sortTable(columnIndex) {
     rows.forEach(row => tbody.appendChild(row));
 }
 
+
+
 function searchTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
-    const table = document.getElementById('customersTable');
+    const table = document.getElementById('stocksTable');
     const tr = table.getElementsByTagName('tr');
 
     for (let i = 1; i < tr.length; i++) {
@@ -562,72 +569,64 @@ const sidebar = document.getElementById('sidebar');
       sidebar.classList.remove('active');
     }
 
-
-
-
-
-
-    // Populate edit modal with existing data
-    const editStockModal = document.getElementById('editCustomerModal');
+ // Populate edit modal with existing data
+ const editStockModal = document.getElementById('editStockModal');
     editStockModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        const customerId = button.getAttribute('data-customer-id');
-        const firstName = button.getAttribute('data-first-name');
-        const lastName = button.getAttribute('data-last-name');
-        const contactNumber = button.getAttribute('data-contact-number');
+        const stockId = button.getAttribute('data-stock-id');
+        const newStock = button.getAttribute('data-new-stock');
+        const threshold = button.getAttribute('data-threshold');
 
-        document.getElementById('edit_customer_id').value = customerId;
-        document.getElementById('edit_first_name').value = firstName;
-        document.getElementById('edit_last_name').value = lastName;
-        document.getElementById('edit_contact_num').value = contactNumber;
+        document.getElementById('edit_stock_id').value = stockId;
+        document.getElementById('edit_new_stock').value = newStock;
+        document.getElementById('edit_threshold').value = threshold;
     });
 
-    // Handle adding a customer
-    document.getElementById('addCustomerForm').addEventListener('submit', function (e) {
+    // Handle adding a stock
+    document.getElementById('addStockForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
         const formData = new FormData(this);
 
-        fetch('./p', {
+        fetch('your_php_file.php', {
             method: 'POST',
             body: formData
         })
         .then(response => response.text())
         .then(data => {
             if (data === 'success') {
-                alert('Customer record added successfully!');
+                alert('Stock added successfully!');
                 location.reload(); // Reload page to reflect changes
             } else {
-                alert('Failed to add customer record: ' + data);
+                alert('Failed to add stock: ' + data);
             }
         })
         .catch(error => console.error('Error:', error));
     });
 
-    // Handle editing a customer record
-    document.getElementById('editCustomerForm').addEventListener('submit', function (e) {
+    // Handle editing a stock
+    document.getElementById('editStockForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
         const formData = new FormData(this);
 
-        fetch('./', {
+        fetch('your_php_file.php', {
             method: 'POST',
             body: formData
         })
         .then(response => response.text())
         .then(data => {
             if (data === 'success') {
-                alert('Customer record updated successfully!');
+                alert('Stock updated successfully!');
                 location.reload(); // Reload page to reflect changes
             } else {
-                alert('Failed to update customer record: ' + data);
+                alert('Failed to update stock: ' + data);
             }
         })
         .catch(error => console.error('Error:', error));
     });
-
-
-
-  
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

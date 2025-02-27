@@ -1,7 +1,7 @@
 <?php
-$required_role = 'admin';
-include('../check_session.php');
-
+// $required_role = 'admin';
+// include('../check_session.php');
+session_start();
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
@@ -10,17 +10,15 @@ ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-// Get the user's first name and email from the database
-$query = "SELECT First_Name FROM Users WHERE Email = ?";
+
+// Get the user's first name and role from the database
+$query = "SELECT First_Name, Role FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_id); // Bind the email as a string
+$stmt->bind_param("s", $user_email); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name);
+$stmt->bind_result($user_first_name, $user_role);
 $stmt->fetch();
 $stmt->close();
-
-
-
 
 ?>
 
@@ -38,101 +36,238 @@ $stmt->close();
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <title>Responsive Sidebar</title>
-  <style>
-    .table-striped>tbody>tr:nth-child(odd)>td, 
-.table-striped>tbody>tr:nth-child(odd)>th {
-   background-color: #f4f9f8;
- }
-    /* Base styles */
-    body {
-      margin: 0;
-      
-      display: flex;
-    }
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script>
+        var app = angular.module('notificationApp', []);
+app.controller('NotificationController', function ($scope, $http) {
+    $scope.dropdownVisible = false;
+    $scope.notifications = [];
 
-    .sidebar {
+    // Fetch notifications from the server
+    $scope.getNotifications = function () {
+        $http.get('get_notifications.php')
+            .then(function (response) {
+                console.log("Response Data:", response.data); // Debugging
+                $scope.notifications = response.data;
+            })
+            .catch(function (error) {
+                console.error("Error fetching notifications:", error);
+            });
+    };
+
+    // Toggle dropdown
+    $scope.toggleDropdown = function (event) {
+        event.preventDefault();
+        $scope.dropdownVisible = !$scope.dropdownVisible;
+        if ($scope.dropdownVisible) {
+            $scope.getNotifications();
+        }
+    };
+
+    // Fetch notifications when the page loads
+    $scope.getNotifications();
+});
+
+    </script>
+  <title>Dashboard</title>
+
+
+
+
+
+    <style
+.table-striped > tbody > tr:nth-child(odd) > td, 
+.table-striped > tbody > tr:nth-child(odd) > th {
+  background-color: #f4f9f8;
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  display: flex;
+}
+
+.sidebar {
   display: flex;
   width: 250px;
-  height: 100vh; 
+  height: 100vh;
   position: fixed;
   top: 0;
   left: -250px; /* Hidden by default */
   transition: left 0.3s ease;
   z-index: 1000;
-
- 
-
   overflow-x: hidden;
-
 }
 
+.sidebar.active {
+  left: 0;
+}
 
-    .sidebar.active {
-      left: 0;
-    }
+.sidebar .close-btn {
+  display: none;
+}
 
-    .sidebar .close-btn {
-      display: none;
-    }
+.content {
+  flex-grow: 1;
+  margin-left: 0;
+  padding-top: 2em;
+  padding: 3.5em 1em;
+  transition: margin-left 0.3s ease;
+}
 
-    .content {
-      flex-grow: 1;
-      margin-left: 0;
-      padding-top: 2em;
-      padding: 3.5em 1em;
-      transition: margin-left 0.3s ease;
-    }
+.toggle-btn {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
 
-    .toggle-btn {
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 0.5em 1em;
-      cursor: pointer;
-    }
-    /* Responsive styles */
-    @media (min-width: 768px) {
-      .sidebar {
-        position: relative;
-        left: 0;
-      }
+/* Responsive styles */
+@media (min-width: 768px) {
+  .sidebar {
+    position: relative;
+    left: 0;
+  }
 
-      .content {
-        margin-left: 1rem;/* Push content for medium screens and above */
-      }
+  .content {
+    margin-left: 1rem; /* Push content for medium screens and above */
+  }
 
-      .toggle-btn {
-        display: none;
-      }
+  .toggle-btn {
+    display: none;
+  }
 
-      .sidebar .close-btn {
-        display: none; /* Hide close button on larger screens */
-      }
-    }
+  .sidebar .close-btn {
+    display: none; /* Hide close button on larger screens */
+  }
+}
 
-    @media (max-width: 767.98px) {
-      .sidebar .close-btn {
-        display: block; /* Show close button only on smaller screens */
-        color: #fff;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        position: absolute;
-        top: 10px;
-        right: 15px;
-      }
-    }
-  </style>
+@media (max-width: 767.98px) {
+  .sidebar .close-btn {
+    display: block; /* Show close button only on smaller screens */
+    color: #fff;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+  }
+}
+ /* Positioning container for notifications */
+
+
+ .notification-icon {
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    position: relative;
+}
+
+.notification-icon:hover {
+    color: #007bff;
+}
+
+/* Notification container */
+.notification-container {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 300px;
+    z-index: 1000000; /* Ensures it appears above other elements */
+}
+
+/* Dropdown styling */
+.dropdown-menu {
+    display: none;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    word-wrap: break-word; /* Ensures long words break */
+    white-space: normal; /* Allows text to wrap */
+    background-color: white; /* Prevents transparency issues */
+    z-index: 1100; /* Higher than the container to be on top */
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 10px;
+    font-size: 14px;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* Ensures long words break */
+    white-space: normal; /* Allows text to wrap */
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+canvas {
+    z-index: 1 !important; /* Send charts to the back */
+    position: relative; /* Ensure z-index applies */
+}
+
+</style>
 </head>
 <body>
-<header class="app-header">
+<header class="app-header" ng-app="notificationApp" ng-controller="NotificationController">
   <nav class="app-nav d-flex justify-content-between">
     <!-- Sidebar button visible only on smaller screens -->
     <a class="sidebar-btn d-md-none" id="toggleBtn">☰</a>
     
     <!-- "X" button aligned to the right on larger screens -->
     <a href="#" class="d-md-flex d-md-none ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
+   
+
+
+
+
+
+
+    <a href="#" class="d-flex ms-auto tooltip-btn position-relative" ng-click="toggleDropdown($event)">
+    <i class="bi bi-bell-fill"></i>
+    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" 
+          ng-if="notifications.length > 0">
+        {{ notifications.length }}
+    </span>
+</a>
+
+
+    <div class="notification-container">
+        <div class="dropdown-menu p-2" ng-class="{'show': dropdownVisible}">
+            <h6 class="dropdown-header">Notifications</h6>
+            <ul class="list-unstyled mb-0">
+                <li class="dropdown-item" ng-repeat="notification in notifications">
+                    {{ notification.Message }}
+                </li>
+                <li class="dropdown-item text-muted text-center" ng-if="notifications.length === 0">
+                    No notifications
+                </li>
+            </ul>
+        </div>
+    </div>
+
+<!-- <div class="notification-container">
+   
+    <div class="dropdown" ng-class="{'show': dropdownVisible}">
+        <ul>
+            <li ng-repeat="notification in notifications">{{ notification.Message }}</li>
+            <li ng-if="notifications.length === 0">No notifications</li>
+        </ul>
+    </div>
+</div> -->
+
+
+
     
     <!-- "X" button visible on smaller screens, aligned left -->
   </nav>

@@ -7,6 +7,8 @@ include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
 
+//Initialize the variable
+$product_id = '';
 
 
 // Fetch user details from session
@@ -293,14 +295,14 @@ $result = $conn->query($query);
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
     </div>
 
-    <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+    <!-- Add Product Button -->
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
     
 </div>
 
@@ -308,12 +310,12 @@ $result = $conn->query($query);
 
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered" id="ProductsTable">
+            <table class="table table-striped table-bordered">
                 <thead>
                 <tr>
-            <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(2)">Price <i class="bi bi-arrow-down-up"></i></th>
+            <th>Product Name</th>
+            <th>Product Type</th>
+            <th>Price</th>
             <th>Edit</th>
             
         </tr>
@@ -413,14 +415,9 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
-                    </div>
                     <div class="mb-3">
                         <label for="product_name" class="form-label">Product Name</label>
                         <input type="text" class="form-control" id="Product_Name" name="Product_Name" required>
@@ -446,7 +443,6 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
@@ -484,86 +480,6 @@ const sidebar = document.getElementById('sidebar');
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-
-
-
-
-
-
-    function sortTable(columnIndex) {
-    const table = document.getElementById('ProductsTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-    rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-        if (isNumeric) {
-            return parseFloat(cellA) - parseFloat(cellB);
-        } else {
-            return cellA.localeCompare(cellB);
-        }
-    });
-
-    // Re-append sorted rows to the table body
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-
-
-function searchTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('ProductsTable');
-    const tr = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < tr.length; i++) {
-        const td = tr[i].getElementsByTagName('td');
-        let found = false;
-        for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        tr[i].style.display = found ? '' : 'none';
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
