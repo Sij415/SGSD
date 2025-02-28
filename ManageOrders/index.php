@@ -411,7 +411,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" name="edit_order" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-success"
+            <?php if ($user_role === 'staff') echo 'disabled'; ?>>
+            Save Changes
+            </button>
           </div>
         </form>
       </div>
@@ -433,7 +436,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
       </div>
 
       <!-- Add Order Button -->
-      <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addOrderModal">Add Order</button>
+      <?php if ($user_role === 'admin' || $user_role === 'driver') : ?>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+        Add Order
+      </button>
+    <?php endif; ?>
     </div>
 
     <!-- Table Layout (Visible on larger screens) -->
@@ -462,7 +469,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                 <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                 <td><?php echo htmlspecialchars($row['Total_Price']); ?></td>
-                <td> <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"><i class="bi bi-pencil-square"></i></a></td>
+                <?php if ($user_role === 'admin' || $user_role === 'driver') : ?>
+                <td>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal" 
+                      data-order-id="<?php echo $row['Order_ID']; ?>" 
+                      data-customer-name="<?php echo $row['Customer_Name']; ?>" 
+                      data-product-name="<?php echo $row['Product_Name']; ?>" 
+                      data-status="<?php echo $row['Status']; ?>" 
+                      data-order-type="<?php echo $row['Order_Type']; ?>">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                </td>
+            <?php else : ?>
+                <td></td> <!-- Empty cell for staff to maintain table structure -->
+            <?php endif; ?>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>

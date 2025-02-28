@@ -1,6 +1,5 @@
 <?php
 // Include database connection
-
 $required_role = 'admin';
 include('../check_session.php');
 include '../dbconnect.php';
@@ -238,119 +237,101 @@ tr.bg-orange td {
 <body class="p-0">
 <header class="app-header">
   <nav class="app-nav d-flex justify-content-between">
-    <!-- Sidebar button visible only on smaller screens -->
     <a class="sidebar-btn d-md-none" id="toggleBtn">☰</a>
-    
-    <!-- "X" button aligned to the right on larger screens -->
     <a href="#" class="d-md-flex d-md-none ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
-    
-    <!-- "X" button visible on smaller screens, aligned left -->
   </nav>
 </header>
 
 <div id="sidebar" class="sidebar d-flex flex-column">
-        <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
- 
-        <div class="sidebar-items">
-            <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-            <div class="sidebar-item">
-                <a href="../Dashboard" class="sidebar-items-a">
-                <i class="fa-solid fa-border-all"></i>
-                <span>&nbsp;Dashboard</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageStocks">
-                    <i class="fa-solid fa-box"></i>
-                    <span>&nbsp;Manage Stocks</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageOrders">
-                <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Orders</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageProducts">
-                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Product</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageCustomers">
-                <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
-                <span>&nbsp;Manage Customer</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../AdminSettings">
-                <i class="bi bi-gear" style="font-size:13.28px;"></i>
-                <span>&nbsp;Admin Settings</span>
-                </a>
-            </div>
-        </div>
-        
-        <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
-        <div class="mt-auto p-2">
-        <div class="sidebar-usr">
-            <div class="sidebar-pfp">
-                <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
-            </div>
-            <div class="sidebar-usrname">
-                <h1><?php
-                
+  <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
+  <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+  
+  <div class="sidebar-items">
+    <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+    <div class="sidebar-item">
+      <a href="../Dashboard" class="sidebar-items-a">
+        <i class="fa-solid fa-border-all"></i>
+        <span>&nbsp;Dashboard</span>
+      </a>
+    </div>
 
+    <!-- Manage Stocks (Visible to Admin & Staff) -->
+    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+    <div class="sidebar-item">
+      <a href="../ManageStocks">
+        <i class="fa-solid fa-box"></i>
+        <span>&nbsp;Manage Stocks</span>
+      </a>
+    </div>
+    
+    <!-- Manage Products (Visible to Admin & Staff) -->
+    <div class="sidebar-item">
+      <a href="../ManageProducts">
+        <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Product</span>
+      </a>
+    </div>
+    <?php endif; ?>
 
+    <!-- Manage Orders (Visible to All Roles) -->
+    <div class="sidebar-item">
+      <a href="../ManageOrders">
+        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Orders</span>
+      </a>
+    </div>
 
+    <!-- Manage Customers & Admin Settings (Only for Admin) -->
+    <?php if ($user_role === 'admin') : ?>
+    <div class="sidebar-item">
+      <a href="../ManageCustomers">
+        <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Customer</span>
+      </a>
+    </div>
+    <div class="sidebar-item">
+      <a href="../AdminSettings">
+        <i class="bi bi-gear" style="font-size:13.28px;"></i>
+        <span>&nbsp;Admin Settings</span>
+      </a>
+    </div>
+    <?php endif; ?>
+  </div>
 
+  <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+  <div class="mt-auto p-2">
+    <div class="sidebar-usr">
+      <div class="sidebar-pfp">
+        <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
+      </div>
+      <div class="sidebar-usrname">
+        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+        <h2><?php echo htmlspecialchars($user_email); ?></h2>
+      </div>
+    </div>
+    <div class="sidebar-options">
+      <div class="sidebar-item">
+        <a href="#" class="sidebar-items-button">
+          <i class="fa-solid fa-sign-out-alt"></i>
+          <span>Log out</span>
+        </a>
+      </div>
+      <div class="sidebar-item d-none d-sm-block">
+        <a href="#" class="sidebar-items-button">
+          <i class="fa-solid fa-file-alt"></i>
+          <span>Manual</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-
-
-
-
-
-                echo htmlspecialchars($user_first_name);
-                
-                
-                
-                ?></h1>
-                <h2><?php
-                echo  htmlspecialchars($user_email)
-                
-                
-                ?></h2>
-            </div>
-        </div>
-        <div class="sidebar-options ">
-            <div class="sidebar-item">
-                <a href="#" class="sidebar-items-button">
-                    <i class="fa-solid fa-sign-out-alt"></i>
-                    <span>Log out</span>
-                </a>
-            </div>
-            <div class="sidebar-item d-none d-sm-block">
-                <a href="#" class="sidebar-items-button">
-                    <i class="fa-solid fa-file-alt"></i>
-                    <span>Manual</span>
-                </a>
-            </div>
-        </div></div>
- 
-        </div>
   <div class="content">
-
-
-
 
     <div class="container mt-4">
         <h1><b>Manage Stocks</b></h1>
         <h3>Add and Edit Stocks</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
-
-
-
 
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -621,27 +602,6 @@ function updateRowColors() {
     }
 });
 }
-
-  /*  let firstCard = true;
-    document.querySelectorAll('.card.shadow-sm').forEach(card => {
-        if (firstCard) {
-            firstCard = false; // Skip first card
-            return;
-        }
-
-        let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
-        let threshold = parseInt(card.getAttribute('data-threshold') || "0");
-
-        card.classList.remove('bg-danger', 'bg-warning', 'bg-opacity-75', 'text-white', 'text-dark'); // Reset colors
-
-        if (newStock <= threshold) {
-            card.classList.add('bg-danger', 'text-white'); // Red
-        } else if (newStock <= threshold + 10) {
-            card.classList.add('bg-warning', 'text-dark'); // Orange
-        } else if (newStock <= threshold + 30) {
-            card.classList.add('bg-warning', 'bg-opacity-75', 'text-dark'); // Yellow
-        }
-    }); */
 
 
 // Run function on page load

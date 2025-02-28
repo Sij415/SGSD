@@ -186,83 +186,72 @@ $result = $conn->query($query);
     <!-- "X" button visible on smaller screens, aligned left -->
   </nav>
 </header>
-
 <div id="sidebar" class="sidebar d-flex flex-column">
-        <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
- 
-        <div class="sidebar-items">
-            <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-            <div class="sidebar-item">
-                <a href="../Dashboard" class="sidebar-items-a">
+    <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
+    <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+
+    <div class="sidebar-items">
+        <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+        <div class="sidebar-item">
+            <a href="../Dashboard" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
                 <span>&nbsp;Dashboard</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageStocks">
-                    <i class="fa-solid fa-box"></i>
-                    <span>&nbsp;Manage Stocks</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageOrders">
+            </a>
+        </div>
+
+        <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+        <div class="sidebar-item">
+            <a href="../ManageStocks">
+                <i class="fa-solid fa-box"></i>
+                <span>&nbsp;Manage Stocks</span>
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <div class="sidebar-item">
+            <a href="../ManageOrders">
                 <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Orders</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageProducts">
+            </a>
+        </div>
+
+        <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+        <div class="sidebar-item">
+            <a href="../ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageCustomers">
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($user_role === 'admin') : ?>
+        <div class="sidebar-item">
+            <a href="../ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Customer</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../AdminSettings">
+            </a>
+        </div>
+        <div class="sidebar-item">
+            <a href="../AdminSettings">
                 <i class="bi bi-gear" style="font-size:13.28px;"></i>
                 <span>&nbsp;Admin Settings</span>
-                </a>
-            </div>
+            </a>
         </div>
-        
-        <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
-        <div class="mt-auto p-2">
+        <?php endif; ?>
+    </div>
+
+    <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+    <div class="mt-auto p-2">
         <div class="sidebar-usr">
             <div class="sidebar-pfp">
                 <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
             </div>
             <div class="sidebar-usrname">
-                <h1><?php
-                
-
-
-
-
-
-
-
-
-
-
-                echo htmlspecialchars($user_first_name);
-                
-                
-                
-                ?></h1>
-                <h2><?php
-                echo  htmlspecialchars($user_email)
-                
-                
-                ?></h2>
+                <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+                <h2><?php echo htmlspecialchars($user_email); ?></h2>
             </div>
         </div>
-        <div class="sidebar-options ">
+        <div class="sidebar-options">
             <div class="sidebar-item">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-sign-out-alt"></i>
@@ -275,21 +264,15 @@ $result = $conn->query($query);
                     <span>Manual</span>
                 </a>
             </div>
-        </div></div>
- 
         </div>
+    </div>
+</div>
+
   <div class="content">
-
-
-
-
     <div class="container mt-4">
         <h1><b>Manage Products</b></h1>
         <h3>Add and Edit Products</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
-
-
-
 
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -305,8 +288,6 @@ $result = $conn->query($query);
     <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
     
 </div>
-
-
 
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive  d-none d-md-block">
@@ -327,12 +308,6 @@ $result = $conn->query($query);
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Product_Type']; ?></td>
                 <td><?php echo $row['Price']; ?></td>
-        
-
-
-
-
-
                 <td class="text-dark text-center">
                     <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                     data-product-id="<?php echo $row['Product_ID']; ?>" 
@@ -343,12 +318,8 @@ $result = $conn->query($query);
                         <i class="bi bi-pencil-square"></i>
                     </a>
                 </td>
-
-            
                 </td>
-            </tr>
-                                
-                                
+            </tr>  
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -368,9 +339,7 @@ $result = $conn->query($query);
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
             <div class="col-12 col-md-6 mb-3">
                 <div class="card shadow-sm" 
-                     
-                     
-
+                
                       class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                             data-product-id="<?php echo $row['Product_ID']; ?>" 
                             data-product-name="<?php echo $row['Product_Name']; ?>" 
@@ -378,9 +347,6 @@ $result = $conn->query($query);
                             data-price="<?php echo $row['Price']; ?>"
                             style="cursor: pointer;">
                     
-
-                     
-
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                         <div class="row">
@@ -480,10 +446,6 @@ const sidebar = document.getElementById('sidebar');
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-
-
 
 
      // Populate edit modal with existing data
