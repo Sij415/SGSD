@@ -1,32 +1,35 @@
 <?php
 // Include database connection
+// Include necessary files
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 
-// Get the user's first name from the database
-$query = "SELECT First_Name FROM Users WHERE Email = ?";
+// Get the user's first name and User_ID
+$query = "SELECT First_Name, User_ID FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_id);
+$stmt->bind_param("s", $user_email);
 $stmt->execute();
-$stmt->bind_result($user_first_name);
+$stmt->bind_result($user_first_name, $user_id);
 $stmt->fetch();
 $stmt->close();
 
-// Fetch order data from the database
+// Fetch ALL orders from the database
 $query = "SELECT 
             Orders.Order_ID, 
-            Users.First_Name AS First_Name,
-            Customers.First_Name AS Customer_Name, 
-            Products.Product_Name, 
+            CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
+            CONCAT(Customers.First_Name, ' ', Customers.Last_Name) AS Customer_Name, 
+            Products.Product_Name,
+            Products.Price AS Product_Price, 
             Orders.Status, 
             Orders.Order_Type,
             Orders.Quantity,
-            Orders.Total_Price
+            Orders.Total_Price  
           FROM Orders
           INNER JOIN Users ON Orders.User_ID = Users.User_ID
           INNER JOIN Products ON Orders.Product_ID = Products.Product_ID
@@ -37,10 +40,7 @@ $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Check for query errors
-if (!$result) {
-    die("Query failed: " . mysqli_error($conn));
-}
+$result->data_seek(0); // Reset result pointer for further use
 
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
@@ -49,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
   $status = $_POST['Status'];
   $order_type = $_POST['Order_Type'];
   $quantity = $_POST['Quantity'];
-  $totalprice = $_POST['Total_Price'];
 
   // Validate input
   if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
@@ -67,14 +66,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
           exit();
       }
 
+      // Get Customer_ID from Customers table
+      $name_parts = explode(' ', $customer_name, 2);
+      $first_name = $name_parts[0];
+      $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+
+      $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("ss", $first_name, $last_name);
+      $stmt->execute();
+      $stmt->bind_result($customer_id);
+      $stmt->fetch();
+      $stmt->close();
+
+      if (!$customer_id) {
+          echo "<div class='alert alert-danger'>Customer not found.</div>";
+          exit();
+      }
+
+      // Calculate total price
+      $total_price = $quantity * $price;
+
       // Insert into Orders table
       $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
       $stmt = $conn->prepare($query);
-      $stmt->bind_param("iissid", $_SESSION['user_id'], $product_id, $status, $order_type, $quantity, $total_price);
+      $stmt->bind_param("iissid", $user_id, $product_id, $status, $order_type, $quantity, $total_price);
+      logActivity($conn, $user_id, "User has inserted a new order record");
 
       if ($stmt->execute()) {
-          header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show new data
-          exit();
+          // Get the Order_ID of the newly inserted order
+          $order_id = $stmt->insert_id;
+
+          // Insert into Transactions table
+          $query = "INSERT INTO Transactions (Order_ID, Customer_ID) VALUES (?, ?)";
+          $stmt = $conn->prepare($query);
+          $stmt->bind_param("ii", $order_id, $customer_id);
+
+          if ($stmt->execute()) {
+              header("Location: " . $_SERVER['PHP_SELF']);
+              exit();
+          } else {
+              echo "<div class='alert alert-danger'>Error adding transaction: " . $conn->error . "</div>";
+          }
       } else {
           echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
       }
@@ -95,10 +128,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
     // Validate input
     if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
+        // Split customer name into first and last name
+        $name_parts = explode(' ', $customer_name, 2);
+        $first_name = $name_parts[0];
+        $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+
         // Get Customer_ID from Customers table
-        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
+        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $customer_name);
+        $stmt->bind_param("ss", $first_name, $last_name);
         $stmt->execute();
         $stmt->bind_result($customer_id);
         $stmt->fetch();
@@ -124,12 +162,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         }
 
         // Update Orders table
-        $query = "UPDATE Orders SET User_ID = ?, Product_ID = ?, Status = ?, Order_Type = ? WHERE Order_ID = ?";
+        $query = "UPDATE Orders SET Product_ID = ?, Status = ?, Order_Type = ? WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("iissi", $customer_id, $product_id, $status, $order_type, $order_id);
+        $stmt->bind_param("issi", $product_id, $status, $order_type, $order_id);
+        logActivity($conn, $user_id, "User has updated an order record");
 
         if ($stmt->execute()) {
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
+            header("Location: " . $_SERVER['PHP_SELF']);
             exit();
         } else {
             echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
@@ -459,10 +498,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
           </tr>
         </thead>
         <tbody>
-          <?php if (mysqli_num_rows($result) > 0): ?>
-            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+          <?php if ($result->num_rows > 0): ?>
+            <?php while ($row = $result->fetch_assoc()): ?>
               <tr>
-                <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
+                <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Customer_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Status']); ?></td>
@@ -501,11 +540,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
           <div class="col-12 col-md-6 mb-3">
             <div class="card shadow-sm"
-             data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"
-            
-            
-            
-            >
+             data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>">
 
               <div class="card-body">
                 <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>

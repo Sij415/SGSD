@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../dbconnect.php');
+include('..\log_functions.php');
 date_default_timezone_set("Asia/Manila");
 
 $ip_address = $_SERVER['REMOTE_ADDR'];

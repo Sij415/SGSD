@@ -3,6 +3,7 @@
 
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
@@ -34,6 +35,7 @@ if (isset($_POST['add_product'])) {
     $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("issi", $product_id, $product_name, $product_type, $price);
+    logActivity($conn, $user_id, "User has inserted a new product record");
 
     if ($stmt->execute()) {
         $success_message = "Product added successfully.";
@@ -54,6 +56,7 @@ if (isset($_POST['edit_product'])) {
     $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ssii", $new_productname, $new_producttype, $new_price, $product_id);
+    logActivity($conn, $user_id, "User has updated a product record");
 
     if ($stmt->execute()) {
         $success_message = "Product updated successfully.";
@@ -68,14 +71,7 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
-
-
-
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">

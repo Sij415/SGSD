@@ -3,11 +3,10 @@
 
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
-
-
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -19,14 +18,6 @@ $stmt->execute();
 $stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
-
-
-
-
-
-
-
-
 
 // Fetch settings data from the database
 $query = "SELECT * FROM Settings WHERE Setting_Key = 'AdminSignUpEnabled' OR Setting_Key = 'AdminSignUpEnabled'";
@@ -68,25 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ?>
-
-
-
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">

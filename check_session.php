@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../dbconnect.php');
+include('dbconnect.php');
 date_default_timezone_set("Asia/Manila");
 
 // 1. Verify Session and User ID

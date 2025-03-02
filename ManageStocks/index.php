@@ -2,11 +2,10 @@
 // Include database connection
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
-
-
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -66,6 +65,7 @@ if (isset($_POST['add_stock'])) {
     $query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("iiiii", $user_id, $product_id, $old_stock, $new_stock, $threshold);
+    logActivity($conn, $user_id, "User has inserted a new stock record");
 
     if ($stmt->execute()) {
         $success_message = "Stock added successfully.";
@@ -95,6 +95,7 @@ if (isset($_POST['edit_stock'])) {
     $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("iiii", $current_stock, $new_stock, $threshold, $stock_id);
+    logActivity($conn, $user_id, "User has updated a stock record");
 
     if ($stmt->execute()) {
         $success_message = "Stock updated successfully.";
@@ -118,9 +119,6 @@ $query = "SELECT Stocks.Stock_ID,
 
 $result = $conn->query($query);
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -168,8 +166,6 @@ tr.bg-orange td {
   left: -250px; /* Hidden by default */
   transition: left 0.3s ease;
   z-index: 1000;
-
- 
 
   overflow-x: hidden;
 
@@ -481,9 +477,6 @@ tr.bg-orange td {
 
   </div>
   
-
-
-
 <!-- Add Stock Modal -->
 <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
     <div class="modal-dialog">

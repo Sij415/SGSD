@@ -3,11 +3,10 @@
 
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
-
-
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -19,12 +18,6 @@ $stmt->execute();
 $stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
-
-
-
-
-
-
 
 // Handle adding customer
 if (isset($_POST['add_customer'])) {
@@ -56,6 +49,7 @@ if (isset($_POST['add_customer'])) {
     $query = "INSERT INTO Customers (Customer_ID, Product_ID, First_Name, Last_Name, Contact_Number) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("iisss", $customer_id, $product_id, $first_name, $last_name, $contact_number);
+    logActivity($conn, $user_id, "User has added a customer to the customer database");
 
     if ($stmt->execute()) {
         $success_message = "Customer record added successfully.";
@@ -79,6 +73,7 @@ if (isset($_POST['edit_customer'])) {
     $query = "UPDATE Customers SET First_Name = ?, Last_Name = ?, Contact_Number = ? WHERE Customer_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("sssi", $new_fname, $new_lname, $new_contactnum, $customer_id);
+    logActivity($conn, $user_id, "User has updated a customer record in the cutomer database");
 
     if ($stmt->execute()) {
         $success_message = "Customer record updated successfully.";
@@ -89,18 +84,11 @@ if (isset($_POST['edit_customer'])) {
     $stmt->close();
 }
 
-
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
 
-
-
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -265,24 +253,11 @@ $result = $conn->query($query);
             <div class="sidebar-usrname">
                 <h1><?php
                 
-
-
-
-
-
-
-
-
-
-
                 echo htmlspecialchars($user_first_name);
-                
-                
                 
                 ?></h1>
                 <h2><?php
                 echo  htmlspecialchars($user_email)
-                
                 
                 ?></h2>
             </div>
@@ -305,16 +280,10 @@ $result = $conn->query($query);
         </div>
   <div class="content">
 
-
-
-
     <div class="container mt-4">
         <h1><b>Manage Customers</b></h1>
         <h3>Add and Edit Customers</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
-
-
-
 
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -330,8 +299,6 @@ $result = $conn->query($query);
     <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
     
 </div>
-
-
 
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive  d-none d-md-block">
@@ -371,8 +338,7 @@ $result = $conn->query($query);
                 
                 </td>
             </tr>
-                                
-                                
+                             
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -436,9 +402,6 @@ $result = $conn->query($query);
 
   </div>
   
-
-
-
 <!-- Add Customer Modal -->
 <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -522,11 +485,6 @@ const sidebar = document.getElementById('sidebar');
       sidebar.classList.remove('active');
     }
 
-
-
-
-
-
     // Populate edit modal with existing data
     const editStockModal = document.getElementById('editCustomerModal');
     editStockModal.addEventListener('show.bs.modal', function (event) {
@@ -585,9 +543,5 @@ const sidebar = document.getElementById('sidebar');
         })
         .catch(error => console.error('Error:', error));
     });
-
-
-
-  
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

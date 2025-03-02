@@ -1,6 +1,7 @@
 <?php
 // Include the database connection
 include('../dbconnect.php');
+include('../log_functions.php');
 date_default_timezone_set("Asia/Manila");
 session_start();
 
@@ -83,18 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $_SESSION['email'] = $user['Email'];
                     $_SESSION['first_name'] = hash('sha256', $user['First_Name']);
 
+                    // Log successful login here
+                    logActivity($conn, $user['User_ID'], "Logged into the system from IP: $ip_address");
 
-
-
-
-
-
-
-
-
-
-
-                    
 
                     // Redirect to dashboard based on the role
                     header("Location: ../Dashboard");
@@ -102,10 +94,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 } else {
                     // Invalid password, handle cooldown
                     $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
+                    logActivity($conn, $user['User_ID'], "Invalid password of IP: $ip_address");
                 }
             } else {
                 // Email does not exist or account_activation_hash is not null, handle cooldown
                 $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
+                logActivity($conn, $user['User_ID'], "Email does not exist of IP: $ip_address");
             }
             $stmt->close();
         } else {
