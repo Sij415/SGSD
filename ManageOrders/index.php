@@ -1,6 +1,6 @@
 <?php
 // Include necessary files
-$required_role = 'admin';
+$required_role = 'admin,staff,driver';
 include('../check_session.php');
 include('../log_functions.php');
 include '../dbconnect.php';
