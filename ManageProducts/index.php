@@ -3,10 +3,13 @@
 
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
 
+//Initialize the variable
+$product_id = '';
 
 
 // Fetch user details from session
@@ -32,6 +35,7 @@ if (isset($_POST['add_product'])) {
     $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("issi", $product_id, $product_name, $product_type, $price);
+    logActivity($conn, $user_id, "User has inserted a new product record");
 
     if ($stmt->execute()) {
         $success_message = "Product added successfully.";
@@ -52,6 +56,7 @@ if (isset($_POST['edit_product'])) {
     $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ssii", $new_productname, $new_producttype, $new_price, $product_id);
+    logActivity($conn, $user_id, "User has updated a product record");
 
     if ($stmt->execute()) {
         $success_message = "Product updated successfully.";
@@ -66,14 +71,7 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
-
-
-
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -184,83 +182,72 @@ $result = $conn->query($query);
     <!-- "X" button visible on smaller screens, aligned left -->
   </nav>
 </header>
-
 <div id="sidebar" class="sidebar d-flex flex-column">
-        <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
- 
-        <div class="sidebar-items">
-            <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-            <div class="sidebar-item">
-                <a href="../Dashboard" class="sidebar-items-a">
+    <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
+    <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+
+    <div class="sidebar-items">
+        <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+        <div class="sidebar-item">
+            <a href="../Dashboard" class="sidebar-items-a">
                 <i class="fa-solid fa-border-all"></i>
                 <span>&nbsp;Dashboard</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageStocks">
-                    <i class="fa-solid fa-box"></i>
-                    <span>&nbsp;Manage Stocks</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageOrders">
+            </a>
+        </div>
+
+        <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+        <div class="sidebar-item">
+            <a href="../ManageStocks">
+                <i class="fa-solid fa-box"></i>
+                <span>&nbsp;Manage Stocks</span>
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <div class="sidebar-item">
+            <a href="../ManageOrders">
                 <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Orders</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageProducts">
+            </a>
+        </div>
+
+        <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+        <div class="sidebar-item">
+            <a href="../ManageProducts">
                 <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Product</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../ManageCustomers">
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($user_role === 'admin') : ?>
+        <div class="sidebar-item">
+            <a href="../ManageCustomers">
                 <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
                 <span>&nbsp;Manage Customer</span>
-                </a>
-            </div>
-            <div class="sidebar-item">
-                <a href="../AdminSettings">
+            </a>
+        </div>
+        <div class="sidebar-item">
+            <a href="../AdminSettings">
                 <i class="bi bi-gear" style="font-size:13.28px;"></i>
                 <span>&nbsp;Admin Settings</span>
-                </a>
-            </div>
+            </a>
         </div>
-        
-        <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
-        <div class="mt-auto p-2">
+        <?php endif; ?>
+    </div>
+
+    <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+    <div class="mt-auto p-2">
         <div class="sidebar-usr">
             <div class="sidebar-pfp">
                 <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
             </div>
             <div class="sidebar-usrname">
-                <h1><?php
-                
-
-
-
-
-
-
-
-
-
-
-                echo htmlspecialchars($user_first_name);
-                
-                
-                
-                ?></h1>
-                <h2><?php
-                echo  htmlspecialchars($user_email)
-                
-                
-                ?></h2>
+                <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+                <h2><?php echo htmlspecialchars($user_email); ?></h2>
             </div>
         </div>
-        <div class="sidebar-options ">
+        <div class="sidebar-options">
             <div class="sidebar-item">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-sign-out-alt"></i>
@@ -273,47 +260,39 @@ $result = $conn->query($query);
                     <span>Manual</span>
                 </a>
             </div>
-        </div></div>
- 
         </div>
+    </div>
+</div>
+
   <div class="content">
-
-
-
-
     <div class="container mt-4">
         <h1><b>Manage Products</b></h1>
         <h3>Add and Edit Products</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
 
-
-
-
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchProducts()">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
     </div>
 
-    <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+    <!-- Add Product Button -->
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
     
 </div>
 
-
-
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered" id="ProductsTable">
+            <table class="table table-striped table-bordered">
                 <thead>
                 <tr>
-            <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(2)">Price <i class="bi bi-arrow-down-up"></i></th>
+            <th>Product Name</th>
+            <th>Product Type</th>
+            <th>Price</th>
             <th>Edit</th>
             
         </tr>
@@ -325,12 +304,6 @@ $result = $conn->query($query);
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Product_Type']; ?></td>
                 <td><?php echo $row['Price']; ?></td>
-        
-
-
-
-
-
                 <td class="text-dark text-center">
                     <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                     data-product-id="<?php echo $row['Product_ID']; ?>" 
@@ -341,12 +314,8 @@ $result = $conn->query($query);
                         <i class="bi bi-pencil-square"></i>
                     </a>
                 </td>
-
-            
                 </td>
-            </tr>
-                                
-                                
+            </tr>  
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
@@ -366,9 +335,7 @@ $result = $conn->query($query);
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
             <div class="col-12 col-md-6 mb-3">
                 <div class="card shadow-sm" 
-                     
-                     
-
+                
                       class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                             data-product-id="<?php echo $row['Product_ID']; ?>" 
                             data-product-name="<?php echo $row['Product_Name']; ?>" 
@@ -376,9 +343,6 @@ $result = $conn->query($query);
                             data-price="<?php echo $row['Price']; ?>"
                             style="cursor: pointer;">
                     
-
-                     
-
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                         <div class="row">
@@ -403,24 +367,15 @@ $result = $conn->query($query);
 </div>
 
   </div>
-  
-
-
-
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
-                    </div>
                     <div class="mb-3">
                         <label for="product_name" class="form-label">Product Name</label>
                         <input type="text" class="form-control" id="Product_Name" name="Product_Name" required>
@@ -446,7 +401,6 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
@@ -471,8 +425,20 @@ $result = $conn->query($query);
 </div>
 <script>
 
+function searchProducts() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const cards = document.querySelectorAll('.card'); // Select all product cards
 
-
+    cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = ''; // Show card if a match is found
+        } else {
+            card.style.display = 'none'; // Hide card if no match
+        }
+    });
+}
 
 const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
@@ -484,90 +450,6 @@ const sidebar = document.getElementById('sidebar');
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-
-
-
-
-
-
-    function sortTable(columnIndex) {
-    const table = document.getElementById('ProductsTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-    rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-        if (isNumeric) {
-            return parseFloat(cellA) - parseFloat(cellB);
-        } else {
-            return cellA.localeCompare(cellB);
-        }
-    });
-
-    // Re-append sorted rows to the table body
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-
-
-function searchTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('ProductsTable');
-    const tr = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < tr.length; i++) {
-        const td = tr[i].getElementsByTagName('td');
-        let found = false;
-        for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        tr[i].style.display = found ? '' : 'none';
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
      // Populate edit modal with existing data

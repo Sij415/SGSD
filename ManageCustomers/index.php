@@ -7,8 +7,6 @@ include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
 
-
-
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
@@ -19,12 +17,6 @@ $stmt->execute();
 $stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
-
-
-
-
-
-
 
 // Handle adding customer
 if (isset($_POST['add_customer'])) {
@@ -74,8 +66,6 @@ if (isset($_POST['edit_customer'])) {
     $new_lname = $_POST['New_LastName'];
     $new_contactnum = $_POST['New_ContactNum'];
 
-
-
     $query = "UPDATE Customers SET First_Name = ?, Last_Name = ?, Contact_Number = ? WHERE Customer_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("sssi", $new_fname, $new_lname, $new_contactnum, $customer_id);
@@ -89,18 +79,11 @@ if (isset($_POST['edit_customer'])) {
     $stmt->close();
 }
 
-
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
 
-
-
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -135,13 +118,9 @@ $result = $conn->query($query);
   left: -250px; /* Hidden by default */
   transition: left 0.3s ease;
   z-index: 1000;
-
- 
-
   overflow-x: hidden;
 
 }
-
 
     .sidebar.active {
       left: 0;
@@ -271,26 +250,10 @@ th {
             </div>
             <div class="sidebar-usrname">
                 <h1><?php
-                
-
-
-
-
-
-
-
-
-
-
                 echo htmlspecialchars($user_first_name);
-                
-                
-                
                 ?></h1>
                 <h2><?php
                 echo  htmlspecialchars($user_email)
-                
-                
                 ?></h2>
             </div>
         </div>
@@ -311,23 +274,15 @@ th {
  
         </div>
   <div class="content">
-
-
-
-
     <div class="container mt-4">
         <h1><b>Manage Customers</b></h1>
         <h3>Add and Edit Customers</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
-
-
-
-
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
 <!-- Search Input Group -->
 <div class="input-group">
-    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchCustomers()">
     <button class="btn btn-outline-secondary" type="button" id="search">
         <i class="fa fa-search"></i>
     </button>
@@ -337,9 +292,6 @@ th {
     <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
     
 </div>
-
-
-
 <!-- Table Layout (Visible on larger screens) -->
 <div class="table-responsive d-none d-md-block">
     <table class="table table-striped table-bordered" id="customersTable">
@@ -381,8 +333,7 @@ th {
         </tbody>
     </table>
 </div>
-
-        <div class="row d-block d-md-none">
+    <div class="row d-block d-md-none">
     <?php
     $result->data_seek(0);
     
@@ -391,7 +342,6 @@ th {
             <div class="col-12 col-md-6 mb-3">
                 <div class="card shadow-sm" 
                      data-bs-toggle="modal" 
-
                      data-bs-target="#editCustomerModal" 
                      data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>" 
                      data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>" 
@@ -434,9 +384,6 @@ th {
 
   </div>
   
-
-
-
 <!-- Add Customer Modal -->
 <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -503,9 +450,7 @@ th {
         </div>
     </div>
 </div>
-
 <script>
-
 
 function sortTable(columnIndex) {
     const table = document.getElementById('customersTable');
@@ -528,28 +473,20 @@ function sortTable(columnIndex) {
     rows.forEach(row => tbody.appendChild(row));
 }
 
-function searchTable() {
+function searchCustomers() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
-    const table = document.getElementById('customersTable');
-    const tr = table.getElementsByTagName('tr');
+    const cards = document.querySelectorAll('.card'); // Select all customer cards
 
-    for (let i = 1; i < tr.length; i++) {
-        const td = tr[i].getElementsByTagName('td');
-        let found = false;
-        for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
-            }
+    cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = ''; // Show card if a match is found
+        } else {
+            card.style.display = 'none'; // Hide card if no match
         }
-        tr[i].style.display = found ? '' : 'none';
-    }
+    });
 }
-
-
 
 const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
@@ -561,11 +498,6 @@ const sidebar = document.getElementById('sidebar');
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-
-
-
 
     // Populate edit modal with existing data
     const editStockModal = document.getElementById('editCustomerModal');
@@ -625,9 +557,6 @@ const sidebar = document.getElementById('sidebar');
         })
         .catch(error => console.error('Error:', error));
     });
-
-
-
   
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

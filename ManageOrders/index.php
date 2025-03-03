@@ -1,15 +1,15 @@
 <?php
-// Include database connection
+// Include necessary files
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-//echo 'User ID: ' . $_SESSION['user_id'];
 
-// Get the user's first name from the database
+// Get the user's first name and User_ID
 $query = "SELECT First_Name, User_ID FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email);
@@ -18,90 +18,60 @@ $stmt->bind_result($user_first_name, $user_id);
 $stmt->fetch();
 $stmt->close();
 
-
-// Fetch order data from the database
+// Fetch all orders
 $query = "SELECT 
             Orders.Order_ID, 
             CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
-            Customers.First_Name AS Customer_Name, 
-            Products.Product_Name, 
+            CONCAT(Customers.First_Name, ' ', Customers.Last_Name) AS Customer_Name, 
+            Products.Product_Name,
+            Products.Price AS Product_Price, 
             Orders.Status, 
             Orders.Order_Type,
             Orders.Quantity,
-            Orders.Total_Price
+            Orders.Total_Price  
           FROM Orders
           INNER JOIN Users ON Orders.User_ID = Users.User_ID
           INNER JOIN Products ON Orders.Product_ID = Products.Product_ID
           INNER JOIN Transactions ON Orders.Order_ID = Transactions.Order_ID
           INNER JOIN Customers ON Transactions.Customer_ID = Customers.Customer_ID";
 
-
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
-
-// Check for query errors
-if (!$result) {
-    die("Query failed: " . mysqli_error($conn));
-}
+$result->data_seek(0); // Reset result pointer
 
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-  $customer_name = $_POST['Customer_Name'];
-  $product_name = $_POST['Product_Name'];
-  $status = $_POST['Status'];
-  $order_type = $_POST['Order_Type'];
-  $quantity = $_POST['Quantity'];
-  $totalprice = $_POST['Total_Price'];
-
-  // Validate input
-  if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
-      // Get Product_ID and Price
-      $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("s", $product_name);
-      $stmt->execute();
-      $stmt->bind_result($product_id, $price);
-      $stmt->fetch();
-      $stmt->close();
-
-      if (!$product_id) {
-          echo "<div class='alert alert-danger'>Product not found.</div>";
-          exit();
-      }
-
-      // Insert into Orders table
-      $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("iissid", $user_id, $product_id, $status, $order_type, $quantity, $total_price);
-
-      if ($stmt->execute()) {
-          header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show new data
-          exit();
-      } else {
-          echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
-      }
-
-      $stmt->close();
-  } else {
-      echo "<div class='alert alert-warning'>All fields are required.</div>";
-  }
-}
-
-// Handle editing an order
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
-    $order_id = $_POST['Order_ID'];
-    $customer_name = $_POST['New_CustomerName'];
-    $product_name = $_POST['New_ProductName'];
-    $status = $_POST['New_Status'];
-    $order_type = $_POST['New_OrderType'];
+    $customer_name = $_POST['Customer_Name'];
+    $product_name = $_POST['Product_Name'];
+    $status = $_POST['Status'];
+    $order_type = $_POST['Order_Type'];
+    $quantity = $_POST['Quantity'];
 
     // Validate input
-    if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
-        // Get Customer_ID from Customers table
-        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
+    if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
+        // Get Product_ID and Price
+        $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $customer_name);
+        $stmt->bind_param("s", $product_name);
+        $stmt->execute();
+        $stmt->bind_result($product_id, $price);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (!$product_id) {
+            echo "<div class='alert alert-danger'>Product not found.</div>";
+            exit();
+        }
+
+        // Get Customer_ID from Customers table
+        $name_parts = explode(' ', $customer_name, 2);
+        $first_name = $name_parts[0];
+        $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+
+        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ss", $first_name, $last_name);
         $stmt->execute();
         $stmt->bind_result($customer_id);
         $stmt->fetch();
@@ -112,30 +82,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             exit();
         }
 
-        // Get Product_ID from Products table
-        $query = "SELECT Product_ID FROM Products WHERE Product_Name = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $product_name);
-        $stmt->execute();
-        $stmt->bind_result($product_id);
-        $stmt->fetch();
-        $stmt->close();
+        // Calculate total price
+        $total_price = $quantity * $price;
 
-        if (!$product_id) {
-            echo "<div class='alert alert-danger'>Product not found.</div>";
-            exit();
-        }
-
-        // Update Orders table
-        $query = "UPDATE Orders SET User_ID = ?, Product_ID = ?, Status = ?, Order_Type = ? WHERE Order_ID = ?";
+        // Insert into Orders table
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("iissi", $customer_id, $product_id, $status, $order_type, $order_id);
+        $stmt->bind_param("iissid", $user_id, $product_id, $status, $order_type, $quantity, $total_price);
+        logActivity($conn, $user_id, "User has inserted a new order record", $order_id);
 
         if ($stmt->execute()) {
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
-            exit();
+            // Get the Order_ID of the newly inserted order
+            $order_id = $stmt->insert_id;
+
+            // Insert into Transactions table with Date & Time
+            $query = "INSERT INTO Transactions (Order_ID, Customer_ID, Date, Time, Activity) 
+                      VALUES (?, ?, CURRENT_DATE, CURRENT_TIME, 'New Order Created')";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $order_id, $customer_id);
+
+            if ($stmt->execute()) {
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
+            } else {
+                echo "<div class='alert alert-danger'>Error adding transaction: " . $conn->error . "</div>";
+            }
         } else {
-            echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
+            echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
         }
 
         $stmt->close();
@@ -143,7 +116,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         echo "<div class='alert alert-warning'>All fields are required.</div>";
     }
 }
+
+// Handle editing an order
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
+  $order_id = $_POST['Order_ID'];
+  $customer_name = $_POST['New_CustomerName'];
+  $product_name = $_POST['New_ProductName'];
+  $status = $_POST['New_Status'];
+  $order_type = $_POST['New_OrderType'];
+
+  // Validate input
+  if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
+      // Get Customer_ID from Customers table
+      $name_parts = explode(' ', $customer_name, 2);
+      $first_name = $name_parts[0];
+      $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+
+      $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("ss", $first_name, $last_name);
+      $stmt->execute();
+      $stmt->bind_result($customer_id);
+      $stmt->fetch();
+      $stmt->close();
+
+      if (!$customer_id) {
+          echo "<div class='alert alert-danger'>Customer not found.</div>";
+          exit();
+      }
+
+      // Get Product_ID from Products table
+      $query = "SELECT Product_ID FROM Products WHERE Product_Name = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("s", $product_name);
+      $stmt->execute();
+      $stmt->bind_result($product_id);
+      $stmt->fetch();
+      $stmt->close();
+
+      if (!$product_id) {
+          echo "<div class='alert alert-danger'>Product not found.</div>";
+          exit();
+      }
+
+      // Update Orders table
+      $query = "UPDATE Orders 
+                SET Product_ID = ?, Status = ?, Order_Type = ? 
+                WHERE Order_ID = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("issi", $product_id, $status, $order_type, $order_id);
+      logActivity($conn, $user_id, "User has updated an order record", $order_id);
+
+      if ($stmt->execute()) {
+          // Update Transactions table
+          $query = "UPDATE Transactions 
+                    SET Customer_ID = ?, Date = CURRENT_DATE, Time = CURRENT_TIME
+                    WHERE Order_ID = ?";
+          $stmt = $conn->prepare($query);
+          $stmt->bind_param("ii", $customer_id, $order_id);
+
+          if ($stmt->execute()) {
+              // Redirect to refresh the front-end
+              header("Location: " . $_SERVER['PHP_SELF']);
+              exit();
+          } else {
+              echo "<div class='alert alert-danger'>Error updating transaction: " . $conn->error . "</div>";
+          }
+      } else {
+          echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
+      }
+
+      $stmt->close();
+  } else {
+      echo "<div class='alert alert-warning'>All fields are required.</div>";
+  }
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -235,24 +284,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 <div id="sidebar" class="sidebar d-flex flex-column">
   <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
   <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+  
   <div class="sidebar-items">
     <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+
     <div class="sidebar-item">
       <a href="../Dashboard" class="sidebar-items-a">
         <i class="fa-solid fa-border-all"></i>
         <span>&nbsp;Dashboard</span>
       </a>
     </div>
-    <div class="sidebar-item">
-      <a href="../ManageStocks">
-        <i class="fa-solid fa-box"></i>
-        <span>&nbsp;Manage Stocks</span>
-      </a>
-    </div>
+
+    <?php if ($user_role !== 'driver'): // Exclude for drivers ?>
     <div class="sidebar-item">
       <a href="../ManageOrders">
         <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
         <span>&nbsp;Manage Orders</span>
+      </a>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($user_role === 'admin'): // Only Admins ?>
+    <div class="sidebar-item">
+      <a href="../ManageStocks">
+        <i class="fa-solid fa-box"></i>
+        <span>&nbsp;Manage Stocks</span>
       </a>
     </div>
     <div class="sidebar-item">
@@ -273,7 +329,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <span>&nbsp;Admin Settings</span>
       </a>
     </div>
+    <?php endif; ?>
+
+    <?php if ($user_role === 'staff'): // Staff can access stocks and products ?>
+    <div class="sidebar-item">
+      <a href="../ManageStocks">
+        <i class="fa-solid fa-box"></i>
+        <span>&nbsp;Manage Stocks</span>
+      </a>
+    </div>
+    <div class="sidebar-item">
+      <a href="../ManageProducts">
+        <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Product</span>
+      </a>
+    </div>
+    <?php endif; ?>
+
   </div>
+
   <hr style="width: 75%; margin: 0 auto; padding: 12px;">
   <div class="mt-auto p-2">
     <div class="sidebar-usr">
@@ -389,7 +463,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" name="edit_order" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-success" name = "edit_order"
+            <?php if ($user_role === 'staff') echo 'disabled'; ?>>
+            Save Changes
+            </button>
           </div>
         </form>
       </div>
@@ -404,35 +481,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     <div class="d-flex align-items-center justify-content-between mb-3">
       <!-- Search Input Group -->
       <div class="input-group">
-      <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+      <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchOrders()">
         <button class="btn btn-outline-secondary" type="button" id="search">
           <i class="fa fa-search"></i>
         </button>
       </div>
 
       <!-- Add Order Button -->
-      <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addOrderModal">Add Order</button>
+      <?php if ($user_role === 'admin' || $user_role === 'driver') : ?>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+        Add Order
+      </button>
+    <?php endif; ?>
     </div>
 
     <!-- Table Layout (Visible on larger screens) -->
     <div class="table-responsive d-none d-md-block">
-      <table class="table table-striped table-bordered" id="OrdersTable">
+      <table class="table table-striped table-bordered">
         <thead>
           <tr>
-            <th onclick="sortTable(0)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(1)">Customer Name <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(2)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(3)">Status <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(4)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(5)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(6)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+            <th>Stocked By</th>
+            <th>Customer Name</th>
+            <th>Product Name</th>
+            <th>Status</th>
+            <th>Order Type</th>
+            <th>Quantity</th>
+            <th>Total Price</th>
             <th>Edit</th>
-            <th>Generate Record</th>
           </tr>
         </thead>
         <tbody>
-          <?php if (mysqli_num_rows($result) > 0): ?>
-            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+          <?php if ($result->num_rows > 0): ?>
+            <?php while ($row = $result->fetch_assoc()): ?>
               <tr>
                 <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                 <td><?php echo htmlspecialchars($row['Customer_Name']); ?></td>
@@ -441,20 +521,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                 <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                 <td><?php echo htmlspecialchars($row['Total_Price']); ?></td>
-                <td> <a href="" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"><i class="bi bi-pencil-square"></i></a></td>
-                <td> 
-    <a href="#" class="PDFdata"
-        data-managed-by="<?php echo $row['Full_Name']; ?>" 
-        data-customer-name="<?php echo $row['Customer_Name']; ?>" 
-        data-product-name="<?php echo $row['Product_Name']; ?>" 
-        data-status="<?php echo $row['Status']; ?>" 
-        data-order-type="<?php echo $row['Order_Type']; ?>"
-        data-quantity="<?php echo $row['Quantity']; ?>"
-        data-total-price="<?php echo $row['Total_Price'] ?>">
-        <i class="bi bi-envelope-paper"></i>
-    </a>
-</td>
-
+                <?php if ($user_role === 'admin' || $user_role === 'driver') : ?>
+                <td>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal" 
+                      data-order-id="<?php echo $row['Order_ID']; ?>" 
+                      data-customer-name="<?php echo $row['Customer_Name']; ?>" 
+                      data-product-name="<?php echo $row['Product_Name']; ?>" 
+                      data-status="<?php echo $row['Status']; ?>" 
+                      data-order-type="<?php echo $row['Order_Type']; ?>">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                </td>
+            <?php else : ?>
+                <td></td> <!-- Empty cell for staff to maintain table structure -->
+            <?php endif; ?>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
@@ -465,17 +545,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         </tbody>
       </table>
     </div>
-    <!-- Hidden Form -->
-<form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">
-    <input type="hidden" name="managed_by" id="managed_by">
-    <input type="hidden" name="customer_name" id="customer_name">
-    <input type="hidden" name="product_name" id="product_name">
-    <input type="hidden" name="status" id="status">
-    <input type="hidden" name="order_type" id="order_type">
-    <input type="hidden" name="quantity" id="quantity">
-    <input type="hidden" name="total_price" id="total_price">
-</form>
-
 
     <div class="row d-block d-md-none">
       <?php
@@ -484,17 +553,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
           <div class="col-12 col-md-6 mb-3">
             <div class="card shadow-sm"
-             data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"
-            
-            
-            
-            >
+             data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>">
 
               <div class="card-body">
                 <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                 <div class="row">
                   <div class="col-6">
-                    <p class="card-text"><strong>Managed by:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
+                    <p class="card-text"><strong>Stocked By:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
                   </div>
                   <div class="col-6">
                     <p class="card-text"><strong>Customer Name:</strong> <?php echo htmlspecialchars($row['Customer_Name']); ?></p>
@@ -505,7 +570,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                   <div class="col-6">
                     <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Order_Type']); ?></p>
                   </div>
-                  
+                  <div class="col-6">
+                    <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Quantity']); ?></p>
+                  </div>
+                  <div class="col-6">
+                    <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Total_Price']); ?></p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -517,9 +587,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     </div>
   </div>
   <script>
+  function searchOrders() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const cards = document.querySelectorAll('.card'); // Select all order cards
+
+    cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = ''; // Show card if a match is found
+        } else {
+            card.style.display = 'none'; // Hide card if no match
+        }
+    });
+}
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleBtn');
-
 
   toggleBtn.addEventListener('click', () => {
     sidebar.classList.toggle('active');
@@ -528,67 +611,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
   function closeNav() {
     sidebar.classList.remove('active');
   }
-
-
-
-
-
-
-  function sortTable(columnIndex) {
-    const table = document.getElementById('OrdersTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-    rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-        if (isNumeric) {
-            return parseFloat(cellA) - parseFloat(cellB);
-        } else {
-            return cellA.localeCompare(cellB);
-        }
-    });
-
-    // Re-append sorted rows to the table body
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-
-
-function searchTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('OrdersTable');
-    const tr = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < tr.length; i++) {
-        const td = tr[i].getElementsByTagName('td');
-        let found = false;
-        for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        tr[i].style.display = found ? '' : 'none';
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
   const editOrderModal = document.getElementById('editOrderModal');
   editOrderModal.addEventListener('show.bs.modal', event => {
@@ -612,44 +634,6 @@ function searchTable() {
     modalOrderType.value = orderType;
   });
 </script>
-
-
-
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-    document.querySelectorAll('.PDFdata').forEach(function(link) {
-        link.addEventListener('click', function(e) {
-            e.preventDefault(); // Prevent default link behavior
-
-            // Collect data from the clicked link
-            const managedBy = link.getAttribute('data-managed-by');
-            const customerName = link.getAttribute('data-customer-name');
-            const productName = link.getAttribute('data-product-name');
-            const status = link.getAttribute('data-status');
-            const orderType = link.getAttribute('data-order-type');
-            const quantity = link.getAttribute('data-quantity');
-            const totalPrice = link.getAttribute('data-total-price');
-
-            // Populate the hidden form fields
-            document.getElementById('managed_by').value = managedBy;
-            document.getElementById('customer_name').value = customerName;
-            document.getElementById('product_name').value = productName;
-            document.getElementById('status').value = status;
-            document.getElementById('order_type').value = orderType;
-            document.getElementById('quantity').value = quantity;
-            document.getElementById('total_price').value = totalPrice;
-
-            // Submit the form
-            document.getElementById('pdfForm').submit();
-        });
-    });
-</script>
-
-
-
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

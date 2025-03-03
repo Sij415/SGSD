@@ -1,9 +1,11 @@
 <?php
 // Include the database connection
 include('../dbconnect.php');
+include('../log_functions.php');
 date_default_timezone_set("Asia/Manila");
+
+ini_set('display_errors', 1);
 session_start();
-error_reporting(E_ALL);
 
 // Check if the admin has enabled sign-ups
 $signup_enabled_query = "SELECT Value FROM Settings WHERE Setting_Key = 'SignUpEnabled'";
@@ -45,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
         if ($current_time < $locked_until) {
             $remaining_time = $locked_until - $current_time;
-            $error = "Too many failed attempts. Please try again in <span id='countdown'>$remaining_time</span> seconds.";
+            $error = " Too many failed attempts. Please try again in <span id='countdown'>$remaining_time</span> seconds.";
         } else {
             // Cool-down expired, reset attempts
             $reset_sql = "UPDATE IP_Cooldown SET Attempts = 0, Locked_Until = NULL WHERE IP_Address = ?";
@@ -66,12 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             $stmt->execute();
             $result = $stmt->get_result();
 
-            // If the email doesn't exist, handle cooldown
-            if ($result->num_rows == 0) {
-                // Add the IP address to the cooldown table with NULL email
-
-                $error = handleCooldown($ip_address, NULL, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
-            } else {
+            if ($result->num_rows > 0) {
                 $user = $result->fetch_assoc();
 
                 // Verify password
@@ -83,19 +80,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     $delete_stmt->execute();
 
                     // Store user data in session
+                
                     $_SESSION['user_id'] = hash('sha256', $user['User_ID']);
                     $_SESSION['role'] = hash('sha256', $user['Role']);
                     $_SESSION['email'] = $user['Email'];
                     $_SESSION['first_name'] = hash('sha256', $user['First_Name']);
+
+                    // Log successful login here
+                    logActivity($conn, $user['User_ID'], "Logged into the system from IP: $ip_address");
+
 
                     // Redirect to dashboard based on the role
                     header("Location: ../Dashboard");
                     exit();
                 } else {
                     // Invalid password, handle cooldown
-                    
                     $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
+                    logActivity($conn, $user['User_ID'], "Invalid password of IP: $ip_address");
                 }
+            } else {
+                // Email does not exist or account_activation_hash is not null, handle cooldown
+                $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
+                logActivity($conn, $user['User_ID'], "Email does not exist of IP: $ip_address");
             }
             $stmt->close();
         } else {
@@ -126,7 +132,7 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             return "The username or password you entered is incorrect. You have ". (5 - $attempts) . " attempts remaining. If you have not activated your account, please check your email for the activation link.";
         }
     } else {
-        // First failed attempt for this IP, insert NULL email
+        // First failed attempt for this IP
         $insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
         $insert_stmt = $conn->prepare($insert_sql);
         $insert_stmt->bind_param("ss", $email, $ip_address);
@@ -146,7 +152,6 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <link rel="stylesheet" href="../style/style.css">
-    <link rel="icon"  href="../logo.png">
 </head>
 
 <header class="main-header">
