@@ -1,5 +1,4 @@
 <?php
-// Include database connection
 // Include necessary files
 $required_role = 'admin';
 include('../check_session.php');
@@ -19,7 +18,7 @@ $stmt->bind_result($user_first_name, $user_id);
 $stmt->fetch();
 $stmt->close();
 
-// Fetch ALL orders from the database
+// Fetch all orders
 $query = "SELECT 
             Orders.Order_ID, 
             CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
@@ -39,33 +38,95 @@ $query = "SELECT
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
-
-$result->data_seek(0); // Reset result pointer for further use
+$result->data_seek(0); // Reset result pointer
 
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-  $customer_name = $_POST['Customer_Name'];
-  $product_name = $_POST['Product_Name'];
-  $status = $_POST['Status'];
-  $order_type = $_POST['Order_Type'];
-  $quantity = $_POST['Quantity'];
+    $customer_name = $_POST['Customer_Name'];
+    $product_name = $_POST['Product_Name'];
+    $status = $_POST['Status'];
+    $order_type = $_POST['Order_Type'];
+    $quantity = $_POST['Quantity'];
+
+    // Validate input
+    if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
+        // Get Product_ID and Price
+        $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $product_name);
+        $stmt->execute();
+        $stmt->bind_result($product_id, $price);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (!$product_id) {
+            echo "<div class='alert alert-danger'>Product not found.</div>";
+            exit();
+        }
+
+        // Get Customer_ID from Customers table
+        $name_parts = explode(' ', $customer_name, 2);
+        $first_name = $name_parts[0];
+        $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+
+        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ss", $first_name, $last_name);
+        $stmt->execute();
+        $stmt->bind_result($customer_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (!$customer_id) {
+            echo "<div class='alert alert-danger'>Customer not found.</div>";
+            exit();
+        }
+
+        // Calculate total price
+        $total_price = $quantity * $price;
+
+        // Insert into Orders table
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iissid", $user_id, $product_id, $status, $order_type, $quantity, $total_price);
+        logActivity($conn, $user_id, "User has inserted a new order record", $order_id);
+
+        if ($stmt->execute()) {
+            // Get the Order_ID of the newly inserted order
+            $order_id = $stmt->insert_id;
+
+            // Insert into Transactions table with Date & Time
+            $query = "INSERT INTO Transactions (Order_ID, Customer_ID, Date, Time, Activity) 
+                      VALUES (?, ?, CURRENT_DATE, CURRENT_TIME, 'New Order Created')";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $order_id, $customer_id);
+
+            if ($stmt->execute()) {
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
+            } else {
+                echo "<div class='alert alert-danger'>Error adding transaction: " . $conn->error . "</div>";
+            }
+        } else {
+            echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
+        }
+
+        $stmt->close();
+    } else {
+        echo "<div class='alert alert-warning'>All fields are required.</div>";
+    }
+}
+
+// Handle editing an order
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
+  $order_id = $_POST['Order_ID'];
+  $customer_name = $_POST['New_CustomerName'];
+  $product_name = $_POST['New_ProductName'];
+  $status = $_POST['New_Status'];
+  $order_type = $_POST['New_OrderType'];
 
   // Validate input
-  if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
-      // Get Product_ID and Price
-      $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("s", $product_name);
-      $stmt->execute();
-      $stmt->bind_result($product_id, $price);
-      $stmt->fetch();
-      $stmt->close();
-
-      if (!$product_id) {
-          echo "<div class='alert alert-danger'>Product not found.</div>";
-          exit();
-      }
-
+  if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
       // Get Customer_ID from Customers table
       $name_parts = explode(' ', $customer_name, 2);
       $first_name = $name_parts[0];
@@ -84,32 +145,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
           exit();
       }
 
-      // Calculate total price
-      $total_price = $quantity * $price;
-
-      // Insert into Orders table
-      $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
+      // Get Product_ID from Products table
+      $query = "SELECT Product_ID FROM Products WHERE Product_Name = ?";
       $stmt = $conn->prepare($query);
-      $stmt->bind_param("iissid", $user_id, $product_id, $status, $order_type, $quantity, $total_price);
-      logActivity($conn, $user_id, "User has inserted a new order record");
+      $stmt->bind_param("s", $product_name);
+      $stmt->execute();
+      $stmt->bind_result($product_id);
+      $stmt->fetch();
+      $stmt->close();
+
+      if (!$product_id) {
+          echo "<div class='alert alert-danger'>Product not found.</div>";
+          exit();
+      }
+
+      // Update Orders table
+      $query = "UPDATE Orders 
+                SET Product_ID = ?, Status = ?, Order_Type = ? 
+                WHERE Order_ID = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("issi", $product_id, $status, $order_type, $order_id);
+      logActivity($conn, $user_id, "User has updated an order record", $order_id);
 
       if ($stmt->execute()) {
-          // Get the Order_ID of the newly inserted order
-          $order_id = $stmt->insert_id;
-
-          // Insert into Transactions table
-          $query = "INSERT INTO Transactions (Order_ID, Customer_ID) VALUES (?, ?)";
+          // Update Transactions table
+          $query = "UPDATE Transactions 
+                    SET Customer_ID = ?, Date = CURRENT_DATE, Time = CURRENT_TIME
+                    WHERE Order_ID = ?";
           $stmt = $conn->prepare($query);
-          $stmt->bind_param("ii", $order_id, $customer_id);
+          $stmt->bind_param("ii", $customer_id, $order_id);
 
           if ($stmt->execute()) {
+              // Redirect to refresh the front-end
               header("Location: " . $_SERVER['PHP_SELF']);
               exit();
           } else {
-              echo "<div class='alert alert-danger'>Error adding transaction: " . $conn->error . "</div>";
+              echo "<div class='alert alert-danger'>Error updating transaction: " . $conn->error . "</div>";
           }
       } else {
-          echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
+          echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
       }
 
       $stmt->close();
@@ -117,69 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
       echo "<div class='alert alert-warning'>All fields are required.</div>";
   }
 }
-
-// Handle editing an order
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
-    $order_id = $_POST['Order_ID'];
-    $customer_name = $_POST['New_CustomerName'];
-    $product_name = $_POST['New_ProductName'];
-    $status = $_POST['New_Status'];
-    $order_type = $_POST['New_OrderType'];
-
-    // Validate input
-    if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
-        // Split customer name into first and last name
-        $name_parts = explode(' ', $customer_name, 2);
-        $first_name = $name_parts[0];
-        $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
-
-        // Get Customer_ID from Customers table
-        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ss", $first_name, $last_name);
-        $stmt->execute();
-        $stmt->bind_result($customer_id);
-        $stmt->fetch();
-        $stmt->close();
-
-        if (!$customer_id) {
-            echo "<div class='alert alert-danger'>Customer not found.</div>";
-            exit();
-        }
-
-        // Get Product_ID from Products table
-        $query = "SELECT Product_ID FROM Products WHERE Product_Name = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $product_name);
-        $stmt->execute();
-        $stmt->bind_result($product_id);
-        $stmt->fetch();
-        $stmt->close();
-
-        if (!$product_id) {
-            echo "<div class='alert alert-danger'>Product not found.</div>";
-            exit();
-        }
-
-        // Update Orders table
-        $query = "UPDATE Orders SET Product_ID = ?, Status = ?, Order_Type = ? WHERE Order_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("issi", $product_id, $status, $order_type, $order_id);
-        logActivity($conn, $user_id, "User has updated an order record");
-
-        if ($stmt->execute()) {
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        } else {
-            echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
-        }
-
-        $stmt->close();
-    } else {
-        echo "<div class='alert alert-warning'>All fields are required.</div>";
-    }
-}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -450,7 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-success"
+            <button type="submit" class="btn btn-success" name = "edit_order"
             <?php if ($user_role === 'staff') echo 'disabled'; ?>>
             Save Changes
             </button>
