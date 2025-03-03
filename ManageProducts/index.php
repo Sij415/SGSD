@@ -86,7 +86,6 @@ $result = $conn->query($query);
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <title>Manage Product</title>
-  <link rel="icon"  href="../logo.png">
   <style>
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
@@ -268,7 +267,7 @@ $result = $conn->query($query);
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-md-block">
+            <div class="sidebar-item d-none d-sm-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
@@ -294,14 +293,14 @@ $result = $conn->query($query);
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
+    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
     </div>
 
     <!-- Add Customer Button -->
-    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
+    <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
     
 </div>
 
@@ -309,13 +308,12 @@ $result = $conn->query($query);
 
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered">
+            <table class="table table-striped table-bordered" id="ProductsTable">
                 <thead>
                 <tr>
-            <th>Product ID</th>
-            <th>Product Name</th>
-            <th>Product Type</th>
-            <th>Price</th>
+            <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+            <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
+            <th onclick="sortTable(2)">Price <i class="bi bi-arrow-down-up"></i></th>
             <th>Edit</th>
             
         </tr>
@@ -324,7 +322,6 @@ $result = $conn->query($query);
                     <?php if (mysqli_num_rows($result) > 0): ?>
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
-                <td><?php echo $row['Product_ID']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Product_Type']; ?></td>
                 <td><?php echo $row['Price']; ?></td>
@@ -385,10 +382,6 @@ $result = $conn->query($query);
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                         <div class="row">
-
-                            <div class="col-6">
-                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?></p>
-                            </div>
 
                             <div class="col-6">
                                 <p class="card-text"><strong>Product Type:</strong> <?php echo htmlspecialchars($row['Product_Type']); ?></p>
@@ -491,6 +484,86 @@ const sidebar = document.getElementById('sidebar');
     function closeNav() {
       sidebar.classList.remove('active');
     }
+
+
+
+
+
+
+
+
+    function sortTable(columnIndex) {
+    const table = document.getElementById('ProductsTable');
+    const rows = Array.from(table.rows).slice(1);
+    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
+
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+        if (isNumeric) {
+            return parseFloat(cellA) - parseFloat(cellB);
+        } else {
+            return cellA.localeCompare(cellB);
+        }
+    });
+
+    // Re-append sorted rows to the table body
+    const tbody = table.getElementsByTagName('tbody')[0];
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+
+
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('ProductsTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j]) {
+                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        tr[i].style.display = found ? '' : 'none';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

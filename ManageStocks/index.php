@@ -83,9 +83,19 @@ if (isset($_POST['edit_stock'])) {
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
-    $query = "UPDATE Stocks SET New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    // Fetch current New_Stock before updating
+    $query = "SELECT New_Stock FROM Stocks WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iii", $new_stock, $threshold, $stock_id);
+    $stmt->bind_param("i", $stock_id);
+    $stmt->execute();
+    $stmt->bind_result($current_stock);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Update stock: move New_Stock to Old_Stock, then update New_Stock
+    $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iiii", $current_stock, $new_stock, $threshold, $stock_id);
 
     if ($stmt->execute()) {
         $success_message = "Stock updated successfully.";
@@ -96,13 +106,18 @@ if (isset($_POST['edit_stock'])) {
     $stmt->close();
 }
 
-// Fetch stocks
-$query = "SELECT * FROM Stocks";
+// UPDATED QUERY
+$query = "SELECT Stocks.Stock_ID, 
+                 Users.First_Name AS First_Name, 
+                 Products.Product_Name, 
+                 Stocks.Old_Stock, 
+                 Stocks.New_Stock, 
+                 Stocks.Threshold 
+          FROM Stocks
+          INNER JOIN Users ON Stocks.User_ID = Users.User_ID
+          INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID"; 
+
 $result = $conn->query($query);
-
-
-
-
 ?>
 
 
@@ -118,8 +133,22 @@ $result = $conn->query($query);
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <title>Manage Stocks</title>
-  <link rel="icon"  href="../logo.png">
   <style>
+   .bg-orange {
+    background-color: #ff8800 !important; /* Ensure Orange */
+    color: white !important;
+}
+
+/* If it's inside a table row, add this */
+tr.bg-orange td {
+    background-color: #ff8800 !important;
+    color: white !important;
+}
+
+.table-striped tbody tr.bg-orange td {
+    background-color: #ff8800 !important;
+    color: black !important;
+}
     .table-striped>tbody>tr:nth-child(odd)>td, 
 .table-striped>tbody>tr:nth-child(odd)>th {
    background-color: #f4f9f8;
@@ -203,6 +232,7 @@ $result = $conn->query($query);
         right: 15px;
       }
     }
+
   </style>
 </head>
 <body class="p-0">
@@ -220,7 +250,7 @@ $result = $conn->query($query);
 
 <div id="sidebar" class="sidebar d-flex flex-column">
         <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-        <a href="#" class="sgsd-title mt-5"><b>SGSD</b></a>
+        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
  
         <div class="sidebar-items">
             <hr style="width: 75%; margin: 0 auto; padding: 12px;">
@@ -300,7 +330,7 @@ $result = $conn->query($query);
                     <span>Log out</span>
                 </a>
             </div>
-            <div class="sidebar-item d-none d-md-block">
+            <div class="sidebar-item d-none d-sm-block">
                 <a href="#" class="sidebar-items-button">
                     <i class="fa-solid fa-file-alt"></i>
                     <span>Manual</span>
@@ -326,7 +356,7 @@ $result = $conn->query($query);
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
+        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
@@ -339,39 +369,50 @@ $result = $conn->query($query);
 
 
 
+
         <!-- Table Layout (Visible on larger screens) -->
-        <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered">
-                <thead>
-                <tr>
-                <th>Stock ID</th>
-            <th>User ID</th>
-            <th>Product ID</th>
-            <th>Old Stock</th>
-            <th>New Stock</th>
-            <th>Threshold</th>
-            <th>Edit</th>
-            
-        </tr>
-                </thead>
-                <tbody>
-                    <?php if (mysqli_num_rows($result) > 0): ?>
-                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                            <tr>
-                            <td><?php echo $row['Stock_ID']; ?></td>
-                <td><?php echo $row['User_ID']; ?></td>
-                <td><?php echo $row['Product_ID']; ?></td>
+        <div class="table-responsive d-none d-md-block">
+    <table class="table table-striped table-bordered" id="stocksTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(1)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(2)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(3)">New Stock <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(4)">Threshold <i class="bi bi-arrow-down-up"></i></th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <?php if (mysqli_num_rows($result) > 0): ?>
+        <?php 
+        while ($row = mysqli_fetch_assoc($result)): 
+            $newStock = $row['New_Stock'];
+            $threshold = $row['Threshold'];
+        
+            if ($newStock <= $threshold) {
+                $rowClass = "table-danger"; // Red
+            } elseif ($newStock <= $threshold + 10) {
+                $rowClass = "bg-orange text-dark"; // Distinct orange
+            } elseif ($newStock <= $threshold + 30) {
+                $rowClass = "table-warning"; // Yellow
+            } else {
+                $rowClass = "";
+            }
+        ?>
+
+            <tr class="<?php echo $rowClass; ?>">
+
+
+
+                <td><?php echo $row['First_Name']; ?></td>
+                <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Old_Stock']; ?></td>
                 <td><?php echo $row['New_Stock']; ?></td>
                 <td><?php echo $row['Threshold']; ?></td>
         
-
-
-
-
-
                 <td class="text-dark text-center">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStocktModal" 
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
                     data-stock-id="<?php echo $row['Stock_ID']; ?>" 
                             data-new-stock="<?php echo $row['New_Stock']; ?>" 
                             data-threshold="<?php echo $row['Threshold']; ?>">
@@ -391,41 +432,48 @@ $result = $conn->query($query);
                             <td colspan="6">No orders found.</td>
                         </tr>
                     <?php endif; ?>
-                </tbody>
+                </>
             </table>
         </div>
 
         <div class="row d-block d-md-none">
     <?php
     $result->data_seek(0);
-    
-    if (mysqli_num_rows($result) > 0): ?>
-        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-            <div class="col-12 col-md-6 mb-3">
-                <div class="card shadow-sm" 
-                     
-                     
 
-                      class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editStockModal" 
-                      data-stock-id="<?php echo $row['Stock_ID']; ?>" 
-                            data-new-stock="<?php echo $row['New_Stock']; ?>" 
-                            data-threshold="<?php echo $row['Threshold']; ?>"
-                            style="cursor: pointer;">
-                
-                    
-            
-                     
+    if (mysqli_num_rows($result) > 0): ?>
+        <?php while ($row = mysqli_fetch_assoc($result)): 
+            $newStock = $row['New_Stock'];
+            $threshold = $row['Threshold'];
+
+            if ($newStock <= $threshold) {
+                $cardClass = "bg-danger text-white"; // Red (below threshold)
+            } elseif ($newStock <= $threshold + 10) {
+                $cardClass = "bg-orange text-white"; // Custom Orange
+            } elseif ($newStock <= $threshold + 30) {
+                $cardClass = "bg-warning text-dark"; // Yellow
+            } else {
+                $cardClass = "";
+            }
+        ?>  
+
+            <div class="col-12 col-md-6 mb-3">
+                <div class="card shadow-sm <?php echo $cardClass; ?>" data-bs-toggle="modal" data-bs-target="#editStockModal"
+                    data-stock-id="<?php echo $row['Stock_ID']; ?>"
+                    data-new-stock="<?php echo $row['New_Stock']; ?>"
+                    data-threshold="<?php echo $row['Threshold']; ?>"
+                    style="cursor: pointer;">
+
 
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($row['Stock_ID']); ?></h5>
                         <div class="row">
 
                             <div class="col-6">
-                                <p class="card-text"><strong>User ID:</strong> <?php echo htmlspecialchars($row['User_ID']); ?></p>
+                                <p class="card-text"><strong>User Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
-                                <p class="card-text"><strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?></p>
+                                <p class="card-text"><strong>Product Name:</strong> <?php echo htmlspecialchars($row['Product_Name']); ?></p>
                             </div>
 
                             <div class="col-6">
@@ -461,17 +509,39 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="user_id" class="form-label">User ID</label>
-                        <input type="number" class="form-control" id="User_ID" name="User_ID" required>
+                    <!-- Stocked By (User Selection) -->
+                        <div class="mb-3">
+                        <label for="user_id" class="form-label">Stocked By</label>
+                        <select class="form-control" id="user_id" name="user_id" required>
+                            <option value="">Select User</option>
+                            <?php
+                            // Fetch users from the Users table
+                            $query = "SELECT User_ID, First_Name FROM Users";
+                            $result = $conn->query($query);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['User_ID'] . "'>" . $row['First_Name'] . "</option>";
+                            }
+                            ?>
+                        </select>
                     </div>
+
+                    <!-- Product Name (Product Selection) -->
                     <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
+                        <label for="product_id" class="form-label">Product Name</label>
+                        <select class="form-control" id="product_id" name="product_id" required>
+                            <option value="">Select Product</option>
+                            <?php
+                            // Fetch products from the Products table
+                            $query = "SELECT Product_ID, Product_Name FROM Products";
+                            $result = $conn->query($query);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['Product_ID'] . "'>" . $row['Product_Name'] . "</option>";
+                            }
+                            ?>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="old_stock" class="form-label">Old Stock</label>
@@ -498,7 +568,6 @@ $result = $conn->query($query);
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editStockModalLabel">Edit Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="POST" action="">
@@ -521,6 +590,139 @@ $result = $conn->query($query);
 
 
 
+
+
+
+
+
+
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('stocksTable');
+    const rows = Array.from(table.rows).slice(1);
+    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
+
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+        if (isNumeric) {
+            return parseFloat(cellA) - parseFloat(cellB);
+        } else {
+            return cellA.localeCompare(cellB);
+        }
+    });
+
+    // Re-append sorted rows to the table body
+    const tbody = table.getElementsByTagName('tbody')[0];
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+
+
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('stocksTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j]) {
+                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        tr[i].style.display = found ? '' : 'none';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function updateRowColors() {
+    document.querySelectorAll("#stockTable tbody tr").forEach((row, index) => {
+    let newStock = parseInt(row.getAttribute('data-new-stock') || "0");
+    let threshold = parseInt(row.getAttribute('data-threshold') || "0");
+
+    // Reset previous colors
+    row.classList.remove('table-danger', 'table-orange', 'table-warning');
+
+    if (newStock <= threshold) {
+        row.classList.add('table-danger'); // Red for below threshold
+    } else if (newStock <= threshold + 10) {
+        row.classList.add('table-orange'); // Custom orange
+    } else if (newStock <= threshold + 30) {
+        row.classList.add('table-warning'); // Yellow
+    }
+});
+
+    // Now apply the same logic to mobile cards
+    document.querySelectorAll('.card.shadow-sm').forEach((card, index) => {
+    let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
+    let threshold = parseInt(card.getAttribute('data-threshold') || "0");
+
+    // Reset previous colors
+    card.classList.remove('bg-danger', 'bg-orange', 'bg-warning', 'text-white', 'text-dark');
+
+    if (newStock <= threshold) {
+        card.classList.add('bg-danger', 'text-white'); // Red
+    } else if (newStock <= threshold + 10) {
+        card.classList.add('bg-orange', 'text-dark'); // Custom Orange
+    } else if (newStock <= threshold + 30) {
+        card.classList.add('bg-warning', 'text-dark'); // Yellow
+    }
+});
+}
+
+  /*  let firstCard = true;
+    document.querySelectorAll('.card.shadow-sm').forEach(card => {
+        if (firstCard) {
+            firstCard = false; // Skip first card
+            return;
+        }
+
+        let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
+        let threshold = parseInt(card.getAttribute('data-threshold') || "0");
+
+        card.classList.remove('bg-danger', 'bg-warning', 'bg-opacity-75', 'text-white', 'text-dark'); // Reset colors
+
+        if (newStock <= threshold) {
+            card.classList.add('bg-danger', 'text-white'); // Red
+        } else if (newStock <= threshold + 10) {
+            card.classList.add('bg-warning', 'text-dark'); // Orange
+        } else if (newStock <= threshold + 30) {
+            card.classList.add('bg-warning', 'bg-opacity-75', 'text-dark'); // Yellow
+        }
+    }); */
+
+
+// Run function on page load
+document.addEventListener('DOMContentLoaded', updateRowColors);
+
+// Run after adding or editing stock
+document.getElementById('addStockForm')?.addEventListener('submit', function () {
+    setTimeout(updateRowColors, 1000);
+});
+
+document.getElementById('editStockForm')?.addEventListener('submit', function () {
+    setTimeout(updateRowColors, 1000);
+});
 
 const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');

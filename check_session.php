@@ -9,10 +9,10 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // 1. Verify Session and User ID
-// if (!isset($_SESSION['user_id'])) {
-//     header('Location: ./Logi');
-//     exit();
-// }
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../Login');
+    exit();
+}
 $user_id = $_SESSION['user_id'];
 $user_email = $_SESSION['email'];  // Get the email directly from session
 $session_role = $_SESSION['role'];
