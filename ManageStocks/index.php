@@ -333,7 +333,7 @@ tr.bg-orange td {
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
+    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchStocks()">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
@@ -343,8 +343,6 @@ tr.bg-orange td {
     <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Stock</button>
     
 </div>
-
-
 
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive  d-none d-md-block">
@@ -560,7 +558,23 @@ tr.bg-orange td {
         </div>
     </div>
 </div>
+
 <script>
+function searchStocks() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const cards = document.querySelectorAll('.card'); // Select all stock cards
+
+    cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = ''; // Show card if a match is found
+        } else {
+            card.style.display = 'none'; // Hide card if no match
+        }
+    });
+}
+
 function updateRowColors() {
     document.querySelectorAll("#stockTable tbody tr").forEach((row, index) => {
     let newStock = parseInt(row.getAttribute('data-new-stock') || "0");

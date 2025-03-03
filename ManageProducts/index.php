@@ -274,7 +274,7 @@ $result = $conn->query($query);
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
+    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchProducts()">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
@@ -367,10 +367,6 @@ $result = $conn->query($query);
 </div>
 
   </div>
-  
-
-
-
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -429,8 +425,20 @@ $result = $conn->query($query);
 </div>
 <script>
 
+function searchProducts() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const cards = document.querySelectorAll('.card'); // Select all product cards
 
-
+    cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = ''; // Show card if a match is found
+        } else {
+            card.style.display = 'none'; // Hide card if no match
+        }
+    });
+}
 
 const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');

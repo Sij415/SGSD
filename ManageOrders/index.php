@@ -481,7 +481,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     <div class="d-flex align-items-center justify-content-between mb-3">
       <!-- Search Input Group -->
       <div class="input-group">
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="example-search-input">
+      <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchOrders()">
         <button class="btn btn-outline-secondary" type="button" id="search">
           <i class="fa fa-search"></i>
         </button>
@@ -559,7 +559,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                 <div class="row">
                   <div class="col-6">
-                    <p class="card-text"><strong>First Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
+                    <p class="card-text"><strong>Stocked By:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
                   </div>
                   <div class="col-6">
                     <p class="card-text"><strong>Customer Name:</strong> <?php echo htmlspecialchars($row['Customer_Name']); ?></p>
@@ -570,7 +570,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                   <div class="col-6">
                     <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Order_Type']); ?></p>
                   </div>
-                  
+                  <div class="col-6">
+                    <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Quantity']); ?></p>
+                  </div>
+                  <div class="col-6">
+                    <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Total_Price']); ?></p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -582,6 +587,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     </div>
   </div>
   <script>
+  function searchOrders() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const cards = document.querySelectorAll('.card'); // Select all order cards
+
+    cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(filter)) {
+            card.style.display = ''; // Show card if a match is found
+        } else {
+            card.style.display = 'none'; // Hide card if no match
+        }
+    });
+}
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleBtn');
 
