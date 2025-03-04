@@ -319,8 +319,6 @@ body {
     background-color: #f2f4f0; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
-    border-top-right-radius: 24px;
-    border-bottom-right-radius: 24px;
     box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.15); /* Add shadow */
   }
 
@@ -341,7 +339,7 @@ body {
 }
 
 .sgsd-title {
-    padding: 8px 8px 8px 32px;
+    padding: 32px;
     text-decoration: none;
     font-size: 22px;
     color: #414141;
@@ -417,25 +415,17 @@ body {
     object-fit: cover; /* Auto crop */
 }
 
-.sidebar-usrname {
-    margin-left: 10px;
+.sidebar-username {
     letter-spacing: -0.025em !important;
-    white-space: normal;
-    overflow-wrap: break-word; /* Allow long text to wrap */
-    flex: 1; /* Occupy all remaining flex space */
 }
 
-.sidebar-usrname h1 {
+.sidebar-username h1 {
     font-size: 1.2em !important;
     font-weight: 700;
-    width: 75%;
-    line-height: 1.2; /* Adjust line height for better spacing */
 }
 
-.sidebar-usrname h2 {
+.sidebar-username h2 {
     font-size: 0.8em; /* Removed !important for better specificity control */
-    width: 65%;
-    line-height: 1.2; /* Adjust line height for better spacing */
 }
 
 .sidebar-options {
@@ -1417,7 +1407,7 @@ body{padding: 0em;}
 .bi-pencil-square {
     font-size: 1.2em;
     font-weight: 800 !important;
-    color: #6fa062;
+    color: #527c46;
 }
 /* Responsive adjustments */
 

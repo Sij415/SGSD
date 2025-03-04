@@ -234,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
 <div id="sidebar" class="sidebar d-flex flex-column">
   <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-  <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+  <a href="#" class="sgsd-title"><b>SGSD</b></a>
   
   <div class="sidebar-items">
     <hr style="width: 75%; margin: 0 auto; padding: 12px;">

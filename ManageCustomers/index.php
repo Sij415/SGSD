@@ -105,23 +105,20 @@ $result = $conn->query($query);
     /* Base styles */
     body {
       margin: 0;
-      
       display: flex;
     }
 
     .sidebar {
-  display: flex;
-  width: 250px;
-  height: 100vh; 
-  position: fixed;
-  top: 0;
-  left: -250px; /* Hidden by default */
-  transition: left 0.3s ease;
-  z-index: 1000;
-  overflow-x: hidden;
+      display: flex;
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      transition: left 0.3s ease;
+      z-index: 1000;
 
-}
-
+    }
     .sidebar.active {
       left: 0;
     }
@@ -131,7 +128,7 @@ $result = $conn->query($query);
     }
 
     .content {
-      flex-grow: 1;
+      flex-grow:1;
       margin-left: 0;
       padding-top: 2em;
       padding: 3.5em 1em;
@@ -148,7 +145,7 @@ $result = $conn->query($query);
     /* Responsive styles */
     @media (min-width: 768px) {
       .sidebar {
-        position: relative;
+        position: relative !important;
         left: 0;
       }
 
@@ -200,7 +197,7 @@ th {
 
 <div id="sidebar" class="sidebar d-flex flex-column">
   <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-  <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+  <a href="#" class="sgsd-title"><b>SGSD</b></a>
   
   <div class="sidebar-items">
     <hr style="width: 75%; margin: 0 auto; padding: 12px;">
@@ -296,16 +293,16 @@ th {
     <div class="container mt-4">
         <h1><b>Manage Customers</b></h1>
         <h3>Add and Edit Customers</h3>
-<h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
-        <!-- Search Box -->
-        <div class="d-flex align-items-center justify-content-between mb-3">
-<!-- Search Input Group -->
-<div class="input-group">
-    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchCustomers()">
-    <button class="btn btn-outline-secondary" type="button" id="search">
-        <i class="fa fa-search"></i>
-    </button>
-</div>
+      <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
+              <!-- Search Box -->
+              <div class="d-flex align-items-center justify-content-between mb-3">
+      <!-- Search Input Group -->
+      <div class="input-group">
+          <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchCustomers()">
+          <button class="btn btn-outline-secondary" type="button" id="search">
+              <i class="fa fa-search"></i>
+          </button>
+    </div>
 
     <!-- Add Customer Button -->
     <button class="add-btn ms-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>

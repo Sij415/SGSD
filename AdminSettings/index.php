@@ -118,15 +118,14 @@ $result = $conn->query($query);
     }
 
     .sidebar {
-      display: flex;
-      width: 250px;
-      height: 100vh; 
-      position: fixed;
-      top: 0;
-      left: -250px; /* Hidden by default */
-      transition: left 0.3s ease;
-      z-index: 1000;
-      overflow-x: hidden;
+    display: flex;
+    width: 250px;
+    height: 100vh; 
+    position: fixed;
+    top: 0;
+    left: 0; /* Make visible by default on desktop */
+    z-index: 1000;
+    overflow-y: scroll;
     }
 
     .sidebar.active {
@@ -138,11 +137,12 @@ $result = $conn->query($query);
     }
 
     .content {
-      flex-grow: 1;
+      flex-grow: 0;
       margin-left: 0;
       padding-top: 2em;
       padding: 3.5em 1em;
       transition: margin-left 0.3s ease;
+      overflow-y: scroll;
     }
 
     .toggle-btn {
@@ -201,7 +201,7 @@ $result = $conn->query($query);
 
   <div id="sidebar" class="sidebar d-flex flex-column">
     <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-    <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+    <a href="#" class="sgsd-title"><b>SGSD</b></a>
     <div class="sidebar-items">
       <hr style="width: 75%; margin: 0 auto; padding: 12px;">
       <div class="sidebar-item">
@@ -272,7 +272,7 @@ $result = $conn->query($query);
   <div class="content">
     <section class="admin">
       <div class="admin-main">
-        <div class="admin-title">
+        <div class="admin-title p-3 pt-5">
           <h1><b>Admin</b> Settings</h1>
           <h3>Customize and control system preferences</h3>
           <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
@@ -336,13 +336,16 @@ $result = $conn->query($query);
           </form>
         </div>
 
-        <div style="padding: 16px;"><hr></div>
-        <h3 style="letter-spacing: -0.045em;">
-                  <b>IP</b>Cooldown
-                </h3>
-                <h5 class="text-muted mb-3" style="width: 90%;">
-                  Manage banned IP addresses and cooldown periods.
-                </h5>
+        <div class="p-3"><hr></div>
+        <div class="p-3">
+          <h3 style="letter-spacing: -0.045em;">
+                    <b>IP</b> Cooldown
+                    </h3>
+                    <h5 class="text-muted mb-3" style="width: 90%;">
+                        Manage banned IP addresses and cooldown periods.
+                    </h5>
+        <div>
+                    <div>
 
         <!-- Table Layout (Visible on larger screens) -->
         <div class="table-responsive d-none d-md-block">
