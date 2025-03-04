@@ -2,20 +2,24 @@
 // Include database connection
 $required_role = 'admin';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
-// Start the session
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-// Get the user's first name and email from the database
-$query = "SELECT First_Name FROM Users WHERE Email = ?";
+
+// Get the user's first name and last name from the database
+$query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_email); // Bind the email as a string
+$stmt->bind_param("s", $user_email);
 $stmt->execute();
-$stmt->bind_result($user_first_name);
+$stmt->bind_result($user_id, $first_name, $last_name);
 $stmt->fetch();
 $stmt->close();
+
+// Concatenate first and last name
+$user_full_name = $first_name . ' ' . $last_name;
 
 // Fetch settings from the database
 $query = "SELECT * FROM Settings";
@@ -41,12 +45,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
     $stmt->bind_param("i", $sign_up_enabled);
     $stmt->execute();
     
+    // Log activity with full name
+    logActivity($conn, $user_id, $user_full_name . " enabled sign-up restrictions");
+
     $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'AdminSignUpEnabled'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $admin_signup_enabled);
     $stmt->execute();
 
-    // Optionally, update the sign up amount
+    // Log activity with full name
+    logActivity($conn, $user_id, $user_full_name . " enabled admin sign-up restrictions");
+
+    // Optionally, update the sign-up amount
     $query = "UPDATE Settings SET Value = ? WHERE Setting_Key = 'MaxSignUps'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $sign_up_amount);
@@ -67,6 +77,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['remove_ip'])) {
     $stmt->bind_param("i", $ip_id);
 
     if ($stmt->execute()) {
+        // Log activity with full name
+        logActivity($conn, $user_id, $user_full_name . " removed an IP cooldown entry.");
+        
         echo json_encode(["success" => true, "message" => "IP removed successfully"]);
     } else {
         echo json_encode(["success" => false, "message" => "Error removing IP"]);
@@ -278,6 +291,10 @@ $result = $conn->query($query);
             </div>
           </div>
         </div>
+        <div class="d-flex justify-content-end p-3">
+    <button class="btn btn-primary" onclick="window.location.href='../Logs'">View Logs</button>
+</div>
+
 
         <div style="padding: 16px;"><hr></div>
 

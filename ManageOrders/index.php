@@ -235,24 +235,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 <div id="sidebar" class="sidebar d-flex flex-column">
   <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
   <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+  
   <div class="sidebar-items">
     <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+
     <div class="sidebar-item">
       <a href="../Dashboard" class="sidebar-items-a">
         <i class="fa-solid fa-border-all"></i>
         <span>&nbsp;Dashboard</span>
       </a>
     </div>
-    <div class="sidebar-item">
-      <a href="../ManageStocks">
-        <i class="fa-solid fa-box"></i>
-        <span>&nbsp;Manage Stocks</span>
-      </a>
-    </div>
+
+    <?php if ($user_role !== 'driver'): // Exclude for drivers ?>
     <div class="sidebar-item">
       <a href="../ManageOrders">
         <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
         <span>&nbsp;Manage Orders</span>
+      </a>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($user_role === 'admin'): // Only Admins ?>
+    <div class="sidebar-item">
+      <a href="../ManageStocks">
+        <i class="fa-solid fa-box"></i>
+        <span>&nbsp;Manage Stocks</span>
       </a>
     </div>
     <div class="sidebar-item">
@@ -273,6 +280,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <span>&nbsp;Admin Settings</span>
       </a>
     </div>
+    <?php endif; ?>
+
+    <?php if ($user_role === 'staff'): // Staff can access stocks and products ?>
+    <div class="sidebar-item">
+      <a href="../ManageStocks">
+        <i class="fa-solid fa-box"></i>
+        <span>&nbsp;Manage Stocks</span>
+      </a>
+    </div>
+    <div class="sidebar-item">
+      <a href="../ManageProducts">
+        <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
+        <span>&nbsp;Manage Product</span>
+      </a>
+    </div>
+    <?php endif; ?>
+
   </div>
   <hr style="width: 75%; margin: 0 auto; padding: 12px;">
   <div class="mt-auto p-2">
