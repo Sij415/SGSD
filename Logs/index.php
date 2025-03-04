@@ -21,7 +21,6 @@ $stmt->close();
 // UPDATED QUERY to fetch logs
 $query = "SELECT Logs.Log_ID, 
                  Users.First_Name AS First_Name, 
-                 Logs.Order_ID, 
                  Logs.Date, 
                  Logs.Time, 
                  Logs.Activity 
@@ -237,7 +236,6 @@ $result = $conn->query($query);
           <tr>
             <th onclick="sortTable(0)">Log ID <i class="bi bi-arrow-down-up"></i></th>
             <th onclick="sortTable(1)">User Name <i class="bi bi-arrow-down-up"></i></th>
-            <th onclick="sortTable(2)">Order ID <i class="bi bi-arrow-down-up"></i></th>
             <th onclick="sortTable(3)">Date <i class="bi bi-arrow-down-up"></i></th>
             <th onclick="sortTable(4)">Time <i class="bi bi-arrow-down-up"></i></th>
             <th onclick="sortTable(5)">Activity <i class="bi bi-arrow-down-up"></i></th>
@@ -249,7 +247,6 @@ $result = $conn->query($query);
               <tr>
                 <td><?php echo $row['Log_ID']; ?></td>
                 <td><?php echo $row['First_Name']; ?></td>
-                <td><?php echo $row['Order_ID']; ?></td>
                 <td><?php echo $row['Date']; ?></td>
                 <td><?php echo $row['Time']; ?></td>
                 <td><?php echo $row['Activity']; ?></td>
@@ -276,9 +273,6 @@ $result = $conn->query($query);
                 <div class="row">
                   <div class="col-6">
                     <p class="card-text"><strong>User Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
-                  </div>
-                  <div class="col-6">
-                    <p class="card-text"><strong>Order ID:</strong> <?php echo htmlspecialchars($row['Order_ID']); ?></p>
                   </div>
                   <div class="col-6">
                     <p class="card-text"><strong>Date:</strong> <?php echo htmlspecialchars($row['Date']); ?></p>
