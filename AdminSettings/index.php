@@ -291,6 +291,10 @@ $result = $conn->query($query);
             </div>
           </div>
         </div>
+        <div class="d-flex justify-content-end p-3">
+    <button class="btn btn-primary" onclick="window.location.href='../Logs'">View Logs</button>
+</div>
+
 
         <div style="padding: 16px;"><hr></div>
 

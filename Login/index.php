@@ -132,13 +132,31 @@ function handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data, $
             return "The username or password you entered is incorrect. You have ". (5 - $attempts) . " attempts remaining. If you have not activated your account, please check your email for the activation link.";
         }
     } else {
-        // First failed attempt for this IP
-        $insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
-        $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("ss", $email, $ip_address);
-        $insert_stmt->execute();
-        return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
-    }
+// Check if the email exists in the Users table
+$check_user_sql = "SELECT Email FROM Users WHERE Email = ?";
+$check_user_stmt = $conn->prepare($check_user_sql);
+$check_user_stmt->bind_param("s", $email);
+$check_user_stmt->execute();
+$user_result = $check_user_stmt->get_result();
+
+if ($user_result->num_rows == 0) {
+    $email = null; // Set email to NULL if not found
+}
+
+// First failed attempt for this IP
+$insert_sql = "INSERT INTO IP_Cooldown (Email, IP_Address, Attempts, Last_Attempt) VALUES (?, ?, 1, NOW())";
+$insert_stmt = $conn->prepare($insert_sql);
+$insert_stmt->bind_param("ss", $email, $ip_address);
+
+// Handle NULL values properly
+if ($email === null) {
+    $insert_stmt->bind_param("ss", NULL, $ip_address);
+}
+
+$insert_stmt->execute();
+
+return "The username or password you entered is incorrect. You have 4 attempts remaining. If you have not activated your account, please check your email for the activation link.";
+}
 }
 ?>
 
