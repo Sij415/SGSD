@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             } else {
                 // Email does not exist or account_activation_hash is not null, handle cooldown
                 $error = handleCooldown($ip_address, $email, $cooldown_result, $cooldown_data ?? null, $cooldown_period);
-                logActivity($conn, $user['User_ID'], "Email does not exist of IP: $ip_address");
+                logActivity($conn, NULL, "Email does not exist of IP: $ip_address");
             }
             $stmt->close();
         } else {
