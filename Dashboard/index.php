@@ -17,6 +17,15 @@ $stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
 
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -194,11 +203,13 @@ $stmt->close();
     
     <div class="sidebar-options ">
       <div class="sidebar-item">
-        <a href="#" class="sidebar-items-button">
-          <i class="fa-solid fa-sign-out-alt"></i>
-          <span>Log out</span>
-        </a>
-      </div>
+        <!-- Logout Button -->
+<form method="POST" style="display: inline;">
+    <button type="submit" name="logout" class="sidebar-items-button" style="border: none; background: none; cursor: pointer;">
+        <i class="fa-solid fa-sign-out-alt"></i>
+        <span>Log out</span>
+    </button>
+</form>
       <div class="sidebar-item d-none d-sm-block">
         <a href="#" class="sidebar-items-button">
           <i class="fa-solid fa-file-alt"></i>
