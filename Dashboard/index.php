@@ -205,7 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
       <div class="sidebar-item">
 <!-- Logout Button -->
 <form method="POST" style="display: inline;">
-    <button type="submit" name="logout" class="sidebar-items-button" style="border: none; background: none; cursor: pointer;">
+    <button type="submit" name="logout" class="sidebar-items-button">
         <i class="fa-solid fa-sign-out-alt"></i>
         <span>Log out</span>
     </button>
