@@ -150,7 +150,7 @@ $insert_stmt->bind_param("ss", $email, $ip_address);
 
 // Handle NULL values properly
 if ($email === null) {
-    $insert_stmt->bind_param("ss", NULL, $ip_address);
+    $insert_stmt->bind_param("ss", "null", $ip_address);
 }
 
 $insert_stmt->execute();
