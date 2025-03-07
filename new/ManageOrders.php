@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
+    <title>SGSD | Manage Orders</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -163,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 <body>
 
@@ -372,12 +373,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
-                    <i class="fas fa-align-left"></i>
-                </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton">
-                    <i class="fas fa-file-alt"></i>
-                </button>
+            <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
+            <i class="fas fa-align-left"></i>
+            </button>
+            <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+            <i class="fas fa-file-alt"></i>
+            </button>
             </div>
         </nav>
 
@@ -400,7 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="add_status" class="form-label">Status</label>
-                                <select class="form-control" id="Status" name="Status">
+                                <select class="form-control" id="Status" name="Status" style="height: fit-content; " required>
                                     <option value="">Select Status</option>
                                     <option value="To Pick Up">To Pick Up</option>
                                     <option value="In Transit">In Transit</option>
@@ -409,7 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="order_type" class="form-label">Order Type</label>
-                                <select name="Order_Type" id="Order_Type" class="form-control" required>
+                                <select name="Order_Type" id="Order_Type" class="form-control" style="height: fit-content;" required>
                                     <option value="">Select Order Type</option>
                                     <option value="Inbound">Inbound</option>
                                     <option value="Outbound">Outbound</option>
@@ -421,8 +422,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" name="add_order" class="btn btn-primary">Add Order</button>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                            <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
                         </div>
                     </form>
                 </div>
@@ -466,8 +467,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" name="edit_order" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                            <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -475,7 +476,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         </div>
 
         <div class="container mt-4">
-            <h1><b>Manage Orders</b></h1>
+            <div class="pb-4">
+            <i class="fa-solid fa-chart-bar" style="font-size:56px;"></i>
+            </div>
+            <div class="d-flex align-items-center">
+                <h3 style="font-size: 40px; letter-spacing: -0.045em;">
+                    <b>Manage Orders</b>
+                </h3>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage orders including adding, editing, and viewing order details."></i>
+                <script>
+                    $(document).ready(function(){
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
+                </script>
+            </div>
             <h3>To view the orders in detail, click the product.</h3>
 
             <!-- Search Box -->
@@ -493,6 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </div>
 
             <!-- Table Layout (Visible on larger screens) -->
+            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
@@ -519,7 +534,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                     <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Total_Price']); ?></td>
-                                    <td> <a href="" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"><i class="bi bi-pencil-square"></i></a></td>
+                                    <td class="text-center"> 
+                                        <a href="" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
                                     <td> 
                                     <a href="#" class="PDFdata"
                                             data-managed-by="<?php echo $row['Full_Name']; ?>" 
@@ -814,14 +833,35 @@ hr.line {
     transform: scale(1.05);
 }
 
+.custom-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #ffffff !important;
+    font-size: 12px;
+    letter-spacing: -0.050em !important;
+    border-radius: 10px;
+    padding: 12px;
+    border: none;
+    white-space: nowrap;
+    background-color: #6fa062;
+    transition: transform 0.3s;
+}
 
+.custom-btn:hover {
+    transform: scale(1.05);
+}
+
+.tooltip-inner {
+    color: #000 !important;
+    background-color: #ebecec !important;
+}
+
+        
 /* ---------------------------------------------------
-    MANAGE CUSTOMERS STYLES
+    MANAGE ORDERS STYLES
 ----------------------------------------------------- */
-
-        /* ---------------------------------------------------
-            MANAGE CUSTOMERS STYLES
-        ----------------------------------------------------- */
 
         /* ==========================================================================
             ManageOrders.css - Styling for the order management interface
@@ -941,85 +981,63 @@ hr.line {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-secondary {
-            background-color: #e8ecef;
-            border-color: #e8ecef;
-            color: #495057;
-            border-radius: 10px;
-            padding: 0.6rem 1.2rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background-color: #dde2e6;
-            border-color: #dde2e6;
-            color: #343a40;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
         /* ==========================================================================
             Table Styles
             ========================================================================== */
-        .orders-table-container {
-            border-radius: 14px;
+        .table-responsive {
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            background-color: #fff;
-            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        .orders-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+        .table {
             margin-bottom: 0;
         }
 
-        .orders-table thead th {
+        .table thead th {
             background-color: #f2f4f0;
             color: #444;
             font-weight: 600;
-            padding: 1.2rem 1rem;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            padding: 1rem;
             letter-spacing: -0.025em;
             position: relative;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            border-bottom: 2px solid #e9ecef;
-            white-space: nowrap;
+            transition: background-color 0.3s;
         }
 
-        .orders-table thead th:hover {
+        .table thead th:hover {
             background-color: #e8ecef;
         }
 
-        .orders-table thead th .sort-icon {
+        .table thead th i {
             font-size: 0.8rem;
             margin-left: 5px;
             opacity: 0.6;
-            transition: transform 0.3s ease;
         }
 
-        .orders-table thead th:hover .sort-icon {
-            opacity: 1;
+        .table tbody tr {
+            transition: background-color 0.2s;
         }
 
-        .orders-table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-
-        .orders-table tbody tr:hover {
+        .table tbody tr:hover {
             background-color: #f8f9fa;
         }
 
-        .orders-table td {
-            padding: 1rem;
+        .table td {
+            padding: 0.8rem 1rem;
             vertical-align: middle;
-            border-top: 1px solid #e9ecef;
         }
 
-        .orders-table tbody tr:last-child td {
-            border-bottom: none;
+        .table td a {
+            color: #6fa062;
+            transition: transform 0.3s, color 0.3s;
+            display: inline-block;
+        }
+
+        .table td a:hover {
+            color: #5e8853;
+            transform: scale(1.2);
         }
 
         .action-icon {

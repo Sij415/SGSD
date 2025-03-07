@@ -90,7 +90,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
+    <title>SGSD | Manage Customers</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -103,6 +103,7 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 <body>
 
@@ -415,178 +416,194 @@ $result = $conn->query($query);
     <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
+                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton">
+                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
         </nav>
 
         <div class="container mt-4">
-            <h1><b>Manage Customers</b></h1>
+            <div class="pb-4">
+                <i class="fa-solid fa-users" style="font-size:56px;"></i>
+            </div>
+            <div class="d-flex align-items-center">
+                <h3 style="font-size: 40px; letter-spacing: -0.045em;">
+                    <b>Manage Customers</b>
+                </h3>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Add and edit customer details, including their associated products and contact information."></i>
+                <script>
+                    $(document).ready(function(){
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
+                </script>
+            </div>
             <h4 style="color: gray;">Add and Edit Products</h4>
             <h6 class="d-lg-none d-md-block" style="color: gray;">Click to edit Customer</h6>
             
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
-            <!-- Search Input Group -->
-            <div class="input-group">
-                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchCustomers()">
-                <button class="btn btn-outline-secondary" type="button">
-                <i class="fa fa-search"></i>
-                </button>
+                <!-- Search Input Group -->
+                <div class="input-group">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchCustomers()">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+
+                <!-- Add Customer Button -->
+                <button class="btn custom-btn m-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
             </div>
 
-            <!-- Add Customer Button -->
-            <button class="btn custom-btn m-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
-            </div>
-
-            <!-- Table Layout (Visible on larger screens) -->
+            <!-- Table Layout (Visible on larger screens) -->    
+            <div style="max-height: 500px; overflow-y: auto;">      
             <div class="table-responsive d-none d-md-block">
-            <table class="table table-striped table-bordered" id="customersTable">
-                <thead>
-                <tr>
-                    <th onclick="sortTable(0)">Customer ID <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(1)">Product ID <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(2)">First Name <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(3)">Last Name <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(4)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
-                    <th>Edit</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php if (mysqli_num_rows($result) > 0): ?>
-                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['Customer_ID']); ?></td>
-                        <td><?php echo htmlspecialchars($row['Product_ID']); ?></td>
-                        <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['Last_Name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['Contact_Number']); ?></td>
-                        <td class="text-center">
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#editCustomerModal"
-                           data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>"
-                           data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>"
-                           data-last-name="<?php echo htmlspecialchars($row['Last_Name']); ?>"
-                           data-contact-number="<?php echo htmlspecialchars($row['Contact_Number']); ?>">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                    <td colspan="6">No customers found.</td>
-                    </tr>
-                <?php endif; ?>
-                </tbody>
-            </table>
+                <table class="table table-striped table-bordered" id="customersTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Customer ID <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Product ID <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (mysqli_num_rows($result) > 0): ?>
+                            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($row['Customer_ID']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_ID']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Last_Name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Contact_Number']); ?></td>
+                                    <td class="text-center">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editCustomerModal"
+                                           data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>"
+                                           data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>"
+                                           data-last-name="<?php echo htmlspecialchars($row['Last_Name']); ?>"
+                                           data-contact-number="<?php echo htmlspecialchars($row['Contact_Number']); ?>">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6">No customers found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
             </div>
 
             <!-- Responsive Card Layout (Visible on smaller screens) -->
+            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
             <div class="row d-block d-md-none">
-            <?php
-            $result->data_seek(0); // Reset pointer to the beginning
-            if (mysqli_num_rows($result) > 0): ?>
-                <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                <div class="col-12 mb-3">
-                    <div class="card shadow-sm" 
-                     data-bs-toggle="modal" 
-                     data-bs-target="#editCustomerModal" 
-                     data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>" 
-                     data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>" 
-                     data-last-name="<?php echo htmlspecialchars($row['Last_Name']); ?>"
-                     data-contact-number="<?php echo htmlspecialchars($row['Contact_Number']); ?>"
-                     style="cursor: pointer;">
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['First_Name'] . ' ' . $row['Last_Name']); ?></h5>
-                        <p class="card-text">
-                        <strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?><br>
-                        <strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?><br>
-                        <strong>Contact:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?>
-                        </p>
-                    </div>
-                    </div>
-                </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <p>No customers found.</p>
-            <?php endif; ?>
+                <?php
+                $result->data_seek(0); // Reset pointer to the beginning
+                if (mysqli_num_rows($result) > 0): ?>
+                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                        <div class="col-12 mb-3">
+                            <div class="card shadow-sm" 
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#editCustomerModal" 
+                                 data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>" 
+                                 data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>" 
+                                 data-last-name="<?php echo htmlspecialchars($row['Last_Name']); ?>"
+                                 data-contact-number="<?php echo htmlspecialchars($row['Contact_Number']); ?>"
+                                 style="cursor: pointer;">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($row['First_Name'] . ' ' . $row['Last_Name']); ?></h5>
+                                    <p class="card-text">
+                                        <strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?><br>
+                                        <strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?><br>
+                                        <strong>Contact:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p>No customers found.</p>
+                <?php endif; ?>
+            </div>
             </div>
         </div>
 
         <!-- Add Customer Modal -->
         <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
             <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h5 class="modal-title" id="addCustomerModalLabel">Add Customer</h5>
-                <button type="button" class="btn rounded-circle mr-1 shadow" data-bs-dismiss="modal" aria-label="Close" style="width: 40px; height: 40px;">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCustomerModalLabel">Add Customer</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="">
+                            <div class="mb-3">
+                                <label for="customer_id" class="form-label">Customer ID</label>
+                                <input type="number" class="form-control" id="Customer_ID" name="Customer_ID" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="product_id" class="form-label">Product ID</label>
+                                <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="First_Name" name="First_Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="Last_Name" name="Last_Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contact_number" class="form-label">Contact Number</label>
+                                <input type="text" class="form-control" id="Contact_Number" name="Contact_Number" required>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button type="submit" name="add_customer" class="btn custom-btn">Add Customer</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="modal-body">
-                <form method="POST" action="">
-                    <div class="mb-3">
-                    <label for="customer_id" class="form-label">Customer ID</label>
-                    <input type="number" class="form-control" id="Customer_ID" name="Customer_ID" required>
-                    </div>
-                    <div class="mb-3">
-                    <label for="product_id" class="form-label">Product ID</label>
-                    <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
-                    </div>
-                    <div class="mb-3">
-                    <label for="first_name" class="form-label">First Name</label>
-                    <input type="text" class="form-control" id="First_Name" name="First_Name" required>
-                    </div>
-                    <div class="mb-3">
-                    <label for="last_name" class="form-label">Last Name</label>
-                    <input type="text" class="form-control" id="Last_Name" name="Last_Name" required>
-                    </div>
-                    <div class="mb-3">
-                    <label for="contact_number" class="form-label">Contact Number</label>
-                    <input type="text" class="form-control" id="Contact_Number" name="Contact_Number" required>
-                    </div>
-                    <button type="submit" name="add_customer" class="btn custom-btn">Add Customer</button>
-                </form>
-                </div>
-            </div>
             </div>
         </div>
 
         <!-- Edit Customer Modal -->
         <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
             <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
-                <button type="button" class="btn rounded-circle mr-1 shadow" data-bs-dismiss="modal" aria-label="Close" style="width: 40px; height: 40px;">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-                </div>
-                <div class="modal-body">
-                <form method="POST" action="">
-                    <input type="hidden" id="edit_customer_id" name="Customer_ID">
-                    <div class="mb-3">
-                    <label for="edit_first_name" class="form-label">First Name</label>
-                    <input type="text" class="form-control" id="edit_first_name" name="New_FirstName" required>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
                     </div>
-                    <div class="mb-3">
-                    <label for="edit_last_name" class="form-label">Last Name</label>
-                    <input type="text" class="form-control" id="edit_last_name" name="New_LastName" required>
+                    <div class="modal-body">
+                        <form method="POST" action="">
+                            <input type="hidden" id="edit_customer_id" name="Customer_ID">
+                            <div class="mb-3">
+                                <label for="edit_first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="edit_first_name" name="New_FirstName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="edit_last_name" name="New_LastName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_contact_num" class="form-label">Contact Number</label>
+                                <input type="text" class="form-control" id="edit_contact_num" name="New_ContactNum" required>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button type="submit" name="edit_customer" class="btn custom-btn">Save Changes</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                    <label for="edit_contact_num" class="form-label">Contact Number</label>
-                    <input type="text" class="form-control" id="edit_contact_num" name="New_ContactNum" required>
-                    </div>
-                    <button type="submit" name="edit_customer" class="btn custom-btn">Save Changes</button>
-                </form>
                 </div>
             </div>
-            </div>
-        </div>
         </div>
     </div>
 
@@ -813,6 +830,10 @@ hr.line {
     transform: scale(1.05);
 }
 
+.tooltip-inner {
+    color: #000 !important;
+    background-color: #ebecec !important;
+}
 
 /* ---------------------------------------------------
     MANAGE CUSTOMERS STYLES

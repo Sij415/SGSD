@@ -35,7 +35,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
+    <title>SGSD | Logs</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -48,6 +48,7 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 <body>
 
@@ -199,19 +200,30 @@ $result = $conn->query($query);
 
     <!-- Page Content  -->
     <div id="content">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
+                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton">
+                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
         </nav>
 
         <div class="container mt-4">
-            <h1><b>Show Logs</b></h1>
+            <div class="pb-4">
+            <i class="fa-solid fa-clipboard-list" style="font-size:56px;"></i>
+            </div>
+            <div class="d-flex align-items-center">
+                <h1><b>Show Logs</b></h1>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="This page audits and tracks user activity."></i>
+                    <script>
+                        $(document).ready(function(){
+                            $('[data-toggle="tooltip"]').tooltip();
+                        });
+                    </script>
+            </div>
             <h3 style="color: gray;">System Logs</h3>
 
             <!-- Search Box -->
@@ -225,6 +237,7 @@ $result = $conn->query($query);
             </div>
 
             <!-- Table Layout (Visible on larger screens) -->
+            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
             <div class="table-responsive d-none d-md-block">
             <table class="table table-striped table-bordered" id="logsTable">
                 <thead>
@@ -516,6 +529,10 @@ hr.line {
     transform: scale(1.05);
 }
 
+.tooltip-inner {
+    color: #000 !important;
+    background-color: #ebecec !important;
+}
 
 /* ---------------------------------------------------
     LOGS STYLES

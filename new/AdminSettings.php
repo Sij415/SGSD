@@ -99,7 +99,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
+    <title>SGSD | Admin Settings</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -112,6 +112,7 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 <body>
 
@@ -272,12 +273,12 @@ $result = $conn->query($query);
 
     <!-- Page Content  -->
     <div id="content">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
+                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton">
+                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
@@ -287,7 +288,20 @@ $result = $conn->query($query);
         <section class="admin">
             <div class="admin-main">
                 <div class="admin-title p-3 pt-5">
-                    <h1><b>Admin</b> Settings</h1>
+                <div class="pb-4">
+                <i class="bi bi-gear" style="font-size:56px;"></i>
+                </div>
+                <div class="d-flex align-items-center">
+                    <h1><b>Admin Settings</b>
+                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage key settings to control user access, sign-up restrictions, and IP cooldowns for enhanced security and customization."></i>
+                    <script>
+                        $(document).ready(function(){
+                            $('[data-toggle="tooltip"]').tooltip();   
+                        });
+                    </script>
+                    </h1>
+                </div>
+
                     <h3>Customize and control system preferences</h3>
                     <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
                 </div>
@@ -296,7 +310,7 @@ $result = $conn->query($query);
                     <div class="p-3">
                         <div class="admin-ip-title d-flex flex-column mb-3">
                             <h3 style="letter-spacing: -0.045em;">
-                                <b>Current</b> IP address:
+                                <b>Current IP address:</b>
                                 <small class="text-muted"><?php echo $_SERVER['REMOTE_ADDR']; ?></small>
                             </h3>
                             <h5 class="text-muted mb-3" style="width: 90%;">
@@ -314,13 +328,26 @@ $result = $conn->query($query);
                 <hr>
             </div>
 
+
             <div class="admin-restrictions">
-                <h2 class="p-3" style="letter-spacing: -0.050em;"><b>Restrictions</b></h2>
+            <div class="d-flex justify-content-between align-items-start p-3">
+                <div class="d-flex align-items-center">
+                    <h3 style="letter-spacing: -0.045em;">
+                        <b>Restrictions</b>
+                    </h3>
+                    <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage key settings to control user access, sign-up restrictions, and IP cooldowns for enhanced security and customization."></i>
+                    <script>
+                        $(document).ready(function(){
+                            $('[data-toggle="tooltip"]').tooltip();
+                        });
+                    </script>
+                </div>
+            </div>
                 <form action="" method="POST">
                     <div class="d-flex justify-content-between align-items-start p-3">
                         <div class="admin-restrictions-title d-flex flex-column mb-3">
                             <h3 style="letter-spacing: -0.045em;">
-                                <b>Sign Up</b> Restrictions
+                                <b>Sign Up Restrictions</b>
                             </h3>
                             <h5 class="text-muted mb-3" style="width: 90%;">
                                 Toggle the restrictions to allow User account creation.
@@ -336,7 +363,7 @@ $result = $conn->query($query);
                     <div class="d-flex justify-content-between align-items-start p-3">
                         <div class="admin-restrictions-title d-flex flex-column mb-3">
                             <h3 style="letter-spacing: -0.045em;">
-                                <b>Admin</b> Sign Up
+                                <b>Admin Sign Up</b> 
                             </h3>
                             <h5 class="text-muted mb-3" style="width: 90%;">
                                 Toggle the restrictions to allow admin sign up.
@@ -357,7 +384,15 @@ $result = $conn->query($query);
             </div>
             <div class="p-3">
                 <h3 style="letter-spacing: -0.045em;">
-                    <b>IP</b> Cooldown
+                <div class="d-flex align-items-center">
+                    <b>IP Cooldown</b>
+                    <i class="bi bi-info-circle pl-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage IP cooldown settings"></i>
+                </div>
+                    <script>
+                        $(document).ready(function(){
+                            $('[data-toggle="tooltip"]').tooltip();   
+                        });
+                    </script>
                 </h3>
                 <h5 class="text-muted mb-3" style="width: 90%;">
                     Manage banned IP addresses and cooldown periods.
@@ -654,6 +689,11 @@ hr.line {
 .add-btn:hover {
     transform: scale(1.05);
 } */
+
+.tooltip-inner {
+    color: #000 !important;
+    background-color: #ebecec !important;
+}
 
 /* Custom styles to match system colors */
 .custom-btn {

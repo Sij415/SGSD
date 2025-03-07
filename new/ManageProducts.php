@@ -73,7 +73,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
+    <title>SGSD | Manage Products</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -86,6 +86,7 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 <body>
 
@@ -310,19 +311,32 @@ $result = $conn->query($query);
     <!-- Page Content  -->
     <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
-            <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
-                    <i class="fas fa-align-left"></i>
-                </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton">
-                    <i class="fas fa-file-alt"></i>
-                </button>
-            </div>
-        </nav>
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
+                        <i class="fas fa-align-left"></i>
+                    </button>
+                    <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                </div>
+            </nav>
 
 
         <div class="container mt-4">
-            <h1><b>Manage Products</b></h1>
+            <div class="pb-4">
+            <i class="fa-solid fa-box-open" style="font-size:56px;"></i>
+            </div>
+            <div class="d-flex align-items-center">
+                <h1 style="letter-spacing: -0.045em;">
+                    <b>Manage Products</b>
+                </h1>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Add and edit products to manage your inventory effectively."></i>
+                <script>
+                    $(document).ready(function(){
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
+                </script>
+            </div>
             <h4 style="color: gray;">Add and Edit Products</h4>
             <h6 class="d-lg-none d-md-block" style="color: gray;">Click to edit Customer</h6>
             <!-- Search Box -->
@@ -337,6 +351,7 @@ $result = $conn->query($query);
                 <button class="add-btn m-2" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
             </div>
             <!-- Table Layout (Visible on larger screens) -->
+            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="ProductsTable">
                     <thead>
@@ -404,9 +419,6 @@ $result = $conn->query($query);
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
-                        <button type="button" class="btn rounded-circle mr-1 shadow" data-bs-dismiss="modal" aria-label="Close" style="width: 40px; height: 40px;">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
                     </div>
                     <div class="modal-body">
                         <form method="POST" action="">
@@ -426,7 +438,10 @@ $result = $conn->query($query);
                                 <label for="price" class="form-label">Price</label>
                                 <input type="number" class="form-control" id="Price" name="Price" required>
                             </div>
-                            <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button type="submit" name="add_product" class="btn custom-btn">Add Product</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -437,10 +452,7 @@ $result = $conn->query($query);
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
-                        <button type="button" class="btn rounded-circle mr-1 shadow" data-bs-dismiss="modal" aria-label="Close" style="width: 40px; height: 40px;">
-                            <i class="bi bi-x-lg"></i>
-                        </button>                    
+                        <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>                   
                     </div>
                     <div class="modal-body">
                         <form method="POST" action="">
@@ -457,7 +469,10 @@ $result = $conn->query($query);
                                 <label for="edit_price" class="form-label">Price</label>
                                 <input type="number" class="form-control" id="edit_price" name="New_Price">
                             </div>
-                            <button type="submit" name="edit_product" class="btn btn-primary">Save Changes</button>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button type="submit" name="edit_product" class="btn custom-btn">Save Changes</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -689,6 +704,31 @@ hr.line {
     transform: scale(1.05);
 }
 
+.custom-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #ffffff !important;
+    font-size: 12px;
+    letter-spacing: -0.050em !important;
+    border-radius: 10px;
+    padding: 12px;
+    border: none;
+    white-space: nowrap;
+    background-color: #6fa062;
+    transition: transform 0.3s;
+}
+
+.custom-btn:hover {
+    transform: scale(1.05);
+}
+
+.tooltip-inner {
+    color: #000 !important;
+    background-color: #ebecec !important;
+}
+
 /* ---------------------------------------------------
     MODAL STYLE
 ----------------------------------------------------- */
@@ -778,6 +818,62 @@ hr.line {
         margin: 1rem;
         }
     }
+
+    .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #f2f4f0;
+            color: #444;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            padding: 1rem;
+            letter-spacing: -0.025em;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .table thead th:hover {
+            background-color: #e8ecef;
+        }
+
+        .table thead th i {
+            font-size: 0.8rem;
+            margin-left: 5px;
+            opacity: 0.6;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .table td {
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+        }
+
+        .table td a {
+            color: #6fa062;
+            transition: transform 0.3s, color 0.3s;
+            display: inline-block;
+        }
+
+        .table td a:hover {
+            color: #5e8853;
+            transform: scale(1.2);
+        }
 
 /* ---------------------------------------------------
     MEDIAQUERIES

@@ -125,7 +125,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Sidebar</title>
+    <title>SGSD | Manage Stocks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -138,6 +138,7 @@ $result = $conn->query($query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 <body>
 
@@ -428,19 +429,44 @@ const sidebar = document.getElementById('sidebar');
     <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
+                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton">
+                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
         </nav>
 
                 <div class="container mt-4">
-                <h1><b>Manage Stocks</b></h1>
+                <div class="pb-4">
+                <i class="fa-solid fa-boxes-stacked" style="font-size:56px;"></i>
+                </div>
+                <div class="d-flex align-items-center">
+                    <h3 style="font-size: 40px; letter-spacing: -0.045em;">
+                        <b>Manage Stocks</b>
+                    </h3>
+                    <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage stock levels, add new stock, and edit existing stock entries."></i>
+                    <script>
+                        $(document).ready(function(){
+                            $('[data-toggle="tooltip"]').tooltip();
+                        });
+                    </script>
+                </div>
                 <h4 style="color: gray;">Add and Edit Stocks</h4>
                 <h6 class="d-lg-none d-md-block" style="color: gray;">Click to edit Customer</h6>
+                <!-- Legend for Stock Colors -->
+                <ul class="pl-0">
+                    <li style="font-size: 1.2em; background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #f5c6cb;">
+                        <span>Red</span> = Stock is in threshold/below threshold
+                    </li>
+                    <li style="font-size: 1.2em; background-color: #ffe0b2; color: #8a6d3b; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #ffcc80;">
+                        <span>Orange</span> = Stock is +10 of the threshold
+                    </li>
+                    <li style="font-size: 1.2em; background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #ffeeba;">
+                        <span>Yellow</span> = Stock is +30 of the threshold
+                    </li>
+                </ul>
                 <!-- Search Box -->
                 <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
@@ -455,6 +481,7 @@ const sidebar = document.getElementById('sidebar');
                 </div>
 
                 <!-- Table Layout (Visible on larger screens) -->
+                <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
                 <thead>
@@ -535,7 +562,6 @@ const sidebar = document.getElementById('sidebar');
                             $cardClass = "";
                         }
                     ?>  
-
                     <div class="col-12 col-md-6 mb-3">
                         <div class="card shadow-sm <?php echo $cardClass; ?>" data-bs-toggle="modal" data-bs-target="#editStockModal"
                             data-stock-id="<?php echo $row['Stock_ID']; ?>"
@@ -628,7 +654,10 @@ const sidebar = document.getElementById('sidebar');
                                     <label for="threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="Threshold" name="Threshold" required>
                                 </div>
-                                <button type="submit" name="add_stock" class="btn btn-primary">Add Stock</button>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                    <button type="submit" name="add_stock" class="btn custom-btn">Add Stock</button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -653,7 +682,10 @@ const sidebar = document.getElementById('sidebar');
                                     <label for="edit_threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
                                 </div>
-                                <button type="submit" name="edit_stock" class="btn btn-primary">Save Changes</button>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                    <button type="submit" name="edit_stock" class="btn custom-btn">Save Changes</button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -886,6 +918,47 @@ hr.line {
     transform: scale(1.05);
 }
 
+.custom-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: #ffffff !important;
+    font-size: 12px;
+    letter-spacing: -0.050em !important;
+    border-radius: 10px;
+    padding: 12px;
+    border: none;
+    white-space: nowrap;
+    background-color: #6fa062;
+    transition: transform 0.3s;
+}
+
+.custom-btn:hover {
+    transform: scale(1.05);
+}
+
+.tooltip-inner {
+    color: #000 !important;
+    background-color: #ebecec !important;
+}
+
+/* ---------------------------------------------------
+    MOBILE STYLES
+
+----------------------------------------------------- */
+
+h5.card-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+p.card-text {
+    color:rgb(224, 224, 224) !important;
+    letter-spacing: -0.045em;
+}
 
 /* ---------------------------------------------------
     MANAGE STOCKS STYLES
@@ -918,11 +991,6 @@ hr.line {
                 padding: 25px;
             }
 
-            .modal-footer {
-                border-top: 1px solid #eaeaea;
-                padding: 15px 25px;
-            }
-
             /* Form Controls */
             .form-control {
                 border-radius: 10px;
@@ -953,24 +1021,60 @@ hr.line {
             }
 
             /* Table custom styling */
-            .table {
-                border-radius: 10px;
+            .table-responsive {
+                border-radius: 12px;
                 overflow: hidden;
-                border-collapse: separate;
-                border-spacing: 0;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+
+            .table {
+                margin-bottom: 0;
             }
 
             .table thead th {
-                background-color: #f8f9fa;
-                border-bottom: 1px solid #eaeaea;
-                font-weight: 600;
+                background-color: #f2f4f0;
                 color: #444;
-                padding: 15px;
+                font-weight: 600;
+                border-bottom: 2px solid #dee2e6;
+                cursor: pointer;
+                padding: 1rem;
+                letter-spacing: -0.025em;
+                position: relative;
+                transition: background-color 0.3s;
             }
 
-            .table-striped tbody tr:nth-of-type(odd) {
-                background-color: rgba(0,0,0,0.02);
+            .table thead th:hover {
+                background-color: #e8ecef;
+            }
+
+            .table thead th i {
+                font-size: 0.8rem;
+                margin-left: 5px;
+                opacity: 0.6;
+            }
+
+            .table tbody tr {
+                transition: background-color 0.2s;
+            }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+            .table td {
+                padding: 0.8rem 1rem;
+                vertical-align: middle;
+            }
+
+            .table td a {
+                color: #6fa062;
+                transition: transform 0.3s, color 0.3s;
+                display: inline-block;
+            }
+
+            .table td a:hover {
+                color: #5e8853;
+                transform: scale(1.2);
             }
 
             /* Custom color styles */
