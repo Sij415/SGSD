@@ -10,6 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="icon"  href="../../logo.png">
 </head>
 
 <body>
@@ -28,6 +29,7 @@
         </div> -->
 
         <?php
+        error_reporting(E_ALL);
         // Fetch token from URL
         $token = $_GET["token"] ?? null;
 
@@ -46,7 +48,7 @@
             $user = $result->fetch_assoc();
 
             if ($user === null) {
-                // Invalid or expired token
+               // Invalid or expired token
                 echo "<script>
                     Swal.fire({
                         icon: 'error',
@@ -59,9 +61,9 @@
                 exit;
             } else {
                 // Update user record to nullify the activation hash
-                $sql = "UPDATE Users SET account_activation_hash = NULL WHERE id = ?";
+                $sql = "UPDATE Users SET account_activation_hash = NULL WHERE account_activation_hash = ?";
                 $stmt = $mysqli->prepare($sql);
-                $stmt->bind_param("s", $user["id"]);
+                $stmt->bind_param("s", $token_hash);
 
                 if ($stmt->execute()) {
                     // Success message

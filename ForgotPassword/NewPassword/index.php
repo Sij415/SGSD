@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Login Page</title>
     <link rel="stylesheet" href="../../style/style.css">
+=======
     <title>Reset Password</title>
     <link rel="stylesheet" href="../../style/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
@@ -19,6 +22,7 @@
 <header class="main-header">
     <nav class="main-nav">
         <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
     </nav>
 </header>
 
@@ -31,6 +35,21 @@
         </div>
 
         <h1 class="main-heading">Enter your new password</h1>
+<<<<<<< HEAD
+        <p class="sub-heading">Your new password must be different to previous password.</p>
+
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Enter new password">
+        </div>
+
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Confirm new password">
+        </div>
+
+        <div class="button-group">
+            <a href="../Login" class="request-btn">Reset Password</a>
+        </div>
+=======
         <p class="sub-heading">Your new password must be different from your previous password.</p>
 
         <form action="./" method="POST">
@@ -46,6 +65,7 @@
                 <button type="submit" class="request-btn">Reset Password</button>
             </div>
         </form>
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
     </div>
 
     <script>
@@ -203,7 +223,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE User_ID = ?";
     $update_stmt = $mysqli->prepare($update_sql);
     $update_stmt->bind_param("si", $password_hash, $user["User_ID"]);
-    logActivity($conn, $user['User_ID'], "User has successfully updated their password");
 
     if ($update_stmt->execute()) {
         echo("<script>
@@ -223,3 +242,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
+>>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250

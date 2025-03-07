@@ -1,11 +1,13 @@
 <?php
 // Include database connection
-$required_role = 'admin';
+
+$required_role = 'admin,staff';
 include('../check_session.php');
-include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
+
+
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -65,7 +67,6 @@ if (isset($_POST['add_stock'])) {
     $query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("iiiii", $user_id, $product_id, $old_stock, $new_stock, $threshold);
-    logActivity($conn, $user_id, "User has inserted a new stock record");
 
     if ($stmt->execute()) {
         $success_message = "Stock added successfully.";
@@ -95,7 +96,6 @@ if (isset($_POST['edit_stock'])) {
     $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("iiii", $current_stock, $new_stock, $threshold, $stock_id);
-    logActivity($conn, $user_id, "User has updated a stock record");
 
     if ($stmt->execute()) {
         $success_message = "Stock updated successfully.";
@@ -119,6 +119,9 @@ $query = "SELECT Stocks.Stock_ID,
 
 $result = $conn->query($query);
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -166,6 +169,8 @@ tr.bg-orange td {
   left: -250px; /* Hidden by default */
   transition: left 0.3s ease;
   z-index: 1000;
+
+ 
 
   overflow-x: hidden;
 
@@ -233,107 +238,125 @@ tr.bg-orange td {
 <body class="p-0">
 <header class="app-header">
   <nav class="app-nav d-flex justify-content-between">
+    <!-- Sidebar button visible only on smaller screens -->
     <a class="sidebar-btn d-md-none" id="toggleBtn">☰</a>
+    
+    <!-- "X" button aligned to the right on larger screens -->
     <a href="#" class="d-md-flex d-md-none ms-auto tooltip-btn"><i class="bi bi-file-earmark-break-fill"></i></a>
+    
+    <!-- "X" button visible on smaller screens, aligned left -->
   </nav>
 </header>
 
 <div id="sidebar" class="sidebar d-flex flex-column">
-  <a class="closebtn d-md-none" onclick="closeNav()">&times;</a>
-  <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
-  
-  <div class="sidebar-items">
-    <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-    <div class="sidebar-item">
-      <a href="../Dashboard" class="sidebar-items-a">
-        <i class="fa-solid fa-border-all"></i>
-        <span>&nbsp;Dashboard</span>
-      </a>
-    </div>
+        <a  class="closebtn d-md-none" onclick="closeNav()">&times;</a>
+        <a href="#" class="sangabrielsoftdrinksdeliverytitledonotchangethisclassnamelol"><b>SGSD</b></a>
+ 
+        <div class="sidebar-items">
+            <hr style="width: 75%; margin: 0 auto; padding: 12px;">
+            <div class="sidebar-item">
+                <a href="../Dashboard" class="sidebar-items-a">
+                <i class="fa-solid fa-border-all"></i>
+                <span>&nbsp;Dashboard</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
+                <a href="../ManageStocks">
+                    <i class="fa-solid fa-box"></i>
+                    <span>&nbsp;Manage Stocks</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
+                <a href="../ManageOrders">
+                <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
+                <span>&nbsp;Manage Orders</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
+                <a href="../ManageProducts">
+                <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
+                <span>&nbsp;Manage Product</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
+                <a href="../ManageCustomers">
+                <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
+                <span>&nbsp;Manage Customer</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
+                <a href="../AdminSettings">
+                <i class="bi bi-gear" style="font-size:13.28px;"></i>
+                <span>&nbsp;Admin Settings</span>
+                </a>
+            </div>
+        </div>
+        
+        <hr style="width: 75%; margin: 0 auto; padding: 12px ;">
+        <div class="mt-auto p-2">
+        <div class="sidebar-usr">
+            <div class="sidebar-pfp">
+                <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
+            </div>
+            <div class="sidebar-usrname">
+                <h1><?php
+                
 
-    <!-- Manage Stocks (Visible to Admin & Staff) -->
-    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
-    <div class="sidebar-item">
-      <a href="../ManageStocks">
-        <i class="fa-solid fa-box"></i>
-        <span>&nbsp;Manage Stocks</span>
-      </a>
-    </div>
-    
-    <!-- Manage Products (Visible to Admin & Staff) -->
-    <div class="sidebar-item">
-      <a href="../ManageProducts">
-        <i class="fa-solid fa-list" style="font-size:13.28px;"></i>
-        <span>&nbsp;Manage Product</span>
-      </a>
-    </div>
-    <?php endif; ?>
 
-    <!-- Manage Orders (Visible to All Roles) -->
-    <div class="sidebar-item">
-      <a href="../ManageOrders">
-        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px;"></i>
-        <span>&nbsp;Manage Orders</span>
-      </a>
-    </div>
 
-    <!-- Manage Customers & Admin Settings (Only for Admin) -->
-    <?php if ($user_role === 'admin') : ?>
-    <div class="sidebar-item">
-      <a href="../ManageCustomers">
-        <i class="bi bi-people-fill" style="font-size:13.28px;"></i>
-        <span>&nbsp;Manage Customer</span>
-      </a>
-    </div>
-    <div class="sidebar-item">
-      <a href="../AdminSettings">
-        <i class="bi bi-gear" style="font-size:13.28px;"></i>
-        <span>&nbsp;Admin Settings</span>
-      </a>
-    </div>
-    <?php endif; ?>
-  </div>
 
-  <hr style="width: 75%; margin: 0 auto; padding: 12px;">
-  <div class="mt-auto p-2">
-    <div class="sidebar-usr">
-      <div class="sidebar-pfp">
-        <img src="https://upload.wikimedia.org/wikipedia/en/b/b1/Portrait_placeholder.png" alt="Sample Profile Picture">
-      </div>
-      <div class="sidebar-usrname">
-        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
-        <h2><?php echo htmlspecialchars($user_email); ?></h2>
-      </div>
-    </div>
-    <div class="sidebar-options">
-      <div class="sidebar-item">
-        <a href="#" class="sidebar-items-button">
-          <i class="fa-solid fa-sign-out-alt"></i>
-          <span>Log out</span>
-        </a>
-      </div>
-      <div class="sidebar-item d-none d-sm-block">
-        <a href="#" class="sidebar-items-button">
-          <i class="fa-solid fa-file-alt"></i>
-          <span>Manual</span>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
 
+
+
+
+
+
+                echo htmlspecialchars($user_first_name);
+                
+                
+                
+                ?></h1>
+                <h2><?php
+                echo  htmlspecialchars($user_email)
+                
+                
+                ?></h2>
+            </div>
+        </div>
+        <div class="sidebar-options ">
+            <div class="sidebar-item">
+                <a href="#" class="sidebar-items-button">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                    <span>Log out</span>
+                </a>
+            </div>
+            <div class="sidebar-item d-none d-sm-block">
+                <a href="#" class="sidebar-items-button">
+                    <i class="fa-solid fa-file-alt"></i>
+                    <span>Manual</span>
+                </a>
+            </div>
+        </div></div>
+ 
+        </div>
   <div class="content">
+
+
+
 
     <div class="container mt-4">
         <h1><b>Manage Stocks</b></h1>
         <h3>Add and Edit Stocks</h3>
 <h3 class="d-lg-none d-md-block">Click to edit Customer</h3>
 
+
+
+
         <!-- Search Box -->
         <div class="d-flex align-items-center justify-content-between mb-3">
     <!-- Search Input Group -->
     <div class="input-group">
-    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchStocks()">
+        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput">
         <button class="btn btn-outline-secondary" type="button" id="search">
             <i class="fa fa-search"></i>
         </button>
@@ -344,21 +367,23 @@ tr.bg-orange td {
     
 </div>
 
+
+
+
         <!-- Table Layout (Visible on larger screens) -->
-        <div class="table-responsive  d-none d-md-block">
-            <table class="table table-striped table-bordered">
-                <thead>
-                <tr>
-            <th>Stocked By</th>
-            <th>Product Name</th>
-            <th>Old Stock</th>
-            <th>New Stock</th>
-            <th>Threshold</th>
-            <th>Edit</th>
-            
-        </tr>
-                </thead>
-                <tbody>
+        <div class="table-responsive d-none d-md-block">
+    <table class="table table-striped table-bordered" id="stocksTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(1)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(2)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(3)">New Stock <i class="bi bi-arrow-down-up"></i></th>
+                <th onclick="sortTable(4)">Threshold <i class="bi bi-arrow-down-up"></i></th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
         <?php if (mysqli_num_rows($result) > 0): ?>
         <?php 
         while ($row = mysqli_fetch_assoc($result)): 
@@ -475,6 +500,9 @@ tr.bg-orange td {
 
   </div>
   
+
+
+
 <!-- Add Stock Modal -->
 <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -558,22 +586,74 @@ tr.bg-orange td {
         </div>
     </div>
 </div>
-
 <script>
-function searchStocks() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const cards = document.querySelectorAll('.card'); // Select all stock cards
 
-    cards.forEach(card => {
-        const text = card.innerText.toLowerCase();
-        if (text.includes(filter)) {
-            card.style.display = ''; // Show card if a match is found
+
+
+
+
+
+
+
+
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('stocksTable');
+    const rows = Array.from(table.rows).slice(1);
+    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
+
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+        if (isNumeric) {
+            return parseFloat(cellA) - parseFloat(cellB);
         } else {
-            card.style.display = 'none'; // Hide card if no match
+            return cellA.localeCompare(cellB);
         }
     });
+
+    // Re-append sorted rows to the table body
+    const tbody = table.getElementsByTagName('tbody')[0];
+    rows.forEach(row => tbody.appendChild(row));
 }
+
+
+
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('stocksTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j]) {
+                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        tr[i].style.display = found ? '' : 'none';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function updateRowColors() {
     document.querySelectorAll("#stockTable tbody tr").forEach((row, index) => {
@@ -609,6 +689,27 @@ function updateRowColors() {
     }
 });
 }
+
+  /*  let firstCard = true;
+    document.querySelectorAll('.card.shadow-sm').forEach(card => {
+        if (firstCard) {
+            firstCard = false; // Skip first card
+            return;
+        }
+
+        let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
+        let threshold = parseInt(card.getAttribute('data-threshold') || "0");
+
+        card.classList.remove('bg-danger', 'bg-warning', 'bg-opacity-75', 'text-white', 'text-dark'); // Reset colors
+
+        if (newStock <= threshold) {
+            card.classList.add('bg-danger', 'text-white'); // Red
+        } else if (newStock <= threshold + 10) {
+            card.classList.add('bg-warning', 'text-dark'); // Orange
+        } else if (newStock <= threshold + 30) {
+            card.classList.add('bg-warning', 'bg-opacity-75', 'text-dark'); // Yellow
+        }
+    }); */
 
 
 // Run function on page load

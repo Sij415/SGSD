@@ -1,5 +1,5 @@
 <?php
-$required_role = 'admin';
+$required_role = 'admin,staff,driver';
 include('../check_session.php');
 include('../log_functions.php');
 include '../dbconnect.php';
@@ -16,6 +16,15 @@ $stmt->execute();
 $stmt->bind_result($user_first_name);
 $stmt->fetch();
 $stmt->close();
+
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
 
 ?>
 
@@ -133,7 +142,7 @@ $stmt->close();
   <div class="sidebar-items">
     <hr style="width: 75%; margin: 0 auto; padding: 12px;">
     <div class="sidebar-item">
-      <a href="./Dashboard" class="sidebar-items-a">
+      <a href="../Dashboard" class="sidebar-items-a">
         <i class="fa-solid fa-border-all"></i>
         <span>&nbsp;Dashboard</span>
       </a>
@@ -194,10 +203,13 @@ $stmt->close();
     
     <div class="sidebar-options ">
       <div class="sidebar-item">
-        <a href="#" class="sidebar-items-button">
-          <i class="fa-solid fa-sign-out-alt"></i>
-          <span>Log out</span>
-        </a>
+<!-- Logout Button -->
+<form method="POST" style="display: inline;">
+    <button type="submit" name="logout" class="sidebar-items-button">
+        <i class="fa-solid fa-sign-out-alt"></i>
+        <span>Log out</span>
+    </button>
+</form>
       </div>
       <div class="sidebar-item d-none d-sm-block">
         <a href="#" class="sidebar-items-button">
