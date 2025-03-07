@@ -571,10 +571,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Order_Type']); ?></p>
                   </div>
                   <div class="col-6">
-                    <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Quantity']); ?></p>
+                    <p class="card-text"><strong>Quantity:</strong> <?php echo htmlspecialchars($row['Quantity']); ?></p>
                   </div>
                   <div class="col-6">
-                    <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Total_Price']); ?></p>
+                    <p class="card-text"><strong>Total Price:</strong> <?php echo htmlspecialchars($row['Total_Price']); ?></p>
                   </div>
                 </div>
               </div>
