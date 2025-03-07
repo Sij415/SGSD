@@ -10,11 +10,11 @@ ini_set('display_errors', 1);
 $user_email = $_SESSION['email'];
 
 // Get the user's first name and email from the database
-$query = "SELECT First_Name FROM Users WHERE Email = ?";
+$query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name);
+$stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -49,6 +49,8 @@ $result = $conn->query($query);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="icon"  href="../logo.png">
+    <link rel="stylesheet" href="../style/styles.css">
+
 </head>
 <body>
 
@@ -121,7 +123,7 @@ $result = $conn->query($query);
         <div class="sidebar-header mt-4 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="navbar-brand m-0 p-1" href="#">
-                    <i class="fas fa-store mr-1"></i> SGSD
+                <img src="../logo.png" alt="SGSD Logo" width="30" height="30" class="mr-1"> SGSD
                 </a>
                 <button type="button" class="btn ml-auto d-md-none d-lg-none rounded-circle mr-1 shadow" id="exitSidebar">
                     <i class="fas fa-times" style="font-size: 13.37px;"></i>
@@ -182,12 +184,22 @@ $result = $conn->query($query);
             <?php endif; ?>
         </ul>
 
+        <div class="sidebar-spacer"></div>
         <hr class="line">
-
-        <ul class="list-unstyled CTAs">
+        <ul class="list-unstyled CTAs pt-0 mb-0 sidebar-bottom">
             <li class="sidebar-username pb-2">
-                <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
-                <h2><?php echo htmlspecialchars($user_email); ?></h2>
+                <div class="align-items-center">
+                    <div class="profile-initials rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; border: 1px solid #ccc; background-color: #eee; font-size: 20px;">
+                        <?php 
+                            echo strtoupper(substr($user_first_name, 0, 1) . substr($user_last_name, 0, 1));
+                        ?>
+                    </div>
+                    <div>
+                        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+                        <h2><?php echo htmlspecialchars($user_email); ?></h2>
+                        <h5 style="font-size: 1em; background-color: #6fa062; color: #F2f2f2; font-weight: 700; padding: 8px; border-radius: 8px; width: fit-content;"><?php echo htmlspecialchars($user_role); ?></h5>
+                    </div>
+                </div>
             </li>
             <li>
                 <a href="#" class="logout">
@@ -369,6 +381,21 @@ a:focus {
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.25);
 }
 
+#sidebar {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    
+    .sidebar-spacer {
+        flex-grow: 1;
+    }
+    
+    .sidebar-bottom {
+        margin-top: auto;
+    }
+
+
 #sidebar.active {
     margin-left: -250px;
 }
@@ -432,19 +459,6 @@ ul.CTAs a {
     display: block;
     border-radius: 5px;
     margin-bottom: 5px;
-}
-
-a.logout {
-    border-radius: 12px !important;
-    padding: 16px !important;
-    background: #6fa062;
-    color: #fff;
-}
-
-a.logout:hover {
-    color: #fff !important;
-    transition: background 0.3s, transform 0.3s !important;
-    transform: scale(1.02) !important;
 }
 
 #manualButton,
@@ -557,6 +571,63 @@ hr.line {
     .table-striped>tbody>tr:nth-child(odd)>th {
       background-color: #f4f9f8;
     }
+
+                /* Table custom styling */
+                .table-responsive {
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+
+            .table {
+                margin-bottom: 0;
+            }
+
+            .table thead th {
+                background-color: #f2f4f0;
+                color: #444;
+                font-weight: 600;
+                border-bottom: 2px solid #dee2e6;
+                cursor: pointer;
+                padding: 1rem;
+                letter-spacing: -0.025em;
+                position: relative;
+                transition: background-color 0.3s;
+            }
+
+            .table thead th:hover {
+                background-color: #e8ecef;
+            }
+
+            .table thead th i {
+                font-size: 0.8rem;
+                margin-left: 5px;
+                opacity: 0.6;
+            }
+
+            .table tbody tr {
+                transition: background-color 0.2s;
+            }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+            .table td {
+                padding: 0.8rem 1rem;
+                vertical-align: middle;
+            }
+
+            .table td a {
+                color: #6fa062;
+                transition: transform 0.3s, color 0.3s;
+                display: inline-block;
+            }
+
+            .table td a:hover {
+                color: #5e8853;
+                transform: scale(1.2);
+            }
 
 /* ---------------------------------------------------
     MEDIAQUERIES

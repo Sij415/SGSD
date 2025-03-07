@@ -113,6 +113,8 @@ $result = $conn->query($query);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="icon"  href="../logo.png">
+    <link rel="stylesheet" href="../style/styles.css">
+
 </head>
 <body>
 
@@ -194,7 +196,7 @@ $result = $conn->query($query);
         <div class="sidebar-header mt-4 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="navbar-brand m-0 p-1" href="#">
-                    <i class="fas fa-store mr-1"></i> SGSD
+                    <img src="../logo.png" alt="SGSD Logo" width="30" height="30" class="mr-1"> SGSD
                 </a>
                 <button type="button" class="btn ml-auto d-md-none d-lg-none rounded-circle mr-1 shadow" id="exitSidebar">
                     <i class="fas fa-times" style="font-size: 13.37px;"></i>
@@ -254,13 +256,22 @@ $result = $conn->query($query);
                 </li>
             <?php endif; ?>
         </ul>
-
+        <div class="sidebar-spacer"></div>
         <hr class="line">
-
-        <ul class="list-unstyled CTAs">
+        <ul class="list-unstyled CTAs pt-0 mb-0 sidebar-bottom">
             <li class="sidebar-username pb-2">
-                <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
-                <h2><?php echo htmlspecialchars($user_email); ?></h2>
+                <div class="align-items-center">
+                    <div class="profile-initials rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; border: 1px solid #ccc; background-color: #eee; font-size: 20px;">
+                        <?php 
+                            echo strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
+                        ?>
+                    </div>
+                    <div>
+                        <h1><?php echo htmlspecialchars($first_name); ?></h1>
+                        <h2><?php echo htmlspecialchars($user_email); ?></h2>
+                        <h5 style="font-size: 1em; background-color: #6fa062; color: #F2f2f2; font-weight: 700; padding: 8px; border-radius: 8px; width: fit-content;"><?php echo htmlspecialchars($user_role); ?></h5>
+                    </div>
+                </div>
             </li>
             <li>
                 <a href="#" class="logout">
@@ -284,7 +295,7 @@ $result = $conn->query($query);
             </div>
         </nav>
 
-    <div class="container">
+    <div class="container" style="max-height: 800px; overflow-y: auto;">
         <section class="admin">
             <div class="admin-main">
                 <div class="admin-title p-3 pt-5">
@@ -354,8 +365,10 @@ $result = $conn->query($query);
                             </h5>
                         </div>
                         <div class="d-flex align-items-center">
-                            <input type="number" class="form-control mx-5" id="signup-amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 150px;">
-                            <div class="form-check form-switch me-3">
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="signup-amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 150px;">
+                            </div>
+                            <div class="form-check form-switch mt-0 mb-1 pb-4">
                                 <input class="form-check-input custom-switch" type="checkbox" role="switch" name="sign_up_enabled" id="flexSwitchCheckChecked" <?php echo ($settings['SignUpEnabled'] == 1) ? 'checked' : ''; ?>>
                             </div>
                         </div>
@@ -530,6 +543,20 @@ a:focus {
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.25);
 }
 
+    #sidebar {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    
+    .sidebar-spacer {
+        flex-grow: 1;
+    }
+    
+    .sidebar-bottom {
+        margin-top: auto;
+    }
+
 #sidebar.active {
     margin-left: -250px;
 }
@@ -593,19 +620,6 @@ ul.CTAs a {
     display: block;
     border-radius: 5px;
     margin-bottom: 5px;
-}
-
-a.logout {
-    border-radius: 12px !important;
-    padding: 16px !important;
-    background: #6fa062;
-    color: #fff;
-}
-
-a.logout:hover {
-    color: #fff !important;
-    transition: background 0.3s, transform 0.3s !important;
-    transform: scale(1.02) !important;
 }
 
 #manualButton,
@@ -707,16 +721,6 @@ hr.line {
     background-color: #5e8a52 !important;
     color: #fff !important;
     transform: scale(1.05) !important;
-}
-
-.form-check-input.custom-switch {
-    background-color: #d8d8d8 !important;
-    border-color: #c8c8c8 !important;
-}
-
-.form-check-input.custom-switch:checked {
-    background-color: #6fa062 !important;
-    border-color: #6fa062 !important;
 }
 
 /* Override Bootstrap's default switch appearance */

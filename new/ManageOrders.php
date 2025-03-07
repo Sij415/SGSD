@@ -10,11 +10,11 @@ $user_email = $_SESSION['email'];
 //echo 'User ID: ' . $_SESSION['user_id'];
 
 // Get the user's first name from the database
-$query = "SELECT First_Name, User_ID FROM Users WHERE Email = ?";
+$query = "SELECT First_Name, Last_Name, User_ID FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email);
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_id);
+$stmt->bind_result($user_first_name, $user_last_name, $user_id);
 $stmt->fetch();
 $stmt->close();
 
@@ -163,7 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-    <link rel="icon"  href="../logo.png">
+    <link rel="icon" href="../logo.png">
+    <link rel="stylesheet" href="../style/styles.css">
 </head>
 <body>
 
@@ -292,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         <div class="sidebar-header mt-4 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="navbar-brand m-0 p-1" href="#">
-                    <i class="fas fa-store mr-1"></i> SGSD
+                <img src="../logo.png" alt="SGSD Logo" width="30" height="30" class="mr-1"> SGSD
                 </a>
                 <button type="button" class="btn ml-auto d-md-none d-lg-none rounded-circle mr-1 shadow" id="exitSidebar">
                     <i class="fas fa-times" style="font-size: 13.37px;"></i>
@@ -353,12 +354,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <?php endif; ?>
         </ul>
 
+        <div class="sidebar-spacer"></div>
         <hr class="line">
-
-        <ul class="list-unstyled CTAs">
+        <ul class="list-unstyled CTAs pt-0 mb-0 sidebar-bottom">
             <li class="sidebar-username pb-2">
-                <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
-                <h2><?php echo htmlspecialchars($user_email); ?></h2>
+                <div class="align-items-center">
+                    <div class="profile-initials rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px; border: 1px solid #ccc; background-color: #eee; font-size: 20px;">
+                        <?php 
+                            echo strtoupper(substr($user_first_name, 0, 1) . substr($user_last_name, 0, 1));
+                        ?>
+                    </div>
+                    <div>
+                        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+                        <h2><?php echo htmlspecialchars($user_email); ?></h2>
+                        <h5 style="font-size: 1em; background-color: #6fa062; color: #F2f2f2; font-weight: 700; padding: 8px; border-radius: 8px; width: fit-content;"><?php echo htmlspecialchars($user_role); ?></h5>
+                    </div>
+                </div>
             </li>
             <li>
                 <a href="#" class="logout">
@@ -393,11 +404,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="customer_name" class="form-label">Customer Name</label>
-                                <input type="text" name="Customer_Name" id="Customer_Name" class="form-control" required>
+                                <input type="text" name="Customer_Name" id="Customer_Name" class="form-control" placeholder="e.g., Jon" required>
                             </div>
                             <div class="mb-3">
                                 <label for="product_name" class="form-label">Product Name</label>
-                                <input type="text" name="Product_Name" id="Product_Name" class="form-control" required>
+                                <input type="text" name="Product_Name" id="Product_Name" class="form-control" placeholder="e.g., Coca-Cola" required>
+                                <small class="form-text text-muted">Please enter the exact product name as in the product list.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="add_status" class="form-label">Status</label>
@@ -418,7 +430,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="quantity" class="form-label">Quantity</label>
-                                <input type="number" name="Quantity" id="Quantity" class="form-control" required>
+                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
+                                <small class="form-text text-muted">Please enter the quantity of the product.</small>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -450,7 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="edit_status" class="form-label">Status</label>
-                                <select class="form-control" id="edit_status" name="New_Status">
+                                <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;">
                                     <option value="">Select Status</option>
                                     <option value="To Pick Up">To Pick Up</option>
                                     <option value="In Transit">In Transit</option>
@@ -459,7 +472,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="edit_order_type" class="form-label">Order Type</label>
-                                <select class="form-control" id="edit_order_type" name="New_OrderType">
+                                <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;">
+                                    <option value="">Select Order Type</option>
                                     <option value="Inbound">Inbound</option>
                                     <option value="Outbound">Outbound</option>
                                 </select>
@@ -673,6 +687,21 @@ a:focus {
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.25);
 }
 
+#sidebar {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    
+    .sidebar-spacer {
+        flex-grow: 1;
+    }
+    
+    .sidebar-bottom {
+        margin-top: auto;
+    }
+
+
 #sidebar.active {
     margin-left: -250px;
 }
@@ -736,19 +765,6 @@ ul.CTAs a {
     display: block;
     border-radius: 5px;
     margin-bottom: 5px;
-}
-
-a.logout {
-    border-radius: 12px !important;
-    padding: 16px !important;
-    background: #6fa062;
-    color: #fff;
-}
-
-a.logout:hover {
-    color: #fff !important;
-    transition: background 0.3s, transform 0.3s !important;
-    transform: scale(1.02) !important;
 }
 
 #manualButton,
