@@ -177,7 +177,7 @@ $(document).ready(function () {
         <div class="sidebar-header mt-4 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="navbar-brand m-0 p-1" href="#">
-                    <i class="fas fa-store mr-1"></i> SGSD
+                <img src="../logo.png" alt="SGSD Logo" width="30" height="30" class="mr-1"> SGSD
                 </a>
                 <button type="button" class="btn ml-auto d-md-none d-lg-none rounded-circle mr-1 shadow" id="exitSidebar">
                     <i class="fas fa-times" style="font-size: 13.37px;"></i>
@@ -266,20 +266,77 @@ $(document).ready(function () {
 
     <!-- Page Content  -->
     <div id="content">
+    <!-- This is the basis for the finale dashboard. It is a work in progress and will be updated as we go along. It will be distributed to other pages after the backend integration is implemented in the Notification -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
-            <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
-                    <i class="fas fa-align-left"></i>
-                </button>
-                <!-- Implement the notification system here @Sij -->
-                <!-- <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button> -->
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+        <div class="container-fluid">
+            <!-- Left-aligned toggle sidebar button (unchanged) -->
+            <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
+                <i class="fas fa-align-left"></i>
+            </button>
+            
+            <!-- Right-aligned group for notification and manual buttons -->
+            <div class="ml-auto d-flex align-items-center">
+                <!-- Notification system -->
+                <div class="dropdown d-inline-block">
+                    <button class="btn position-relative" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="bottom" title="Notifications" style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
+                        <i class="fas fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size: 0.6rem; top: -5px; right: -5px; background-color: #dc3545;">
+                            3
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right p-0" aria-labelledby="notificationButton" style="width: 300px; max-height: 350px; overflow-y: auto; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
+                            <a href="#" class="text-muted small" style="color: #6fa062 !important;">Mark all as read</a>
+                        </div>
+                        <div class="notification-item p-2 border-bottom">
+                            <div class="d-flex">
+                                <div class="mr-3">
+                                    <i class="fas fa-box p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">New stock arrival</p>
+                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Coca Cola stock has been updated</p>
+                                    <small class="text-muted" style="font-size: 0.75rem;">2 minutes ago</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="notification-item p-2 border-bottom">
+                            <div class="d-flex">
+                                <div class="mr-3">
+                                    <i class="fas fa-shopping-cart p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">New order received</p>
+                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Order #12345 is waiting for confirmation</p>
+                                    <small class="text-muted" style="font-size: 0.75rem;">30 minutes ago</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="notification-item p-2 border-bottom">
+                            <div class="d-flex">
+                                <div class="mr-3">
+                                    <i class="fas fa-exclamation-triangle p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">Low stock alert</p>
+                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Sprite is running low on inventory</p>
+                                    <small class="text-muted" style="font-size: 0.75rem;">1 hour ago</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-2 text-center border-top">
+                            <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;">View all notifications</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Manual button (now next to notification) -->
+                <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
-        </nav>
+        </div>
+    </nav>
 
         <!-- Dashboard -->
         <div class="p-3" style="max-height: 80vh; overflow-y: auto;">

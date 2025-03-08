@@ -350,8 +350,11 @@ $result = $conn->query($query);
                     });
                 </script>
             </div>
-            <h4 style="color: gray;">Add and Edit Products</h4>
-            <h6 class="d-lg-none d-md-block" style="color: gray;">Click to edit Customer</h6>
+            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage products in your inventory.</h4>
+            <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
+                <i class="bi bi-info-circle mr-1"></i>
+                Tap card to edit product.
+            </div>
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->

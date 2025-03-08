@@ -504,24 +504,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     });
                 </script>
             </div>
-            <h3>To view the orders in detail, click the product.</h3>
-
+            <!-- Copy Paste Code Here -->
+            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage orders.</h4>
+            <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
+                <i class="bi bi-info-circle mr-1"></i>
+                Tap card to edit order details.
+            </div>
+            <!-- Copy Paste end -->
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
-                <div class="input-group">
-                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+                <div class="input-group" style="width: 100%;">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
-
                 <!-- Add Order Button -->
-                <button class="add-btn m-2" data-bs-toggle="modal" data-bs-target="#addOrderModal">Add Order</button>
+                <button class="add-btn m-2" data-bs-toggle="modal" data-bs-target="#addOrderModal" style="width: auto;">Add Order</button>
             </div>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+            <div style="max-height: 750px; overflow-y: auto;">      
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
@@ -1003,6 +1007,7 @@ hr.line {
         .table-responsive {
             border-radius: 12px;
             overflow: hidden;
+            overflow-x: auto;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
