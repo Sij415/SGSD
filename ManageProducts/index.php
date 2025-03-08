@@ -145,26 +145,27 @@ $result = $conn->query($query);
         rows.forEach(row => tbody.appendChild(row));
     }
 
-    function searchTable() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('ProductsTable');
-        const tr = table.getElementsByTagName('tr');
+    function searchProducts() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
 
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            tr[i].style.display = found ? '' : 'none';
+    // Search in the table (Desktop view)
+    const table = document.getElementById('ProductsTable'); // Assuming the table has this ID
+    if (table) {
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        for (let row of rows) {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none"; // Show or hide row
         }
     }
+
+    // Search in the cards (Mobile view)
+    const cards = document.querySelectorAll('.card'); // Assuming mobile uses cards
+    cards.forEach(card => {
+        let text = card.innerText.toLowerCase();
+        card.style.display = text.includes(filter) ? "" : "none"; // Show or hide card
+    });
+}
 
     // Populate edit modal with existing data
     const editStockModal = document.getElementById('editProductModal');
@@ -356,7 +357,7 @@ $result = $conn->query($query);
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchProducts()">
                     <button class="btn btn-outline-secondary rounded" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>

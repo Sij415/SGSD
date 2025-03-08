@@ -1,71 +1,72 @@
 <?php
 // Include database connection
-
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
- // Start the session
+    //Start the session
 ini_set('display_errors', 1);
 
-
-
-// Fetch user details from session
+// Fetch logged-in user details
 $user_email = $_SESSION['email'];
-// Get the user's first name and email from the database
-$query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
+$query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_email); // Bind the email as a string
+$stmt->bind_param("s", $user_email);
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name);
+$stmt->bind_result($user_id, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
-
 
 // Handle adding stock
 if (isset($_POST['add_stock'])) {
     $user_id = $_POST['User_ID'];
     $product_id = $_POST['Product_ID'];
-    $old_stock = $_POST['Old_Stock'];
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
-    // Insert User_ID if it doesn't exist
+    // Validate user and product existence
     $user_check_query = "SELECT User_ID FROM Users WHERE User_ID = ?";
     $user_stmt = $conn->prepare($user_check_query);
     $user_stmt->bind_param("i", $user_id);
     $user_stmt->execute();
     $user_result = $user_stmt->get_result();
-
+    
     if ($user_result->num_rows === 0) {
-        $insert_user_query = "INSERT INTO Users (User_ID) VALUES (?)";
-        $insert_user_stmt = $conn->prepare($insert_user_query);
-        $insert_user_stmt->bind_param("i", $user_id);
-        $insert_user_stmt->execute();
-        $insert_user_stmt->close();
+        $error_message = "Error: Selected user does not exist.";
+        $user_stmt->close();
+        return;
     }
-
     $user_stmt->close();
 
-    // Insert Product_ID if it doesn't exist
     $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
     $product_stmt = $conn->prepare($product_check_query);
     $product_stmt->bind_param("i", $product_id);
     $product_stmt->execute();
     $product_result = $product_stmt->get_result();
-
+    
     if ($product_result->num_rows === 0) {
-        $insert_product_query = "INSERT INTO Products (Product_ID) VALUES (?)";
-        $insert_product_stmt = $conn->prepare($insert_product_query);
-        $insert_product_stmt->bind_param("i", $product_id);
-        $insert_product_stmt->execute();
-        $insert_product_stmt->close();
+        $error_message = "Error: Selected product does not exist.";
+        $product_stmt->close();
+        return;
     }
-
     $product_stmt->close();
 
-    // Proceed with inserting into Stocks table
-    $query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($query);
+    // Fetch current stock
+    $stock_check_query = "SELECT New_Stock FROM Stocks WHERE Product_ID = ? ORDER BY Stock_ID DESC LIMIT 1";
+    $stock_stmt = $conn->prepare($stock_check_query);
+    $stock_stmt->bind_param("i", $product_id);
+    $stock_stmt->execute();
+    $stock_stmt->bind_result($old_stock);
+    $stock_stmt->fetch();
+    $stock_stmt->close();
+
+    // If no previous stock exists, set old_stock to 0
+    if ($old_stock === null) {
+        $old_stock = 0;
+    }
+
+    // Insert into Stocks table
+    $insert_query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($insert_query);
     $stmt->bind_param("iiiii", $user_id, $product_id, $old_stock, $new_stock, $threshold);
 
     if ($stmt->execute()) {
@@ -73,8 +74,27 @@ if (isset($_POST['add_stock'])) {
     } else {
         $error_message = "Error adding stock: " . $stmt->error;
     }
-
     $stmt->close();
+}
+
+// Check if stock_id is passed via AJAX
+if(isset($_POST['fetch_stock']) && isset($_POST['stock_id'])) {
+    $stock_id = $_POST['stock_id'];
+    
+    // Prepare and execute query to get stock details
+    $fetch_query = "SELECT Stock_ID, New_Stock, Threshold FROM Stocks WHERE Stock_ID = ?";
+    $stmt = $conn->prepare($fetch_query);
+    $stmt->bind_param("i", $stock_id);
+    $stmt->execute();
+    $stmt->bind_result($stock_id, $new_stock, $threshold);
+    $stmt->fetch();
+    $stmt->close();
+    
+    // Output JSON for AJAX response
+    if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        echo json_encode(['stock_id' => $stock_id, 'new_stock' => $new_stock, 'threshold' => $threshold]);
+        exit;
+    }
 }
 
 // Handle editing stock
@@ -106,7 +126,7 @@ if (isset($_POST['edit_stock'])) {
     $stmt->close();
 }
 
-// UPDATED QUERY
+// Fetch stock data for display
 $query = "SELECT Stocks.Stock_ID, 
                  Users.First_Name AS First_Name, 
                  Products.Product_Name, 
@@ -119,6 +139,7 @@ $query = "SELECT Stocks.Stock_ID,
 
 $result = $conn->query($query);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -186,43 +207,51 @@ function sortTable(columnIndex) {
     rows.forEach(row => tbody.appendChild(row));
 }
 
-function searchTable() {
+function searchStocks() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
-    const table = document.getElementById('stocksTable');
-    const tr = table.getElementsByTagName('tr');
 
-    for (let i = 1; i < tr.length; i++) {
-        const td = tr[i].getElementsByTagName('td');
-        let found = false;
-        for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        tr[i].style.display = found ? '' : 'none';
+    // Search in Desktop Table
+    const rows = document.querySelectorAll('#stocksTable tbody tr'); // Select all table rows
+
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none'; // Show/hide row
+    });
+
+    // Search in Mobile Cards (if applicable)
+    const cards = document.querySelectorAll('.card'); // If mobile cards exist
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(filter) ? '' : 'none';
+        });
     }
 }
 
 function updateRowColors() {
-    document.querySelectorAll("#stockTable tbody tr").forEach((row, index) => {
-    let newStock = parseInt(row.getAttribute('data-new-stock') || "0");
-    let threshold = parseInt(row.getAttribute('data-threshold') || "0");
+    document.querySelectorAll("#stocksTable tbody tr").forEach((row) => {
+        let newStock = parseInt(row.getAttribute('data-new-stock') || "0");
+        let threshold = parseInt(row.getAttribute('data-threshold') || "0");
 
-    // Reset previous colors
-    row.classList.remove('table-danger', 'table-orange', 'table-warning');
+        // Find the specific new stock column inside the row
+        let newStockCell = row.querySelector("data-new-stock");
 
-    if (newStock <= threshold) {
-        row.classList.add('table-danger'); // Red for below threshold
-    } else if (newStock <= threshold + 10) {
-        row.classList.add('table-orange'); // Custom orange
-    } else if (newStock <= threshold + 30) {
-        row.classList.add('table-warning'); // Yellow
-    }
-});
+        if (newStockCell) {
+            // Reset previous colors
+            newStockCell.classList.remove('table-danger', 'table-orange', 'table-warning');
+
+            // Apply color only to the threshold column
+            if (newStock <= threshold) {
+                newStockCell.classList.add('table-danger'); // Red for below threshold
+            } else if (newStock <= threshold + 10) {
+                newStockCell.classList.add('table-orange'); // Custom orange
+            } else if (newStock <= threshold + 30) {
+                newStockCell.classList.add('table-warning'); // Yellow
+            }
+        }
+    });
+}
 
     // Now apply the same logic to mobile cards
     document.querySelectorAll('.card.shadow-sm').forEach((card, index) => {
@@ -240,28 +269,6 @@ function updateRowColors() {
         card.classList.add('bg-warning', 'text-dark'); // Yellow
     }
 });
-}
-
-  /*  let firstCard = true;
-    document.querySelectorAll('.card.shadow-sm').forEach(card => {
-        if (firstCard) {
-            firstCard = false; // Skip first card
-            return;
-        }
-
-        let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
-        let threshold = parseInt(card.getAttribute('data-threshold') || "0");
-
-        card.classList.remove('bg-danger', 'bg-warning', 'bg-opacity-75', 'text-white', 'text-dark'); // Reset colors
-
-        if (newStock <= threshold) {
-            card.classList.add('bg-danger', 'text-white'); // Red
-        } else if (newStock <= threshold + 10) {
-            card.classList.add('bg-warning', 'text-dark'); // Orange
-        } else if (newStock <= threshold + 30) {
-            card.classList.add('bg-warning', 'bg-opacity-75', 'text-dark'); // Yellow
-        }
-    }); */
 
 // Run function on page load
 document.addEventListener('DOMContentLoaded', updateRowColors);
@@ -483,7 +490,7 @@ const sidebar = document.getElementById('sidebar');
                 <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchStocks()">
                     <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
@@ -508,47 +515,44 @@ const sidebar = document.getElementById('sidebar');
                 </thead>
                 <tbody></tbody>
                 <?php if (mysqli_num_rows($result) > 0): ?>
-                <?php 
-                while ($row = mysqli_fetch_assoc($result)): 
-                    $newStock = $row['New_Stock'];
-                    $threshold = $row['Threshold'];
-                
-                    if ($newStock <= $threshold) {
-                        $rowClass = "table-danger"; // Red
-                    } elseif ($newStock <= $threshold + 10) {
-                        $rowClass = "bg-orange text-dark"; // Distinct orange
-                    } elseif ($newStock <= $threshold + 30) {
-                        $rowClass = "table-warning"; // Yellow
-                    } else {
-                        $rowClass = "";
-                    }
-                ?>
+                    <?php 
+                        while ($row = mysqli_fetch_assoc($result)): 
+                            $newStock = $row['New_Stock'];
+                            $threshold = $row['Threshold'];
 
-                <tr class="<?php echo $rowClass; ?>">
-                    <td><?php echo $row['First_Name']; ?></td>
-                    <td><?php echo $row['Product_Name']; ?></td>
-                    <td><?php echo $row['Old_Stock']; ?></td>
-                    <td><?php echo $row['New_Stock']; ?></td>
-                    <td><?php echo $row['Threshold']; ?></td>
+                              // Apply color only to the Threshold column
+                            if ($newStock <= $threshold) {
+                                $newStockClass = "table-danger"; // Red
+                            } elseif ($newStock <= $threshold + 10) {
+                                $newStockClass = "bg-orange text-dark"; // Distinct orange
+                            } elseif ($newStock <= $threshold + 30) {
+                                $newStockClass = "table-warning"; // Yellow
+                            }else {
+                                $newStockClass = "";
+                            }
 
-                    <td class="text-dark text-center">
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
-                        data-stock-id="<?php echo $row['Stock_ID']; ?>" 
-                                data-new-stock="<?php echo $row['New_Stock']; ?>" 
-                                data-threshold="<?php echo $row['Threshold']; ?>">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                    </td>
+                        ?>
 
-                    </td>
-                    </tr>
-                                    
-                                    
-                                </tr>
-                            <?php endwhile; ?>
+                            <tr data-new-stock="<?php echo $newStock; ?>" data-threshold="<?php echo $threshold; ?>">
+                                <td><?php echo $row['First_Name']; ?></td>
+                                <td><?php echo $row['Product_Name']; ?></td>
+                                <td><?php echo $row['Old_Stock']; ?></td>
+                                <td class="<?php echo $newStockClass; ?>"><?php echo $row['New_Stock']; ?></td>
+                                <td class="<?php echo $thresholdClass; ?>"><?php echo $row['Threshold']; ?></td>
+                                <td class="text-dark text-center">
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
+                                        data-stock-id="<?php echo $row['Stock_ID']; ?>" 
+                                        data-new-stock="<?php echo $row['New_Stock']; ?>" 
+                                        data-threshold="<?php echo $row['Threshold']; ?>">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+
                         <?php else: ?>
                             <tr>
-                                <td colspan="6">No orders found.</td>
+                                <td colspan="6">No stocks found.</td>
                             </tr>
                         <?php endif; ?>
                     </>
@@ -626,7 +630,7 @@ const sidebar = document.getElementById('sidebar');
                                 <!-- Stocked By (User Selection) -->
                                     <div class="mb-3">
                                     <label for="user_id" class="form-label">Stocked By</label>
-                                    <select class="form-control" id="user_id" name="user_id" style="height: fit-content;" required>
+                                    <select class="form-control" id="user_id" name="User_ID" style="height: fit-content;" required>
                                         <option value="">Select User</option>
                                         <?php
                                         // Fetch users from the Users table
@@ -642,7 +646,7 @@ const sidebar = document.getElementById('sidebar');
                                 <!-- Product Name (Product Selection) -->
                                 <div class="mb-3">
                                     <label for="product_id" class="form-label">Product Name</label>
-                                    <select class="form-control" id="product_id" name="product_id" style="height: fit-content;" required>
+                                    <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
                                         <option value="">Select Product</option>
                                         <?php
                                         // Fetch products from the Products table
@@ -684,7 +688,7 @@ const sidebar = document.getElementById('sidebar');
                             <h5 class="modal-title" id="editStockModalLabel">Edit Stock</h5>
                         </div>
                         <div class="modal-body">
-                            <form method="POST" action="">
+                            <form method="POST" action="">                                
                                 <input type="hidden" id="edit_stock_id" name="Stock_ID">
                                 <div class="mb-3">
                                     <label for="edit_new_stock" class="form-label">New Stock</label>
@@ -703,6 +707,40 @@ const sidebar = document.getElementById('sidebar');
                     </div>
                 </div>
             </div>
+
+            <script>
+            // Enhanced modal data fetching
+            $(document).ready(function() {
+                $('#editStockModal').on('show.bs.modal', function (event) {
+                    const button = $(event.relatedTarget);
+                    const stockId = button.data('stock-id');
+                    
+                    // Set the initial values from data attributes for immediate display
+                    $('#edit_stock_id').val(stockId);
+                    $('#edit_new_stock').val(button.data('new-stock'));
+                    $('#edit_threshold').val(button.data('threshold'));
+                    
+                    // Then fetch the latest data from the database
+                    $.ajax({
+                        url: window.location.href,
+                        method: 'POST',
+                        data: {
+                            fetch_stock: true,
+                            stock_id: stockId
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            // Update form fields with latest data from database
+                            $('#edit_new_stock').val(response.new_stock);
+                            $('#edit_threshold').val(response.threshold);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error fetching stock data:", error);
+                        }
+                    });
+                });
+            });
+            </script>
             
         </div>
     </div>

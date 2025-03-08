@@ -251,32 +251,26 @@ $result = $conn->query($query);
     });
 
     function searchCustomers() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchInput");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("customersTable");
-        tr = table.getElementsByTagName("tr");
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
 
-        for (i = 0; i < tr.length; i++) {
-            var display = false;
-            for (var j = 0; j < 5; j++) { // Search in the first 5 columns
-                td = tr[i].getElementsByTagName("td")[j];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        display = true;
-                        break;
-                    }
-                }
-            }
-            if (display) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
+    // Search in the table (Desktop view)
+    const table = document.getElementById('customersTable');
+    if (table) {
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        for (let row of rows) {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none"; // Show or hide row
         }
     }
 
+    // Search in the cards (Mobile view)
+    const cards = document.querySelectorAll('.card'); // Assuming mobile uses cards
+    cards.forEach(card => {
+        let text = card.innerText.toLowerCase();
+        card.style.display = text.includes(filter) ? "" : "none"; // Show or hide card
+    });
+}
     function sortTable(n) {
         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
         table = document.getElementById("customersTable");

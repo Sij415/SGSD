@@ -217,26 +217,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         }
 
         // Function to search table
-        function searchTable() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
-            const table = document.getElementById('OrdersTable');
-            const tr = table.getElementsByTagName('tr');
+        function searchOrders() {
+        const input = document.getElementById('searchInput');
+        if (!input) return; // Ensure input exists
+        const filter = input.value.trim().toLowerCase();
 
-            for (let i = 1; i < tr.length; i++) {
-                const td = tr[i].getElementsByTagName('td');
-                let found = false;
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                tr[i].style.display = found ? '' : 'none';
-            }
+        // Search in Desktop Table
+        const rows = document.querySelectorAll('#OrdersTable tbody tr');
+        if (rows.length > 0) {
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
         }
+
+        // Search in Mobile Cards (if applicable)
+        const cards = document.querySelectorAll('.card');
+        if (cards.length > 0) {
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+    }
 
         // Edit order modal functionality
         $('#editOrderModal').on('show.bs.modal', function (event) {
@@ -283,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
         // Attach functions to the window so they can be called from HTML
         window.sortTable = sortTable;
-        window.searchTable = searchTable;
+       window.searchOrders = searchOrders;
     });
 </script>
 
@@ -510,7 +513,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchOrders()">
                     <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
