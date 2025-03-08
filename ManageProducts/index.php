@@ -145,7 +145,7 @@ $result = $conn->query($query);
         rows.forEach(row => tbody.appendChild(row));
     }
 
-    function searchTable() {
+    function searchTables() {
         const input = document.getElementById('searchInput');
         const filter = input.value.toLowerCase();
         const table = document.getElementById('ProductsTable');
@@ -163,6 +163,15 @@ $result = $conn->query($query);
                 }
             }
             tr[i].style.display = found ? '' : 'none';
+        }
+
+        // Search in Mobile Cards (if applicable)
+        const cards = document.querySelectorAll('.card');
+        if (cards.length > 0) {
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(filter) ? '' : 'none';
+            });
         }
     }
 
@@ -359,7 +368,7 @@ $result = $conn->query($query);
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
                     <button class="btn btn-outline-secondary rounded" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>

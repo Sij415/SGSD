@@ -226,6 +226,15 @@ function searchTable() {
         }
         tr[i].style.display = found ? '' : 'none';
     }
+
+    // Search in Mobile Cards (if applicable)
+    const cards = document.querySelectorAll('.card');
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(filter) ? '' : 'none';
+        });
+    }
 }
 
 function updateRowColors() {
@@ -525,7 +534,7 @@ $(document).ready(function() {
                 <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput"  onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>

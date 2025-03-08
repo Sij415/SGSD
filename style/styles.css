@@ -82,3 +82,52 @@ a.logout:hover {
 .add-btn {
     height: 37px;
 } 
+
+.search-actions {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+}
+
+.search-actions {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+}
+
+.input-group .form-control:focus {
+    border-color: #6fa062;
+    box-shadow: 0 0 0 0.2rem rgba(111, 160, 98, 0.25);
+}
+
+.input-group .btn-outline-secondary {
+    border-radius: 0 10px 10px 0;
+    border: 1px solid #dee2e6;
+    border-left: none;
+    background-color: #fff;
+    color: #6c757d;
+    transition: all 0.3s;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    color: #5a6268;
+}

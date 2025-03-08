@@ -147,32 +147,30 @@ $result = $conn->query($query);
         });
     });
 
-    function searchCustomers() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchInput");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("customersTable");
-        tr = table.getElementsByTagName("tr");
+        // Function to search table
+        function searchTables() {
+            const input = document.getElementById('searchInput');
+            if (!input) return; // Ensure input exists
+            const filter = input.value.trim().toLowerCase();
 
-        for (i = 0; i < tr.length; i++) {
-            var display = false;
-            for (var j = 0; j < 5; j++) { // Search in the first 5 columns
-                td = tr[i].getElementsByTagName("td")[j];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        display = true;
-                        break;
-                    }
-                }
+            // Search in Desktop Table
+            const tableRows = document.querySelectorAll('#customersTable tbody tr');
+            if (tableRows.length > 0) {
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
             }
-            if (display) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+
+            // Search in Mobile Cards (if applicable)
+            const cards = document.querySelectorAll('.card');
+            if (cards.length > 0) {
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(filter) ? '' : 'none';
+            });
             }
         }
-    }
 
     function sortTable(n) {
         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
@@ -225,6 +223,7 @@ $result = $conn->query($query);
                 }
             }
         }
+        
     }
 </script>
 
@@ -249,33 +248,6 @@ $result = $conn->query($query);
             modal.find('#edit_contact_num').val(contactNumber);
         });
     });
-
-    function searchCustomers() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchInput");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("customersTable");
-        tr = table.getElementsByTagName("tr");
-
-        for (i = 0; i < tr.length; i++) {
-            var display = false;
-            for (var j = 0; j < 5; j++) { // Search in the first 5 columns
-                td = tr[i].getElementsByTagName("td")[j];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        display = true;
-                        break;
-                    }
-                }
-            }
-            if (display) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
-    }
 
     function sortTable(n) {
         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
@@ -460,15 +432,15 @@ $result = $conn->query($query);
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
-                <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchCustomers()">
-                    <button class="btn btn-outline-secondary" type="button">
+                <div class="input-group" style="width: 100%;">
+                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
 
                 <!-- Add Customer Button -->
-                <button class="btn custom-btn m-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+                <button class="btn custom-btn m-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal" style="width: auto">Add Customer</button>
             </div>
 
             <!-- Table Layout (Visible on larger screens) -->    

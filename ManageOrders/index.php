@@ -216,27 +216,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             rows.forEach(row => tbody.appendChild(row));
         }
 
-        // Function to search table
-        function searchTable() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toLowerCase();
-            const table = document.getElementById('OrdersTable');
-            const tr = table.getElementsByTagName('tr');
+        function searchTables() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('OrdersTable');
+        const tr = table.getElementsByTagName('tr');
 
-            for (let i = 1; i < tr.length; i++) {
-                const td = tr[i].getElementsByTagName('td');
-                let found = false;
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                            found = true;
-                            break;
-                        }
+        for (let i = 1; i < tr.length; i++) {
+            const td = tr[i].getElementsByTagName('td');
+            let found = false;
+            for (let j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
                     }
                 }
-                tr[i].style.display = found ? '' : 'none';
             }
+            tr[i].style.display = found ? '' : 'none';
         }
+
+        // Search in Mobile Cards (if applicable)
+        const cards = document.querySelectorAll('.card');
+        if (cards.length > 0) {
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+    }
+
 
         // Edit order modal functionality
         $('#editOrderModal').on('show.bs.modal', function (event) {
@@ -283,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
         // Attach functions to the window so they can be called from HTML
         window.sortTable = sortTable;
-        window.searchTable = searchTable;
+        window.searchTables = searchTables;
     });
 </script>
 
@@ -515,7 +524,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group" style="width: 100%;">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
+                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
                     <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
@@ -954,6 +963,15 @@ hr.line {
             transform: translateY(-50%);
             color: #6c757d;
         }
+
+        .search-actions {
+            margin-bottom: 1.5rem;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
 
         /* ==========================================================================
             Buttons
