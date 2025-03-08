@@ -295,187 +295,216 @@ $result = $conn->query($query);
             </div>
         </nav>
 
-    <div class="container" style="max-height: 800px; overflow-y: auto;">
-        <section class="admin">
-            <div class="admin-main">
-                <div class="admin-title p-3 pt-5">
-                <div class="pb-4">
-                <i class="bi bi-gear" style="font-size:56px;"></i>
-                </div>
-                <div class="d-flex align-items-center">
-                    <h1><b>Admin Settings</b>
-                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage key settings to control user access, sign-up restrictions, and IP cooldowns for enhanced security and customization."></i>
-                    <script>
-                        $(document).ready(function(){
-                            $('[data-toggle="tooltip"]').tooltip();   
-                        });
-                    </script>
-                    </h1>
-                </div>
-
-                    <h3>Customize and control system preferences</h3>
-                    <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
-                </div>
-
-                <div class="admin-ip">
-                    <div class="p-3">
-                        <div class="admin-ip-title d-flex flex-column mb-3">
-                            <h3 style="letter-spacing: -0.045em;">
-                                <b>Current IP address:</b>
-                                <small class="text-muted"><?php echo $_SERVER['REMOTE_ADDR']; ?></small>
-                            </h3>
-                            <h5 class="text-muted mb-3" style="width: 90%;">
-                                Your IP address uniquely identifies your device on the internet and is essential for communication with other devices and accessing online services.
-                            </h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end p-3">
-                    <button class="btn custom-btn" onclick="window.location.href='../Logs'">View Logs</button>
-                </div>
-            </div>
-
-            <div style="padding: 16px;">
-                <hr>
-            </div>
-
-
-            <div class="admin-restrictions">
-            <div class="d-flex justify-content-between align-items-start p-3">
-                <div class="d-flex align-items-center">
-                    <h3 style="letter-spacing: -0.045em;">
-                        <b>Restrictions</b>
-                    </h3>
-                    <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage key settings to control user access, sign-up restrictions, and IP cooldowns for enhanced security and customization."></i>
-                    <script>
-                        $(document).ready(function(){
-                            $('[data-toggle="tooltip"]').tooltip();
-                        });
-                    </script>
-                </div>
-            </div>
-                <form action="" method="POST">
-                    <div class="d-flex justify-content-between align-items-start p-3">
-                        <div class="admin-restrictions-title d-flex flex-column mb-3">
-                            <h3 style="letter-spacing: -0.045em;">
-                                <b>Sign Up Restrictions</b>
-                            </h3>
-                            <h5 class="text-muted mb-3" style="width: 90%;">
-                                Toggle the restrictions to allow User account creation.
-                            </h5>
+    <div class="container-fluid px-md-4" style="max-height: 800px; overflow-y: auto;">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-10">
+                <section class="admin">
+                    <div class="admin-main">
+                        <div class="admin-title p-3 pt-5">
+                        <div class="pb-4">
+                        <i class="bi bi-gear" style="font-size:56px;"></i>
                         </div>
                         <div class="d-flex align-items-center">
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="signup-amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 150px;">
-                            </div>
-                            <div class="form-check form-switch mt-0 mb-1 pb-4">
-                                <input class="form-check-input custom-switch" type="checkbox" role="switch" name="sign_up_enabled" id="flexSwitchCheckChecked" <?php echo ($settings['SignUpEnabled'] == 1) ? 'checked' : ''; ?>>
-                            </div>
+                            <h1><b>Admin Settings</b>
+                            <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage key settings to control user access, sign-up restrictions, and IP cooldowns for enhanced security and customization."></i>
+                            <script>
+                                $(document).ready(function(){
+                                    $('[data-toggle="tooltip"]').tooltip();   
+                                });
+                            </script>
+                            </h1>
                         </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-start p-3">
-                        <div class="admin-restrictions-title d-flex flex-column mb-3">
-                            <h3 style="letter-spacing: -0.045em;">
-                                <b>Admin Sign Up</b> 
-                            </h3>
-                            <h5 class="text-muted mb-3" style="width: 90%;">
-                                Toggle the restrictions to allow admin sign up.
-                            </h5>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input custom-switch" type="checkbox" name="admin_signup_enabled" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?>>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-end p-3">
-                        <button type="submit" name="save_settings" class="btn custom-btn">Save Settings</button>
-                    </div>
-                </form>
-            </div>
 
-            <div class="p-3">
-                <hr>
-            </div>
-            <div class="p-3">
-                <h3 style="letter-spacing: -0.045em;">
-                <div class="d-flex align-items-center">
-                    <b>IP Cooldown</b>
-                    <i class="bi bi-info-circle pl-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage IP cooldown settings"></i>
-                </div>
+                            <h3>Customize and control system preferences</h3>
+                            <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
+                        </div>
+
+                        <div class="admin-ip">
+                            <div class="p-3">
+                                <div class="admin-ip-title d-flex flex-column mb-3">
+                                    <h3 style="letter-spacing: -0.045em;">
+                                        <b>Current IP address:</b>
+                                        <small class="text-muted"><?php echo $_SERVER['REMOTE_ADDR']; ?></small>
+                                    </h3>
+                                    <h5 class="text-muted mb-3" style="width: 90%;">
+                                        Your IP address uniquely identifies your device on the internet and is essential for communication with other devices and accessing online services.
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end p-3">
+                            <button class="btn custom-btn" onclick="window.location.href='../Logs'">View Logs</button>
+                        </div>
+                    </div>
+
+                    <div style="padding: 16px;">
+                        <hr>
+                    </div>
+
+
+                    <div class="admin-restrictions">
+                    <div class="d-flex justify-content-between align-items-start p-3">
+                        <div class="d-flex align-items-center">
+                            <h3 style="letter-spacing: -0.045em;">
+                                <b>Restrictions</b>
+                            </h3>
+                            <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage key settings to control user access, sign-up restrictions, and IP cooldowns for enhanced security and customization."></i>
+                            <script>
+                                $(document).ready(function(){
+                                    $('[data-toggle="tooltip"]').tooltip();
+                                });
+                            </script>
+                        </div>
+                    </div>
+                    <div id="unsavedChangesAlert" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
+                        You have unsaved changes made. Please click save settings to save.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                        <form action="" method="POST">
+                            <div class="d-flex justify-content-between align-items-start p-3">
+                                <div class="admin-restrictions-title d-flex flex-column mb-3">
+                                    <h3 style="letter-spacing: -0.045em;">
+                                        <b>Sign Up Restrictions</b>
+                                    </h3>
+                                    <h5 class="text-muted mb-3" style="width: 90%;">
+                                        Toggle the restrictions to allow User account creation.
+                                    </h5>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 5px;">
+                                    <input type="number" id="signup_amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-right: 10px;">
+                                    <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                                        <input type="checkbox" name="sign_up_enabled" value="1" <?php echo ($settings['SignUpEnabled'] == 1) ? 'checked' : ''; ?> style="opacity: 0; width: 0; height: 0;">
+                                        <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s; border-radius: 34px;"></span>
+                                    </label>
+                                    <style>
+
+                                    </style>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-start p-3">
+                                <div class="admin-restrictions-title d-flex flex-column mb-3">
+                                    <h3 style="letter-spacing: -0.045em;">
+                                        <b>Admin Sign Up</b> 
+                                    </h3>
+                                    <h5 class="text-muted mb-3" style="width: 90%;">
+                                        Toggle the restrictions to allow admin sign up.
+                                    </h5>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 5px;">
+                                    <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                                        <input type="checkbox" name="admin_signup_enabled" value="1" <?php echo ($settings['AdminSignUpEnabled'] == 1) ? 'checked' : ''; ?> style="opacity: 0; width: 0; height: 0;">
+                                        <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s; border-radius: 34px;"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end p-3">
+                                <button type="submit" name="save_settings" class="btn custom-btn">Save Settings</button>
+                            </div>
+                        </form>
+                    </div>
                     <script>
-                        $(document).ready(function(){
-                            $('[data-toggle="tooltip"]').tooltip();   
+                        $(document).ready(function() {
+                            // Function to show the unsaved changes alert
+                            function showUnsavedChangesAlert() {
+                                $("#unsavedChangesAlert").fadeIn();
+                            }
+
+                            // Attach event listeners to the input elements
+                            $("input[name='sign_up_enabled'], input[name='admin_signup_enabled'], input[name='signup_amount']").change(function() {
+                                showUnsavedChangesAlert();
+                            });
                         });
                     </script>
-                </h3>
-                <h5 class="text-muted mb-3" style="width: 90%;">
-                    Manage banned IP addresses and cooldown periods.
-                </h5>
-                <div>
-                    <div>
 
-                        <!-- Table Layout (Visible on larger screens) -->
-                        <div class="table-responsive d-none d-md-block">
-                            <table class="table table-striped table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>IP Address</th>
-                                        <th>Attempts</th>
-                                        <th>Last Attempt</th>
-                                        <th>Locked Until</th>
-                                        <th>Remove</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if ($result->num_rows > 0) : ?>
-                                        <?php while ($row = $result->fetch_assoc()) : ?>
-                                            <tr id="row-<?php echo $row['ID']; ?>">
-                                                <td><?php echo htmlspecialchars($row['IP_Address']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['Attempts']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['Last_Attempt']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['Locked_Until'] ?: 'Not Locked'); ?></td>
-                                                <td class="text-center">
-                                                    <button class="btn btn-danger btn-sm remove-ip" data-ip-id="<?php echo $row['ID']; ?>">
-                                                        <i class="bi bi-trash"></i> Remove
-                                                    </button>
-                                                </td>
+                    <div class="p-3">
+                        <hr>
+                    </div>
+                    <div class="p-3">
+                        <h3 style="letter-spacing: -0.045em;">
+                        <div class="d-flex align-items-center">
+                            <b>IP Cooldown</b>
+                            <i class="bi bi-info-circle pl-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage IP cooldown settings"></i>
+                        </div>
+                            <script>
+                                $(document).ready(function(){
+                                    $('[data-toggle="tooltip"]').tooltip();   
+                                });
+                            </script>
+                        </h3>
+                        <h5 class="text-muted mb-3" style="width: 90%;">
+                            Manage banned IP addresses and cooldown periods.
+                        </h5>
+                        <div>
+                            <div>
+
+                                <!-- Table Layout (Visible on larger screens) -->
+                                <div class="table-responsive d-none d-md-block">
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>IP Address</th>
+                                                <th>Attempts</th>
+                                                <th>Last Attempt</th>
+                                                <th>Locked Until</th>
+                                                <th>Remove</th>
                                             </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if ($result->num_rows > 0) : ?>
+                                                <?php while ($row = $result->fetch_assoc()) : ?>
+                                                    <tr id="row-<?php echo $row['ID']; ?>">
+                                                        <td><?php echo htmlspecialchars($row['IP_Address']); ?></td>
+                                                        <td><?php echo htmlspecialchars($row['Attempts']); ?></td>
+                                                        <td><?php echo htmlspecialchars($row['Last_Attempt']); ?></td>
+                                                        <td><?php echo htmlspecialchars($row['Locked_Until'] ?: 'Not Locked'); ?></td>
+                                                        <td class="text-center">
+                                                            <button class="btn btn-danger btn-sm remove-ip" data-ip-id="<?php echo $row['ID']; ?>">
+                                                                <i class="bi bi-trash"></i> Remove
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                <?php endwhile; ?>
+                                            <?php else : ?>
+                                                <tr>
+                                                    <td colspan="5" class="text-center">No IP cooldown records found.</td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Card Layout (Visible on smaller screens) -->
+                                <div class="row d-block d-md-none">
+                                    <?php
+                                    $result->data_seek(0); // Reset pointer
+                                    if ($result->num_rows > 0) : ?>
+                                        <?php while ($row = $result->fetch_assoc()) : ?>
+                                            <div class="col-12 mb-3" id="card-<?php echo $row['ID']; ?>">
+                                                <div class="card shadow-sm">
+                                                    <div class="card-body">
+                                                        <h5 class="card-title">IP: <?php echo htmlspecialchars($row['IP_Address']); ?></h5>
+                                                        <p><strong>Attempts:</strong> <?php echo htmlspecialchars($row['Attempts']); ?></p>
+                                                        <p><strong>Last Attempt:</strong> <?php echo htmlspecialchars($row['Last_Attempt']); ?></p>
+                                                        <p><strong>Locked Until:</strong> <?php echo htmlspecialchars($row['Locked_Until'] ?: 'Not Locked'); ?></p>
+                                                        <button class="btn btn-danger btn-sm remove-ip" data-ip-id="<?php echo $row['ID']; ?>">
+                                                            <i class="bi bi-trash"></i> Remove
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         <?php endwhile; ?>
                                     <?php else : ?>
-                                        <tr>
-                                            <td colspan="5" class="text-center">No IP cooldown records found.</td>
-                                        </tr>
+                                        <p>No IP cooldown records found.</p>
                                     <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Card Layout (Visible on smaller screens) -->
-                        <div class="row d-block d-md-none">
-                            <?php
-                            $result->data_seek(0); // Reset pointer
-                            if ($result->num_rows > 0) : ?>
-                                <?php while ($row = $result->fetch_assoc()) : ?>
-                                    <div class="col-12 mb-3" id="card-<?php echo $row['ID']; ?>">
-                                        <div class="card shadow-sm">
-                                            <div class="card-body">
-                                                <h5 class="card-title">IP: <?php echo htmlspecialchars($row['IP_Address']); ?></h5>
-                                                <p><strong>Attempts:</strong> <?php echo htmlspecialchars($row['Attempts']); ?></p>
-                                                <p><strong>Last Attempt:</strong> <?php echo htmlspecialchars($row['Last_Attempt']); ?></p>
-                                                <p><strong>Locked Until:</strong> <?php echo htmlspecialchars($row['Locked_Until'] ?: 'Not Locked'); ?></p>
-                                                <button class="btn btn-danger btn-sm remove-ip" data-ip-id="<?php echo $row['ID']; ?>">
-                                                    <i class="bi bi-trash"></i> Remove
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endwhile; ?>
-                            <?php else : ?>
-                                <p>No IP cooldown records found.</p>
-                            <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-        </section>
+                </section>
+            </div>
+        </div>
     </div>
     </div>
     </div>
@@ -734,6 +763,121 @@ hr.line {
     background-color: #f2f4f0;
 }
 
+            /* Table custom styling */
+            .table-responsive {
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+
+            .table {
+                margin-bottom: 0;
+            }
+
+            .table thead th {
+                background-color: #f2f4f0;
+                color: #444;
+                font-weight: 600;
+                border-bottom: 2px solid #dee2e6;
+                cursor: pointer;
+                padding: 1rem;
+                letter-spacing: -0.025em;
+                position: relative;
+                transition: background-color 0.3s;
+            }
+
+            .table thead th:hover {
+                background-color: #e8ecef;
+            }
+
+            .table thead th i {
+                font-size: 0.8rem;
+                margin-left: 5px;
+                opacity: 0.6;
+            }
+
+            .table tbody tr {
+                transition: background-color 0.2s;
+            }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+            .table td {
+                padding: 0.8rem 1rem;
+                vertical-align: middle;
+            }
+
+            .table td a {
+                color: #6fa062;
+                transition: transform 0.3s, color 0.3s;
+                display: inline-block;
+            }
+
+            .table td a:hover {
+                color: #5e8853;
+                transform: scale(1.2);
+            }
+
+/*-----------------------------------------------------
+    ADMIN SETTINGS
+------------------------------------------------------*/
+
+/* Switch Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc !important; /* Ensure initial state */
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #6fa062 !important; /* When checked */
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(20px);
+    -ms-transform: translateX(20px);
+    transform: translateX(20px);
+}
+
+/* Add higher specificity for the checked state */
+label.switch input[type="checkbox"]:checked + .slider {
+    background-color: #6fa062 !important;
+}
 
 /* ---------------------------------------------------
     MEDIAQUERIES

@@ -145,27 +145,35 @@ $result = $conn->query($query);
         rows.forEach(row => tbody.appendChild(row));
     }
 
-    function searchProducts() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
+    function searchTables() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('ProductsTable');
+        const tr = table.getElementsByTagName('tr');
 
-    // Search in the table (Desktop view)
-    const table = document.getElementById('ProductsTable'); // Assuming the table has this ID
-    if (table) {
-        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-        for (let row of rows) {
-            let text = row.innerText.toLowerCase();
-            row.style.display = text.includes(filter) ? "" : "none"; // Show or hide row
+        for (let i = 1; i < tr.length; i++) {
+            const td = tr[i].getElementsByTagName('td');
+            let found = false;
+            for (let j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            tr[i].style.display = found ? '' : 'none';
+        }
+
+        // Search in Mobile Cards (if applicable)
+        const cards = document.querySelectorAll('.card');
+        if (cards.length > 0) {
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(filter) ? '' : 'none';
+            });
         }
     }
-
-    // Search in the cards (Mobile view)
-    const cards = document.querySelectorAll('.card'); // Assuming mobile uses cards
-    cards.forEach(card => {
-        let text = card.innerText.toLowerCase();
-        card.style.display = text.includes(filter) ? "" : "none"; // Show or hide card
-    });
-}
 
     // Populate edit modal with existing data
     const editStockModal = document.getElementById('editProductModal');
@@ -351,13 +359,16 @@ $result = $conn->query($query);
                     });
                 </script>
             </div>
-            <h4 style="color: gray;">Add and Edit Products</h4>
-            <h6 class="d-lg-none d-md-block" style="color: gray;">Click to edit Customer</h6>
+            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage products in your inventory.</h4>
+            <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
+                <i class="bi bi-info-circle mr-1"></i>
+                Tap card to edit product.
+            </div>
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchProducts()">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
                     <button class="btn btn-outline-secondary rounded" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>

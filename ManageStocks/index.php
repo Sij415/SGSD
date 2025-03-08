@@ -207,23 +207,31 @@ function sortTable(columnIndex) {
     rows.forEach(row => tbody.appendChild(row));
 }
 
-function searchStocks() {
+function searchTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
+    const table = document.getElementById('stocksTable');
+    const tr = table.getElementsByTagName('tr');
 
-    // Search in Desktop Table
-    const rows = document.querySelectorAll('#stocksTable tbody tr'); // Select all table rows
-
-    rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none'; // Show/hide row
-    });
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j]) {
+                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        tr[i].style.display = found ? '' : 'none';
+    }
 
     // Search in Mobile Cards (if applicable)
-    const cards = document.querySelectorAll('.card'); // If mobile cards exist
+    const cards = document.querySelectorAll('.card');
     if (cards.length > 0) {
         cards.forEach(card => {
-            const text = card.innerText.toLowerCase();
+            const text = card.textContent.toLowerCase();
             card.style.display = text.includes(filter) ? '' : 'none';
         });
     }
@@ -252,7 +260,6 @@ function updateRowColors() {
         }
     });
 }
-
     // Now apply the same logic to mobile cards
     document.querySelectorAll('.card.shadow-sm').forEach((card, index) => {
     let newStock = parseInt(card.getAttribute('data-new-stock') || "0");
@@ -349,6 +356,40 @@ const sidebar = document.getElementById('sidebar');
         })
         .catch(error => console.error('Error:', error));
     });
+</script>
+
+<script>
+// Enhanced modal data fetching
+$(document).ready(function() {
+    $('#editStockModal').on('show.bs.modal', function (event) {
+        const button = $(event.relatedTarget);
+        const stockId = button.data('stock-id');
+
+        // Set the initial values from data attributes for immediate display
+        $('#edit_stock_id').val(stockId);
+        $('#edit_new_stock').val(button.data('new-stock'));
+        $('#edit_threshold').val(button.data('threshold'));
+
+        // Then fetch the latest data from the database
+        $.ajax({
+            url: window.location.href,
+            method: 'POST',
+            data: {
+                fetch_stock: true,
+                stock_id: stockId
+            },
+            dataType: 'json',
+            success: function(response) {
+                // Update form fields with latest data from database
+                $('#edit_new_stock').val(response.new_stock);
+                $('#edit_threshold').val(response.threshold);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching stock data:", error);
+            }
+        });
+    });
+});
 </script>
 
 <div class="wrapper">
@@ -472,8 +513,11 @@ const sidebar = document.getElementById('sidebar');
                         });
                     </script>
                 </div>
-                <h4 style="color: gray;">Add and Edit Stocks</h4>
-                <h6 class="d-lg-none d-md-block" style="color: gray;">Click to edit Customer</h6>
+                <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage orders.</h4>
+                <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
+                    <i class="bi bi-info-circle mr-1"></i>
+                    Tap card to edit order details.
+                </div>
                 <!-- Legend for Stock Colors -->
                 <ul class="pl-0">
                     <li style="font-size: 1.2em; background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #f5c6cb;">
@@ -490,7 +534,7 @@ const sidebar = document.getElementById('sidebar');
                 <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchStocks()">
+                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput"  onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
@@ -708,39 +752,7 @@ const sidebar = document.getElementById('sidebar');
                 </div>
             </div>
 
-            <script>
-            // Enhanced modal data fetching
-            $(document).ready(function() {
-                $('#editStockModal').on('show.bs.modal', function (event) {
-                    const button = $(event.relatedTarget);
-                    const stockId = button.data('stock-id');
-                    
-                    // Set the initial values from data attributes for immediate display
-                    $('#edit_stock_id').val(stockId);
-                    $('#edit_new_stock').val(button.data('new-stock'));
-                    $('#edit_threshold').val(button.data('threshold'));
-                    
-                    // Then fetch the latest data from the database
-                    $.ajax({
-                        url: window.location.href,
-                        method: 'POST',
-                        data: {
-                            fetch_stock: true,
-                            stock_id: stockId
-                        },
-                        dataType: 'json',
-                        success: function(response) {
-                            // Update form fields with latest data from database
-                            $('#edit_new_stock').val(response.new_stock);
-                            $('#edit_threshold').val(response.threshold);
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("Error fetching stock data:", error);
-                        }
-                    });
-                });
-            });
-            </script>
+
             
         </div>
     </div>
@@ -996,23 +1008,6 @@ hr.line {
 }
 
 /* ---------------------------------------------------
-    MOBILE STYLES
-
------------------------------------------------------ */
-
-h5.card-title {
-    font-size: 1.2em;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #fff;
-}
-
-p.card-text {
-    color:rgb(224, 224, 224) !important;
-    letter-spacing: -0.045em;
-}
-
-/* ---------------------------------------------------
     MANAGE STOCKS STYLES
 ----------------------------------------------------- */
 
@@ -1172,6 +1167,42 @@ p.card-text {
             input:hover, select:hover {
                 border-color: #6fa062;
             }
+
+/* ---------------------------------------------------
+    MOBILE STYLES
+----------------------------------------------------- */
+
+/* Custom color styles */
+.bg-orange {
+    background-color: #ffe0b2 !important; /* Light Orange */
+    color: #8a6d3b !important; /* Dark Orange Text */
+    font-weight: 600;
+}
+
+.bg-danger {
+    background-color: #f8d7da !important; /* Light Red */
+    color: #721c24 !important; /* Dark Red Text */
+}
+
+.bg-warning {
+    background-color: #fff3cd !important; /* Light Yellow */
+    color: #856404 !important; /* Dark Yellow Text */
+}
+
+p.card-text {
+    color:rgb(59, 59, 59) !important;
+}
+
+.table-danger {
+    color: #721c24 !important;
+    font-weight: 600;
+}
+
+.table-warning {
+    color: #856404 !important;
+    font-weight: 600;
+}
+
 
 
 /* ---------------------------------------------------

@@ -29,16 +29,16 @@
         </div> -->
 
         <?php
-        // Show "Not Allowed" message
-        echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Access Denied',
-                text: 'You do not have permission to access this page.',
-                showConfirmButton: true
-            });
-        </script>";
-        ?>
+        // // Show "Not Allowed" message
+        // echo "<script>
+        //     Swal.fire({
+        //         icon: 'error',
+        //         title: 'Access Denied',
+        //         text: 'You do not have permission to access this page.',
+        //         showConfirmButton: true
+        //     });
+        // </script>";
+        // ?>
 
         <!-- Display a custom message on the page -->
         <h1 class="main-heading">Access Denied</h1>
