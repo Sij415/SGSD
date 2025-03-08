@@ -1,14 +1,13 @@
 <?php
-// Include database connection
+$required_role = 'admin,staff,driver';
 include('../check_session.php');
+include('../log_functions.php');
 include '../dbconnect.php';
-
-// Start the session
+ // Start the session
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-
 // Get the user's first name and email from the database
 $query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
@@ -18,16 +17,14 @@ $stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
-// UPDATED QUERY to fetch logs
-$query = "SELECT Logs.Log_ID, 
-                 Users.First_Name AS First_Name, 
-                 Logs.Date, 
-                 Logs.Time, 
-                 Logs.Activity 
-          FROM Logs
-          INNER JOIN Users ON Logs.User_ID = Users.User_ID"; 
 
-$result = $conn->query($query);
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -35,7 +32,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGSD | Logs</title>
+    <title>SGSD | Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -71,51 +68,108 @@ $result = $conn->query($query);
 </script>
 
 <!-----------------------------------------------------
-    DO NOT REMOVE THIS SNIPPET, THIS IS FOR LOGS JS
+    DO NOT REMOVE THIS SNIPPET, THIS IS FOR DASHBOARD JS
 ------------------------------------------------------>
 
-<script>
-  function sortTable(columnIndex) {
-    const table = document.getElementById('logsTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleBtn');
 
-    rows.sort((rowA, rowB) => {
-      const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-      const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-      if (isNumeric) {
-        return parseFloat(cellA) - parseFloat(cellB);
-      } else {
-        return cellA.localeCompare(cellB);
-      }
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
     });
 
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
-  }
-
-  function searchTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('logsTable');
-    const tr = table.getElementsByTagName('tr');
-
-    for (let i = 1; i < tr.length; i++) {
-      const td = tr[i].getElementsByTagName('td');
-      let found = false;
-      for (let j = 0; j < td.length; j++) {
-        if (td[j]) {
-          if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-            found = true;
-            break;
-          }
-        }
-      }
-      tr[i].style.display = found ? '' : 'none';
+    function closeNav() {
+      sidebar.classList.remove('active');
     }
-  }
+
+
+        // Doughnut Chart for Top Selling
+        new Chart(document.getElementById('topSellingChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Coca Cola', 'Royal', 'Sprite', 'Pepsi', 'Mountain Dew'],
+                datasets: [{
+                    data: [43, 21, 13, 12, 8],
+                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']
+                }]
+            },
+            options: { responsive: true }
+        });
+        </script>
+
+<script>
+$(document).ready(function () {
+    $.ajax({
+        url: 'fetch_data.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            // Revenue Chart (Bar)
+            new Chart(document.getElementById('revenueBarChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.revenue_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.revenue_data.map(item => item.revenue),
+                        backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Orders Chart (Line)
+            new Chart(document.getElementById('ordersLineChart'), {
+                type: 'line',
+                data: {
+                    labels: data.orders_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.orders_data.map(item => item.order_count),
+                        borderColor: '#9fb0a1',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Customers Chart (Line)
+            new Chart(document.getElementById('customersLineChart'), {
+                type: 'line',
+                data: {
+                    labels: data.customers_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.customers_data.map(item => item.customer_count),
+                        borderColor: '#9fb0a1',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Items Sold Chart (Bar)
+            new Chart(document.getElementById('itemsSoldBarChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.items_sold_data.map(item => item.Date),
+                    datasets: [{
+                        data: data.items_sold_data.map(item => item.items_sold),
+                        backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching data:", error);
+        }
+    });
+});
 </script>
+
+
+  </script>
 
 <div class="wrapper">
     <!-- Sidebar  -->
@@ -123,7 +177,7 @@ $result = $conn->query($query);
         <div class="sidebar-header mt-4 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="navbar-brand m-0 p-1" href="#">
-                <img src="../logo.png" alt="SGSD Logo" width="30" height="30" class="mr-1"> SGSD
+                    <i class="fas fa-store mr-1"></i> SGSD
                 </a>
                 <button type="button" class="btn ml-auto d-md-none d-lg-none rounded-circle mr-1 shadow" id="exitSidebar">
                     <i class="fas fa-times" style="font-size: 13.37px;"></i>
@@ -175,7 +229,7 @@ $result = $conn->query($query);
                         <span>&nbsp;Manage Customer</span>
                     </a>
                 </li>
-                <li>
+                <li class="active">
                     <a href="../AdminSettings">
                         <i class="bi bi-gear" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
                         <span>&nbsp;Admin Settings</span>
@@ -223,99 +277,97 @@ $result = $conn->query($query);
             </div>
         </nav>
 
-        <div class="container mt-4">
-            <div class="pb-4">
-            <i class="fa-solid fa-clipboard-list" style="font-size:56px;"></i>
-            </div>
-            <div class="d-flex align-items-center">
-                <h1><b>Show Logs</b></h1>
-                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="This page audits and tracks user activity."></i>
-                    <script>
-                        $(document).ready(function(){
-                            $('[data-toggle="tooltip"]').tooltip();
-                        });
-                    </script>
-            </div>
-            <h3 style="color: gray;">System Logs</h3>
+        <!-- Dashboard -->
+        <div class="dashboard">
+    <!-- Dashboard-title -->
+    <div class="dashboard-title">
+        <h1><b>ANALYTICS</b> DASHBOARD</h1>
+            <div class="btn-group" style="z-index: 999;" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio1">DAILY</label>
 
-            <!-- Search Box -->
-            <div class="d-flex align-items-center justify-content-between mb-3">
-            <div class="input-group">
-                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput">
-                <button class="btn btn-outline-secondary" type="button" id="search">
-                <i class="fa fa-search"></i>
-                </button>
-            </div>
-            </div>
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked>
+                <label class="btn btn-outline-primary" for="btnradio2">WEEKLY</label>
 
-            <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
-            <div class="table-responsive d-none d-md-block">
-            <table class="table table-striped table-bordered" id="logsTable">
-                <thead>
-                <tr>
-                    <th onclick="sortTable(0)">Log ID <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(1)">User Name <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(3)">Date <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(4)">Time <i class="bi bi-arrow-down-up"></i></th>
-                    <th onclick="sortTable(5)">Activity <i class="bi bi-arrow-down-up"></i></th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php if (mysqli_num_rows($result) > 0): ?>
-                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                    <tr>
-                        <td><?php echo $row['Log_ID']; ?></td>
-                        <td><?php echo $row['First_Name']; ?></td>
-                        <td><?php echo $row['Date']; ?></td>
-                        <td><?php echo $row['Time']; ?></td>
-                        <td><?php echo $row['Activity']; ?></td>
-                    </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                    <td colspan="6">No logs found.</td>
-                    </tr>
-                <?php endif; ?>
-                </tbody>
-            </table>
-            </div>
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio3">MONTHLY</label>
 
-            <div class="row d-block d-md-none">
-            <?php
-            $result->data_seek(0);
-            if (mysqli_num_rows($result) > 0): ?>
-                <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                <div class="col-12 col-md-6 mb-3">
-                    <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Log ID: <?php echo htmlspecialchars($row['Log_ID']); ?></h5>
-                        <div class="row">
-                        <div class="col-6">
-                            <p class="card-text"><strong>User Name:</strong> <?php echo htmlspecialchars($row['First_Name']); ?></p>
-                        </div>
-                        <div class="col-6">
-                            <p class="card-text"><strong>Date:</strong> <?php echo htmlspecialchars($row['Date']); ?></p>
-                        </div>
-                        <div class="col-6">
-                            <p class="card-text"><strong>Time:</strong> <?php echo htmlspecialchars($row['Time']); ?></p>
-                        </div>
-                        <div class="col-12">
-                            <p class="card-text"><strong>Activity:</strong> <?php echo htmlspecialchars($row['Activity']); ?></p>
-                        </div>
-                        </div>
-                    </div>
+                <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio4">YEARLY</label>
+            </div>
+    </div>
+    <div class="dashboard-summary">
+    <div class="parent">
+        <div class="div1">
+            <div class=''>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Revenue</h5>
+                    <!-- <h2 class='fw-bold mb-2'>₱ 2,343</h2> -->
+                    <span class='badge red'>-0.102%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='revenueBarChart'></canvas>
                     </div>
                 </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <p>No logs found.</p>
-            <?php endif; ?>
             </div>
         </div>
+        <div class="div2">
+            <div class=''>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Orders</h5>
+                    <!-- <h2 class='fw-bold mb-2'>45</h2> -->
+                    <span class='badge green'>+1.2%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='ordersLineChart'></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
+        <div class="div3">
+            <div class=''>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Customers</h5>
+                    <!-- <h2 class='fw-bold mb-2'>12</h2> -->
+                    <span class='badge green'>+0.96%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='customersLineChart'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="div4">
+            <div class=''>
+                <div class='card p-3 text-center'>
+                    <h5 class='mb-2'>Items Sold</h5>
+                    <!-- <h2 class='fw-bold mb-2'>34</h2> -->
+                    <span class='badge red'>-1.1%</span>
+                    <div class='chart-container mt-3'>
+                        <canvas id='itemsSoldBarChart'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        </div>
+
+    <div class="dashboard-top">
+        <h1><b>TOP</b> SELLING</h1>
+    </div>
+    <div class="dashboard-top-grid">
+                <div class="div1"><div class="doughnut-container">
+                <canvas id="topSellingChart"></canvas></div>
+
+            </div>
+    <hr>
+    </div> 
+
+
+</div>
+
+  </div>
+
+
+    </div>
     </div>
 
 <style>
@@ -380,21 +432,6 @@ a:focus {
     transition: all 0.3s;
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.25);
 }
-
-#sidebar {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
-    
-    .sidebar-spacer {
-        flex-grow: 1;
-    }
-    
-    .sidebar-bottom {
-        margin-top: auto;
-    }
-
 
 #sidebar.active {
     margin-left: -250px;
@@ -461,6 +498,19 @@ ul.CTAs a {
     margin-bottom: 5px;
 }
 
+a.logout {
+    border-radius: 12px !important;
+    padding: 16px !important;
+    background: #6fa062;
+    color: #fff;
+}
+
+a.logout:hover {
+    color: #fff !important;
+    transition: background 0.3s, transform 0.3s !important;
+    transform: scale(1.02) !important;
+}
+
 #manualButton,
 #sidebarCollapse {
     background: #6fa062;
@@ -523,7 +573,7 @@ hr.line {
     transition: all 0.3s;
 }
 
-.add-btn {
+/* .add-btn {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -541,93 +591,27 @@ hr.line {
 
 .add-btn:hover {
     transform: scale(1.05);
-}
+} */
 
 .tooltip-inner {
     color: #000 !important;
     background-color: #ebecec !important;
 }
 
-/* ---------------------------------------------------
-    LOGS STYLES
------------------------------------------------------ */
+/* Custom styles to match system colors */
+.custom-btn {
+    background-color: #6fa062 !important;
+    color: #fff !important;
+    border: none !important;
+    transition: transform 0.3s !important;
+}
 
-.bg-orange {
-      background-color: #ff8800 !important; /* Ensure Orange */
-      color: white !important;
-    }
+.custom-btn:hover {
+    background-color: #5e8a52 !important;
+    color: #fff !important;
+    transform: scale(1.05) !important;
+}
 
-    tr.bg-orange td {
-      background-color: #ff8800 !important;
-      color: white !important;
-    }
-
-    .table-striped tbody tr.bg-orange td {
-      background-color: #ff8800 !important;
-      color: black !important;
-    }
-
-    .table-striped>tbody>tr:nth-child(odd)>td, 
-    .table-striped>tbody>tr:nth-child(odd)>th {
-      background-color: #f4f9f8;
-    }
-
-                /* Table custom styling */
-                .table-responsive {
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            }
-
-            .table {
-                margin-bottom: 0;
-            }
-
-            .table thead th {
-                background-color: #f2f4f0;
-                color: #444;
-                font-weight: 600;
-                border-bottom: 2px solid #dee2e6;
-                cursor: pointer;
-                padding: 1rem;
-                letter-spacing: -0.025em;
-                position: relative;
-                transition: background-color 0.3s;
-            }
-
-            .table thead th:hover {
-                background-color: #e8ecef;
-            }
-
-            .table thead th i {
-                font-size: 0.8rem;
-                margin-left: 5px;
-                opacity: 0.6;
-            }
-
-            .table tbody tr {
-                transition: background-color 0.2s;
-            }
-
-            .table tbody tr:hover {
-                background-color: #f8f9fa;
-            }
-
-            .table td {
-                padding: 0.8rem 1rem;
-                vertical-align: middle;
-            }
-
-            .table td a {
-                color: #6fa062;
-                transition: transform 0.3s, color 0.3s;
-                display: inline-block;
-            }
-
-            .table td a:hover {
-                color: #5e8853;
-                transform: scale(1.2);
-            }
 
 /* ---------------------------------------------------
     MEDIAQUERIES

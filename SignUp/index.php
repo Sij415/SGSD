@@ -16,27 +16,6 @@
 
 </head>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <?php
 
 include('../dbconnect.php');
@@ -59,17 +38,6 @@ if ($max_signups <= 0 & 0 != $sign_up_enabled) {
     header("Location: ../"); // Adjust this URL to match your actual login page
     exit();
 }
-
-
-
-
-
-
-
-
-
-
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get and sanitize the input values from the form
@@ -271,14 +239,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 $conn->close();
 ?>
-
-
-
-
-
-
-
-
 
 <body>
 <header class="main-header">
