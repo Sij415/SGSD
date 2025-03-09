@@ -319,8 +319,6 @@ body {
     background-color: #f2f4f0; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
-    border-top-right-radius: 24px;
-    border-bottom-right-radius: 24px;
     box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.15); /* Add shadow */
   }
 
@@ -341,7 +339,7 @@ body {
 }
 
 .sgsd-title {
-    padding: 8px 8px 8px 32px;
+    padding: 32px;
     text-decoration: none;
     font-size: 22px;
     color: #414141;
@@ -417,25 +415,17 @@ body {
     object-fit: cover; /* Auto crop */
 }
 
-.sidebar-usrname {
-    margin-left: 10px;
+.sidebar-username {
     letter-spacing: -0.025em !important;
-    white-space: normal;
-    overflow-wrap: break-word; /* Allow long text to wrap */
-    flex: 1; /* Occupy all remaining flex space */
 }
 
-.sidebar-usrname h1 {
+.sidebar-username h1 {
     font-size: 1.2em !important;
     font-weight: 700;
-    width: 75%;
-    line-height: 1.2; /* Adjust line height for better spacing */
 }
 
-.sidebar-usrname h2 {
+.sidebar-username h2 {
     font-size: 0.8em; /* Removed !important for better specificity control */
-    width: 65%;
-    line-height: 1.2; /* Adjust line height for better spacing */
 }
 
 .sidebar-options {
@@ -1417,7 +1407,7 @@ body{padding: 0em;}
 .bi-pencil-square {
     font-size: 1.2em;
     font-weight: 800 !important;
-    color: #6fa062;
+    color: #527c46;
 }
 /* Responsive adjustments */
 
@@ -1505,4 +1495,140 @@ body{padding: 0em;}
 }
 .add-btn:hover {
     transform: scale(1.05);
+}
+
+
+
+a.logout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 186px;
+    font-weight: 800;
+    border-radius: 12px !important;
+    padding: 18px !important;
+    background: #e5e7eb;
+    color: #242424;
+    margin: 0 auto;
+}
+
+a.logout:hover {
+    color: #6fa062 !important;
+    transition: background 0.3s, transform 0.3s !important;
+    transform: scale(1.10) !important;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-spacer {
+    flex-grow: 1;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+}
+
+            /* Card styling */
+            .card {
+                border-radius: 12px;
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .card-title {
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+
+            /* Additional utility classes */
+            .shadow-sm {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+            }
+
+            .rounded-pill {
+                border-radius: 50rem !important;
+            }
+
+            /* Make input fields more distinct on hover */
+            input:hover, select:hover {
+                border-color: #6fa062;
+            }
+
+#searchInput {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+#search {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.add-btn {
+    height: 37px;
+} 
+
+.search-actions {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+}
+
+.search-actions {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+}
+
+.input-group .form-control:focus {
+    border-color: #6fa062;
+    box-shadow: 0 0 0 0.2rem rgba(111, 160, 98, 0.25);
+}
+
+.input-group .btn-outline-secondary {
+    border-radius: 0 10px 10px 0;
+    border: 1px solid #dee2e6;
+    border-left: none;
+    background-color: #fff;
+    color: #6c757d;
+    transition: all 0.3s;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    color: #5a6268;
 }
