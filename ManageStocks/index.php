@@ -1224,4 +1224,3 @@ p.card-text {
     }
 }
 </style>
-

@@ -898,4 +898,3 @@ label.switch input[type="checkbox"]:checked + .slider {
     }
 }
 </style>
-

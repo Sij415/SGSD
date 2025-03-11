@@ -1496,3 +1496,139 @@ body{padding: 0em;}
 .add-btn:hover {
     transform: scale(1.05);
 }
+
+
+
+a.logout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 186px;
+    font-weight: 800;
+    border-radius: 12px !important;
+    padding: 18px !important;
+    background: #e5e7eb;
+    color: #242424;
+    margin: 0 auto;
+}
+
+a.logout:hover {
+    color: #6fa062 !important;
+    transition: background 0.3s, transform 0.3s !important;
+    transform: scale(1.10) !important;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-spacer {
+    flex-grow: 1;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+}
+
+            /* Card styling */
+            .card {
+                border-radius: 12px;
+                transition: all 0.3s ease;
+                overflow: hidden;
+            }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .card-title {
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+
+            /* Additional utility classes */
+            .shadow-sm {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+            }
+
+            .rounded-pill {
+                border-radius: 50rem !important;
+            }
+
+            /* Make input fields more distinct on hover */
+            input:hover, select:hover {
+                border-color: #6fa062;
+            }
+
+#searchInput {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+#search {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.add-btn {
+    height: 37px;
+} 
+
+.search-actions {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+}
+
+.search-actions {
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control {
+    border-radius: 10px 0 0 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+}
+
+.input-group .form-control:focus {
+    border-color: #6fa062;
+    box-shadow: 0 0 0 0.2rem rgba(111, 160, 98, 0.25);
+}
+
+.input-group .btn-outline-secondary {
+    border-radius: 0 10px 10px 0;
+    border: 1px solid #dee2e6;
+    border-left: none;
+    background-color: #fff;
+    color: #6c757d;
+    transition: all 0.3s;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    color: #5a6268;
+}
