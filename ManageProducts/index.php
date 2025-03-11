@@ -448,10 +448,6 @@ $result = $conn->query($query);
                     <div class="modal-body">
                         <form method="POST" action="">
                             <div class="mb-3">
-                                <label for="product_id" class="form-label">Product ID</label>
-                                <input type="number" class="form-control" id="Product_ID" name="Product_ID" placeholder="Enter Product ID" required>
-                            </div>
-                            <div class="mb-3">
                                 <label for="product_name" class="form-label">Product Name</label>
                                 <input type="text" class="form-control" id="Product_Name" name="Product_Name" placeholder="Enter Product Name" required>
                             </div>
