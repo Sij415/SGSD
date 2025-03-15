@@ -8,7 +8,6 @@ include '../dbconnect.php';
 ini_set('display_errors', 1);
 
 
-
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database

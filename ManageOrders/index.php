@@ -7,7 +7,6 @@ ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-//echo 'User ID: ' . $_SESSION['user_id'];
 
 // Get the user's first name from the database
 $query = "SELECT First_Name, Last_Name, User_ID FROM Users WHERE Email = ?";
@@ -23,7 +22,7 @@ $stmt->close();
 $query = "SELECT 
             Orders.Order_ID, 
             CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
-            Customers.First_Name AS Customer_Name, 
+            CONCAT(Customers.First_Name, ' ', Customers.Last_Name) AS Customer_Name, 
             Products.Product_Name, 
             Orders.Status, 
             Orders.Order_Type,
@@ -45,25 +44,34 @@ if (!$result) {
     die("Query failed: " . mysqli_error($conn));
 }
 
+// Fetch product list for dropdown
+$product_query = "SELECT Product_ID, Product_Name FROM Products";
+$product_result = $conn->query($product_query);
+$products = [];
+while ($row = $product_result->fetch_assoc()) {
+    $products[] = $row;
+}
+
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-  $customer_name = $_POST['Customer_Name'];
-  $product_name = $_POST['Product_Name'];
-  $status = $_POST['Status'];
-  $order_type = $_POST['Order_Type'];
-  $quantity = $_POST['Quantity'];
-  $totalprice = $_POST['Total_Price'];
+    $customer_name = $_POST['Customer_Name'];
+    $product_id = $_POST['Product_ID']; // Now using Product_ID from dropdown
+    $status = $_POST['Status'];
+    $order_type = $_POST['Order_Type'];
+    $quantity = $_POST['Quantity'];
 
-  // Validate input
-  if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
-      // Get Product_ID and Price
-      $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("s", $product_name);
-      $stmt->execute();
-      $stmt->bind_result($product_id, $price);
-      $stmt->fetch();
-      $stmt->close();
+ // Validate input
+ if (!empty($customer_name) && !empty($product_id) && !empty($quantity) && !empty($order_type)) {
+    // Get Product Price
+    $query = "SELECT Price FROM Products WHERE Product_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $stmt->bind_result($price);
+    $stmt->fetch();
+    $stmt->close();
+
+    $total_price = $price * $quantity;
 
       if (!$product_id) {
           echo "<div class='alert alert-danger'>Product not found.</div>";
@@ -402,7 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </div>
         </nav>
 
-        <!-- Add Order Modal -->
+        <!-- Updated Add Order Modal -->
         <div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -413,16 +421,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="customer_name" class="form-label">Customer Name</label>
-                                <input type="text" name="Customer_Name" id="Customer_Name" class="form-control" placeholder="e.g., Jon" required>
+                                <input type="text" name="Customer_Name" id="Customer_Name" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label for="product_name" class="form-label">Product Name</label>
-                                <input type="text" name="Product_Name" id="Product_Name" class="form-control" placeholder="e.g., Coca-Cola" required>
-                                <small class="form-text text-muted">Please enter the exact product name as in the product list.</small>
+                                <label for="product_id" class="form-label">Product Name</label>
+                                <select name="Product_ID" id="Product_ID" class="form-control" required>
+                                    <option value="">Select Product</option>
+                                    <?php foreach ($products as $product) { ?>
+                                        <option value="<?php echo $product['Product_ID']; ?>">
+                                            <?php echo htmlspecialchars($product['Product_Name']); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <label for="add_status" class="form-label">Status</label>
-                                <select class="form-control" id="Status" name="Status" style="height: fit-content; " required>
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-control" id="Status" name="Status" required>
                                     <option value="">Select Status</option>
                                     <option value="To Pick Up">To Pick Up</option>
                                     <option value="In Transit">In Transit</option>
@@ -431,7 +445,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="order_type" class="form-label">Order Type</label>
-                                <select name="Order_Type" id="Order_Type" class="form-control" style="height: fit-content;" required>
+                                <select name="Order_Type" id="Order_Type" class="form-control" required>
                                     <option value="">Select Order Type</option>
                                     <option value="Inbound">Inbound</option>
                                     <option value="Outbound">Outbound</option>
@@ -439,13 +453,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="quantity" class="form-label">Quantity</label>
-                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
-                                <small class="form-text text-muted">Please enter the quantity of the product.</small>
+                                <input type="number" name="Quantity" id="Quantity" class="form-control" required>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                            <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" name="add_order" class="btn btn-primary">Add Order</button>
                         </div>
                     </form>
                 </div>
