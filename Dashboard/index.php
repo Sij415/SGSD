@@ -100,71 +100,192 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
         });
         </script>
 
+
 <script>
 $(document).ready(function () {
-    $.ajax({
-        url: 'fetch_data.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function (data) {
-            // Revenue Chart (Bar)
-            new Chart(document.getElementById('revenueBarChart'), {
-                type: 'bar',
-                data: {
-                    labels: data.revenue_data.map(item => item.Date),
-                    datasets: [{
-                        data: data.revenue_data.map(item => item.revenue),
-                        backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
+    let revenueBarChart, ordersLineChart, customersLineChart, itemsSoldBarChart;
 
-            // Orders Chart (Line)
-            new Chart(document.getElementById('ordersLineChart'), {
-                type: 'line',
-                data: {
-                    labels: data.orders_data.map(item => item.Date),
-                    datasets: [{
-                        data: data.orders_data.map(item => item.order_count),
-                        borderColor: '#9fb0a1',
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
-
-            // Customers Chart (Line)
-            new Chart(document.getElementById('customersLineChart'), {
-                type: 'line',
-                data: {
-                    labels: data.customers_data.map(item => item.Date),
-                    datasets: [{
-                        data: data.customers_data.map(item => item.customer_count),
-                        borderColor: '#9fb0a1',
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
-
-            // Items Sold Chart (Bar)
-            new Chart(document.getElementById('itemsSoldBarChart'), {
-                type: 'bar',
-                data: {
-                    labels: data.items_sold_data.map(item => item.Date),
-                    datasets: [{
-                        data: data.items_sold_data.map(item => item.items_sold),
-                        backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error("Error fetching data:", error);
+    function formatDate(dateString, period) {
+        let options;
+        if (period === 'monthly') {
+            options = { year: 'numeric', month: 'long' };
+        } else if (period === 'yearly') {
+            options = { year: 'numeric' };
+        } else if (period === 'weekly') {
+            const [year, week] = dateString.split('-').map(Number);
+            return `Week ${week}`;
+        } else {
+            options = { year: 'numeric', month: 'long', day: 'numeric' };
         }
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+
+    function calculatePercentageChange(current, previous) {
+        if (previous === 0) return '0.00%';
+        return ((current - previous) / previous * 100).toFixed(2) + '%';
+    }
+
+    function updatePercentageSpan(spanId, percentageChange) {
+        const spanElement = document.getElementById(spanId);
+        if (percentageChange === '0.00%') {
+            spanElement.textContent = percentageChange;
+            spanElement.className = 'badge grey';
+        } else if (parseFloat(percentageChange) > 0) {
+            spanElement.textContent = `+${percentageChange}`;
+            spanElement.className = 'badge green';
+        } else {
+            spanElement.textContent = `${percentageChange}`;
+            spanElement.className = 'badge red';
+        }
+    }
+
+    function fetchData(period) {
+        $.ajax({
+            url: 'fetch_data.php',
+            method: 'GET',
+            data: { period: period },
+            dataType: 'json',
+            success: function (data) {
+                // Update Revenue Chart (Bar)
+                const revenueData = data.revenue_data;
+                if (revenueBarChart) {
+                    revenueBarChart.data.labels = revenueData.map(item => formatDate(item.Date, period));
+                    revenueBarChart.data.datasets[0].data = revenueData.map(item => item.revenue);
+                    revenueBarChart.update();
+                } else {
+                    revenueBarChart = new Chart(document.getElementById('revenueBarChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: revenueData.map(item => formatDate(item.Date, period)),
+                            datasets: [{
+                                data: revenueData.map(item => item.revenue),
+                                backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
+                            }]
+                        },
+                        options: { responsive: true, plugins: { legend: { display: false } } }
+                    });
+                }
+                const revenueChange = revenueData.length > 1 ? calculatePercentageChange(revenueData[revenueData.length - 1].revenue, revenueData[revenueData.length - 2].revenue) : '0.00%';
+                updatePercentageSpan('revenueChangeSpan', revenueChange);
+
+                // Update Orders Chart (Line)
+                const ordersData = data.orders_data;
+                if (ordersLineChart) {
+                    ordersLineChart.data.labels = ordersData.map(item => formatDate(item.Date, period));
+                    ordersLineChart.data.datasets[0].data = ordersData.map(item => item.order_count);
+                    ordersLineChart.update();
+                } else {
+                    ordersLineChart = new Chart(document.getElementById('ordersLineChart'), {
+                        type: 'line',
+                        data: {
+                            labels: ordersData.map(item => formatDate(item.Date, period)),
+                            datasets: [{
+                                data: ordersData.map(item => item.order_count),
+                                borderColor: '#9fb0a1',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    ticks: {
+                                        callback: function(value) {
+                                            return Number.isInteger(value) ? value : null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                const ordersChange = ordersData.length > 1 ? calculatePercentageChange(ordersData[ordersData.length - 1].order_count, ordersData[ordersData.length - 2].order_count) : '0.00%';
+                updatePercentageSpan('ordersChangeSpan', ordersChange);
+
+                // Update Customers Chart (Line)
+                const customersData = data.customers_data;
+                if (customersLineChart) {
+                    customersLineChart.data.labels = customersData.map(item => formatDate(item.Date, period));
+                    customersLineChart.data.datasets[0].data = customersData.map(item => item.customer_count);
+                    customersLineChart.update();
+                } else {
+                    customersLineChart = new Chart(document.getElementById('customersLineChart'), {
+                        type: 'line',
+                        data: {
+                            labels: customersData.map(item => formatDate(item.Date, period)),
+                            datasets: [{
+                                data: customersData.map(item => item.customer_count),
+                                borderColor: '#9fb0a1',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    ticks: {
+                                        callback: function(value) {
+                                            return Number.isInteger(value) ? value : null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                const customersChange = customersData.length > 1 ? calculatePercentageChange(customersData[customersData.length - 1].customer_count, customersData[customersData.length - 2].customer_count) : '0.00%';
+                updatePercentageSpan('customersChangeSpan', customersChange);
+
+                // Update Items Sold Chart (Bar)
+                const itemsSoldData = data.items_sold_data;
+                if (itemsSoldBarChart) {
+                    itemsSoldBarChart.data.labels = itemsSoldData.map(item => formatDate(item.Date, period));
+                    itemsSoldBarChart.data.datasets[0].data = itemsSoldData.map(item => item.items_sold);
+                    itemsSoldBarChart.update();
+                } else {
+                    itemsSoldBarChart = new Chart(document.getElementById('itemsSoldBarChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: itemsSoldData.map(item => formatDate(item.Date, period)),
+                            datasets: [{
+                                data: itemsSoldData.map(item => item.items_sold),
+                                backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    ticks: {
+                                        callback: function(value) {
+                                            return Number.isInteger(value) ? value : null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                const itemsSoldChange = itemsSoldData.length > 1 ? calculatePercentageChange(itemsSoldData[itemsSoldData.length - 1].items_sold, itemsSoldData[itemsSoldData.length - 2].items_sold) : '0.00%';
+                updatePercentageSpan('itemsSoldChangeSpan', itemsSoldChange);
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching data:", error);
+            }
+        });
+    }
+
+    // Event listener for date range buttons
+    $('input[name="data_range"]').change(function () {
+        const period = $(this).val();
+        fetchData(period);
     });
+
+    // Initial fetch for the default period
+    fetchData('monthly');
 });
 </script>
 
@@ -356,28 +477,28 @@ $(document).ready(function () {
                 </h1>
             </div>
             <h4 class="pb-3 pt-1" style="color: gray; font-size: 18px; font-weight: 300;">A summary of key metrics such as revenue, orders, customers, and items sold.</h4>
-            <div class="date-filter-group">
+        <div class="date-filter-group">
                 <div class="btn-group" role="group" aria-label="Data Range">
                     <input type="radio" class="date-filter-input" name="data_range" id="daily" autocomplete="off" value="daily">
                     <label class="date-filter-btn" for="daily">Daily</label>
 
-                    <input type="radio" class="date-filter-input" name="data_range" id="weekly" autocomplete="off" value="weekly">
-                    <label class="date-filter-btn" for="weekly">Weekly</label>
+                <input type="radio" class="date-filter-input" name="data_range" id="weekly" autocomplete="off" value="weekly">
+                <label class="date-filter-btn" for="weekly">Weekly</label>
 
-                    <input type="radio" class="date-filter-input" name="data_range" id="monthly" autocomplete="off" value="monthly" checked>
-                    <label class="date-filter-btn" for="monthly">Monthly</label>
+                <input type="radio" class="date-filter-input" name="data_range" id="monthly" autocomplete="off" value="monthly" checked>
+                <label class="date-filter-btn" for="monthly">Monthly</label>
 
-                    <input type="radio" class="date-filter-input" name="data_range" id="yearly" autocomplete="off" value="yearly">
-                    <label class="date-filter-btn" for="yearly">Yearly</label>
-                </div>
+                <input type="radio" class="date-filter-input" name="data_range" id="yearly" autocomplete="off" value="yearly">
+                <label class="date-filter-btn" for="yearly">Yearly</label>
             </div>
+        </div>
             <div class="parent">
                 <div class="div1">
                 <div class=''>
                     <div class='card p-3 text-center'>
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class='mb-2'>Revenue</h5>
-                            <span class='badge red'>-0.102%</span>
+                            <span id="revenueChangeSpan" class='badge red'></span>
                         </div>
                     <div class='chart-container mt-3'>
                         <canvas id='revenueBarChart'></canvas>
@@ -391,7 +512,7 @@ $(document).ready(function () {
                         <div class='card p-3 text-center'>
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class='mb-2'>Orders</h5>
-                                <span class='badge green'>+1.2%</span>
+                                <span id="ordersChangeSpan" class='badge green'></span>
                             </div>
                             <div class='chart-container mt-3'>
                                 <canvas id='ordersLineChart'></canvas>
@@ -405,7 +526,7 @@ $(document).ready(function () {
                     <div class='card p-3 text-center'>
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class='mb-2'>Customers</h5>
-                            <span class='badge green'>+0.96%</span>
+                            <span id="customersChangeSpan" class='badge green'></span>
                         </div>
                     <div class='chart-container mt-3'>
                         <canvas id='customersLineChart'></canvas>
@@ -418,7 +539,7 @@ $(document).ready(function () {
                     <div class='card p-3 text-center'>
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class='mb-2'>Items Sold</h5>
-                            <span class='badge red'>-1.1%</span>
+                            <span id="itemsSoldChangeSpan" class='badge red'></span>
                         </div>
                     <div class='chart-container mt-3'>
                         <canvas id='itemsSoldBarChart'></canvas>
@@ -887,6 +1008,11 @@ hr.line {
         .badge.red {
             background-color: #fee2e2;
             color: #dc2626;
+        }
+
+        .badge.grey {
+            background-color:rgb(209, 214, 207);
+            color:rgb(122, 115, 115);
         }
 
         /* Top Selling Section */
