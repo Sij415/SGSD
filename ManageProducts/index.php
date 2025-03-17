@@ -30,7 +30,7 @@ if (isset($_POST['add_product'])) {
     // Proceed with inserting into Product table
     $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("issi", $product_id, $product_name, $product_type, $price);
+    $stmt->bind_param("issd", $product_id, $product_name, $product_type, $price);
 
     if ($stmt->execute()) {
         $success_message = "Product added successfully.";
@@ -50,7 +50,7 @@ if (isset($_POST['edit_product'])) {
 
     $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("ssii", $new_productname, $new_producttype, $new_price, $product_id);
+    $stmt->bind_param("ssdi", $new_productname, $new_producttype, $new_price, $product_id);
 
     if ($stmt->execute()) {
         $success_message = "Product updated successfully.";
@@ -552,7 +552,11 @@ $result = $conn->query($query);
                                     <td><?php echo $row['Product_Type']; ?></td>
                                     <td><?php echo $row['Price']; ?></td>
                                     <td class="text-dark text-center">
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" data-product-id="<?php echo $row['Product_ID']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-product-type="<?php echo $row['Product_Type']; ?>" data-price="<?php echo $row['Price']; ?>">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                                        data-product-id="<?php echo $row['Product_ID']; ?>" 
+                                        data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                        data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                        data-price="<?php echo $row['Price']; ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     </td>
@@ -575,7 +579,11 @@ $result = $conn->query($query);
                     <?php while ($row = mysqli_fetch_assoc($result)) : ?>
                         <div class="col-12 col-md-6 mb-3">
                             <div class="card shadow-sm">
-                                <div class="card-body rounded" data-bs-toggle="modal" data-bs-target="#editProductModal" data-product-id="<?php echo $row['Product_ID']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-product-type="<?php echo $row['Product_Type']; ?>" data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
+                                <div class="card-body rounded" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                                data-product-id="<?php echo $row['Product_ID']; ?>" 
+                                data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                                     <div class="row">
                                         <div class="col-6">
