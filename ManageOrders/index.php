@@ -622,14 +622,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="Customer_LastName" class="form-label">Customer Last Name</label>
-                                <select class="form-control" id="Customer_LastName" name="Customer_LName" style="height: fit-content" required>
+                                <select class="form-control" id="Customer_LastName" name="Customer_LName" style="height: fit-content" required disabled>
                                     <option value="">Select Last Name</option>
                                     <?php foreach ($customers as $customer): ?>
-                                        <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                        <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>" data-firstname="<?= htmlspecialchars($customer['First_Name']) ?>">
                                             <?= htmlspecialchars($customer['Last_Name']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+
+                                <script>
+                                $(document).ready(function() {
+                                    // Store all customer data for easy lookup
+                                    const customers = <?php echo json_encode($customers); ?>;
+                                    
+                                    // When first name dropdown changes
+                                    $('#Customer_FirstName').on('change', function() {
+                                        const selectedCustomerId = $(this).val();
+                                        
+                                        // Find the corresponding customer
+                                        const customer = customers.find(c => c.Customer_ID == selectedCustomerId);
+                                        
+                                        // Reset and update the last name dropdown
+                                        $('#Customer_LastName').val('');
+                                        
+                                        if (customer) {
+                                            // Find and select the matching option
+                                            $('#Customer_LastName option').each(function() {
+                                                if ($(this).val() == selectedCustomerId) {
+                                                    $(this).prop('selected', true);
+                                                    return false; // Break the loop
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+                                </script>
                             </div>
                             <div class="mb-3">
                                 <label for="product_id" class="form-label">Product Name</label>
