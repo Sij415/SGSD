@@ -300,19 +300,6 @@ const sidebar = document.getElementById('sidebar');
       sidebar.classList.remove('active');
     }
 
- // Populate edit modal with existing data
- const editStockModal = document.getElementById('editStockModal');
-    editStockModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const stockId = button.getAttribute('data-stock-id');
-        const newStock = button.getAttribute('data-new-stock');
-        const threshold = button.getAttribute('data-threshold');
-
-        document.getElementById('edit_stock_id').value = stockId;
-        document.getElementById('edit_new_stock').value = newStock;
-        document.getElementById('edit_threshold').value = threshold;
-    });
-
     // Handle adding a stock
     document.getElementById('addStockForm').addEventListener('submit', function (e) {
         e.preventDefault();
