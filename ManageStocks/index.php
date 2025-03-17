@@ -392,6 +392,118 @@ $(document).ready(function() {
 });
 </script>
 
+<!-----------------------------------------------------
+    DO NOT REMOVE THIS SNIPPET, THIS IS FOR DELETE ENTRY FUNCTION JS
+------------------------------------------------------>
+
+<script>
+    $(document).ready(function() {
+        // Initialize selection mode variables
+        let selectionMode = false;
+        let selectedItems = [];
+
+        // Add checkbox column to table header
+        $("#stocksTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+
+        // Add checkboxes to all rows
+        $("#stocksTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+
+        // Toggle selection mode
+        $("#toggle-selection-mode").click(function() {
+            if (selectedItems.length > 0) {
+                // If items are selected, open delete modal directly
+                $("#deleteConfirmModal").modal("show");
+            } else {
+                // Toggle selection mode as before
+                selectionMode = !selectionMode;
+                if (selectionMode) {
+                    $(this).addClass("active");
+                } else {
+                    $(this).removeClass("active");
+                    // Clear all checkboxes
+                    $(".row-checkbox").prop("checked", false);
+                    $("#select-all").prop("checked", false);
+                    selectedItems = [];
+                    updateSelectedCount();
+                }
+            }
+        });
+
+        // Select all checkboxes
+        $("#select-all").change(function() {
+            let isChecked = $(this).is(":checked");
+            $(".row-checkbox").prop("checked", isChecked);
+
+            // Update selected items
+            selectedItems = [];
+            if (isChecked) {
+                // Simply gather all row elements that have checkboxes
+                $(".row-checkbox").each(function() {
+                    selectedItems.push($(this).closest("tr")[0]);
+                });
+            }
+            updateSelectedCount();
+        });
+
+        // Individual checkbox selection
+        $(document).on("change", ".row-checkbox", function() {
+            const row = $(this).closest("tr")[0];
+
+            if ($(this).is(":checked")) {
+                // Add this row element to our selections if not already included
+                if (!selectedItems.includes(row)) {
+                    selectedItems.push(row);
+                }
+            } else {
+                // Remove this row from selections
+                selectedItems = selectedItems.filter(item => item !== row);
+                $("#select-all").prop("checked", false);
+            }
+
+            updateSelectedCount();
+        });
+
+        // Update the selected count display
+        function updateSelectedCount() {
+            const count = selectedItems.length;
+            $("#selected-count").text(count + " selected");
+            $("#delete-count").text(count);
+            
+            // Show/hide floating dialog based on selection
+            if (count > 0) {
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
+        }
+
+        // Handle delete confirmation
+        $("#delete-confirmed").click(function() {
+            console.log("Deleting items:", selectedItems);
+            // Here you would normally send the selectedItems to the server for deletion
+
+            // Clear selection and close modal
+            $("#deleteConfirmModal").modal("hide");
+
+            // For demo purposes, let's remove the selected rows from the table
+            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
+                $(this).remove();
+            });
+
+            // Reset selection
+            selectionMode = false;
+            $("#toggle-selection-mode").removeClass("active");
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Connect delete button in floating dialog to delete modal
+        $("#delete-selected-btn").click(function() {
+            $("#deleteConfirmModal").modal("show");
+        });
+    });
+</script>
+
 <div class="wrapper">
     <!-- Sidebar  -->
     <nav id="sidebar">
@@ -530,18 +642,64 @@ $(document).ready(function() {
                         <span>Yellow</span> = Stock is +30 of the threshold
                     </li>
                 </ul>
-                <!-- Search Box -->
-                <div class="d-flex align-items-center justify-content-between mb-3">
+            <!-- Search Box -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
-                <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput"  onkeyup="searchTable()">
-                    <button class="btn btn-outline-secondary" type="button" id="search">
+                <div class="input-group m-0" style="width: 100%;">
+                <div class="search-container">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
-                <!-- Add Customer Button -->
-                <button class="add-btn m-2" data-bs-toggle="modal" data-bs-target="#addStockModal">Add Stock</button>
+
+                    <!-- Mobile search that will only show below 476px -->
+                    <div class="mobile-search-container d-none">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
                 </div>
+                <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+                    <!-- Add Order Button -->
+                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Order</button>
+                <?php endif; ?>
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete <span id="delete-count">0</span> selected order(s)?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">No, Cancel</button>
+                                <button type="button" class="btn custom-btn" id="delete-confirmed">Yes, Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="selection-controls" class="delete-selection-floating" style="display: none;">
+                <div class="floating-dialog">
+                    <span id="selected-count">0 selected</span>
+                    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+                    <button id="delete-selected-btn" class="btn btn-danger btn-sm" style="border-radius: 32px;">Delete Selected</button>
+                    <?php endif; ?>
+                    </div>
+            </div>
+            <script>
+                // Connect delete buttons to delete modal
+                $(document).ready(function() {
+                    $("#delete-selected-btn, #delete-selected-btn-edit").click(function() {
+                        $("#deleteConfirmModal").modal("show");
+                    });
+                });
+            </script>
 
                 <!-- Table Layout (Visible on larger screens) -->
                 <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
@@ -744,6 +902,7 @@ $(document).ready(function() {
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                    <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                                     <button type="submit" name="edit_stock" class="btn custom-btn">Save Changes</button>
                                 </div>
                             </form>

@@ -30,7 +30,7 @@ if (isset($_POST['add_product'])) {
     // Proceed with inserting into Product table
     $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("issi", $product_id, $product_name, $product_type, $price);
+    $stmt->bind_param("issd", $product_id, $product_name, $product_type, $price);
 
     if ($stmt->execute()) {
         $success_message = "Product added successfully.";
@@ -50,7 +50,7 @@ if (isset($_POST['edit_product'])) {
 
     $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("ssii", $new_productname, $new_producttype, $new_price, $product_id);
+    $stmt->bind_param("ssdi", $new_productname, $new_producttype, $new_price, $product_id);
 
     if ($stmt->execute()) {
         $success_message = "Product updated successfully.";
@@ -112,6 +112,23 @@ $result = $conn->query($query);
 ------------------------------------------------------>
 
 <script>
+    $(document).ready(function () {
+    // Populate edit modal with existing data
+    $('#editProductModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var productId = button.data('product-id'); // Extract info from data-* attributes
+    var productName = button.data('product-name');
+    var productType = button.data('product-type');
+    var price = button.data('price');
+
+    var modal = $(this);
+    modal.find('#edit_product_id').val(productId);
+    modal.find('#edit_product_name').val(productName);
+    modal.find('#edit_product_type').val(productType);
+    modal.find('#edit_price').val(price);
+    });
+})
+
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
 
@@ -173,21 +190,6 @@ $result = $conn->query($query);
             });
         }
     }
-
-    // Populate edit modal with existing data
-    const editStockModal = document.getElementById('editProductModal');
-    editStockModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const productId = button.getAttribute('data-product-id');
-        const productName = button.getAttribute('data-product-name');
-        const productType = button.getAttribute('data-product-type');
-        const price = button.getAttribute('data-price');
-
-        document.getElementById('edit_product_id').value = productId;
-        document.getElementById('edit_product_name').value = productName;
-        document.getElementById('edit_product_type').value = productType;
-        document.getElementById('edit_price').value = price;
-    });
 
     // Handle adding a product
     document.getElementById('addProductForm').addEventListener('submit', function (e) {
@@ -552,7 +554,11 @@ $result = $conn->query($query);
                                     <td><?php echo $row['Product_Type']; ?></td>
                                     <td><?php echo $row['Price']; ?></td>
                                     <td class="text-dark text-center">
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" data-product-id="<?php echo $row['Product_ID']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-product-type="<?php echo $row['Product_Type']; ?>" data-price="<?php echo $row['Price']; ?>">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                                        data-product-id="<?php echo $row['Product_ID']; ?>" 
+                                        data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                        data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                        data-price="<?php echo $row['Price']; ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     </td>
@@ -575,7 +581,11 @@ $result = $conn->query($query);
                     <?php while ($row = mysqli_fetch_assoc($result)) : ?>
                         <div class="col-12 col-md-6 mb-3">
                             <div class="card shadow-sm">
-                                <div class="card-body rounded" data-bs-toggle="modal" data-bs-target="#editProductModal" data-product-id="<?php echo $row['Product_ID']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-product-type="<?php echo $row['Product_Type']; ?>" data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
+                                <div class="card-body rounded" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                                data-product-id="<?php echo $row['Product_ID']; ?>" 
+                                data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                                     <div class="row">
                                         <div class="col-6">
