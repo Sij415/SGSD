@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $quantity = $_POST['Quantity'];
 
     // Validate input
-    if (!empty($customer_fname) && !empty($customer_lname) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
+    //if (!empty($customer_fname) && !empty($customer_lname) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
         // Check if customer exists
         $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
         $stmt = $conn->prepare($query);
@@ -142,9 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         }
 
         $stmt->close();
-    } else {
+    /*} else {
         echo "<div class='alert alert-warning'>All fields are required.</div>";
-    }
+    }*/
 }
 
 // Handle editing an order
@@ -325,47 +325,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             });
         }
     }
-
-        const customers = <?= json_encode($customers, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
-
-        document.addEventListener("DOMContentLoaded", function () {
-        const firstNameSelect = document.getElementById("Customer_FirstName");
-        const lastNameSelect = document.getElementById("Customer_LastName");
-        const customerIdInput = document.getElementById("Selected_Customer_ID");
-
-        firstNameSelect.addEventListener("change", function () {
-            const selectedCustomerId = firstNameSelect.value;
-
-            // Clear and disable last name dropdown if no first name is selected
-            lastNameSelect.innerHTML = '<option value="">Select Last Name</option>';
-            lastNameSelect.disabled = true;
-
-            if (selectedCustomerId) {
-                // Update hidden Customer_ID input
-                customerIdInput.value = selectedCustomerId;
-
-                // Filter and populate last name dropdown
-                customers.forEach(customer => {
-                    if (customer.Customer_ID == selectedCustomerId) { // Ensure comparison is numeric
-                        const option = document.createElement("option");
-                        option.value = customer.Customer_ID; // Keep Customer_ID as value
-                        option.textContent = customer.Last_Name;
-                        lastNameSelect.appendChild(option);
-                    }
-                });
-
-                // Enable last name dropdown
-                lastNameSelect.disabled = false;
-            }
-        });
-
-        // Ensure the selected last name updates the Customer_ID
-        lastNameSelect.addEventListener("change", function () {
-            if (lastNameSelect.value) {
-                customerIdInput.value = lastNameSelect.value;
-            }
-        });
-    });
 
 
         // Edit order modal functionality
@@ -648,6 +607,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
                         </div>
                             <div class="modal-body">
+                            <!-- Hidden Input for Customer ID -->
+                            <input type="hidden" id="Selected_Customer_ID" name="Customer_ID">
                             <div class="mb-3">
                                 <label for="Customer_FirstName" class="form-label">Customer First Name</label>
                                 <select class="form-control" id="Customer_FirstName" name="Customer_FName" style = "height: fit-content" required>
@@ -659,14 +620,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                                <div class="mb-3">
+                            <div class="mb-3">
                                 <label for="Customer_LastName" class="form-label">Customer Last Name</label>
-                                <select class="form-control" id="Customer_LastName" name = "Customer_LName" style = "height: fit-content" required disabled>
+                                <select class="form-control" id="Customer_LastName" name="Customer_LName" style="height: fit-content" required>
                                     <option value="">Select Last Name</option>
+                                    <?php foreach ($customers as $customer): ?>
+                                        <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                            <?= htmlspecialchars($customer['Last_Name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
-                            <!-- Hidden Input for Customer ID -->
-                            <input type="hidden" id="Selected_Customer_ID" name="Customer_ID">
                             <div class="mb-3">
                                 <label for="product_id" class="form-label">Product Name</label>
                                 <select name="Product_ID" id="Product_ID" class="form-control" style = "height: fit-content" required>
