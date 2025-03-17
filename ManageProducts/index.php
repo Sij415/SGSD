@@ -112,6 +112,23 @@ $result = $conn->query($query);
 ------------------------------------------------------>
 
 <script>
+    $(document).ready(function () {
+    // Populate edit modal with existing data
+    $('#editProductModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var productId = button.data('product-id'); // Extract info from data-* attributes
+    var productName = button.data('product-name');
+    var productType = button.data('product-type');
+    var price = button.data('price');
+
+    var modal = $(this);
+    modal.find('#edit_product_id').val(productId);
+    modal.find('#edit_product_name').val(productName);
+    modal.find('#edit_product_type').val(productType);
+    modal.find('#edit_price').val(price);
+    });
+})
+
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
 
@@ -173,21 +190,6 @@ $result = $conn->query($query);
             });
         }
     }
-
-    // Populate edit modal with existing data
-    const editStockModal = document.getElementById('editProductModal');
-    editStockModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const productId = button.getAttribute('data-product-id');
-        const productName = button.getAttribute('data-product-name');
-        const productType = button.getAttribute('data-product-type');
-        const price = button.getAttribute('data-price');
-
-        document.getElementById('edit_product_id').value = productId;
-        document.getElementById('edit_product_name').value = productName;
-        document.getElementById('edit_product_type').value = productType;
-        document.getElementById('edit_price').value = price;
-    });
 
     // Handle adding a product
     document.getElementById('addProductForm').addEventListener('submit', function (e) {
