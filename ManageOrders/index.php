@@ -1,29 +1,28 @@
 <?php
 // Include database connection
-$required_role = 'admin';
+$required_role = 'admin,staff,driver';
 include('../check_session.php');
 include '../dbconnect.php';
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-//echo 'User ID: ' . $_SESSION['user_id'];
 
-// Get the user's first name from the database
-$query = "SELECT First_Name, Last_Name, User_ID FROM Users WHERE Email = ?";
+// Get the user's details from the database
+$query = "SELECT First_Name, Last_Name, User_ID, Role FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email);
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name, $user_id);
+$stmt->bind_result($user_first_name, $user_last_name, $user_id, $user_role);
 $stmt->fetch();
 $stmt->close();
-
 
 // Fetch order data from the database
 $query = "SELECT 
             Orders.Order_ID, 
             CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
-            Customers.First_Name AS Customer_Name, 
+            Customers.First_Name AS Customer_FName, 
+            Customers.Last_Name AS Customer_LName,
             Products.Product_Name, 
             Orders.Status, 
             Orders.Order_Type,
@@ -33,7 +32,7 @@ $query = "SELECT
           INNER JOIN Users ON Orders.User_ID = Users.User_ID
           INNER JOIN Products ON Orders.Product_ID = Products.Product_ID
           INNER JOIN Transactions ON Orders.Order_ID = Transactions.Order_ID
-          INNER JOIN Customers ON Transactions.Customer_ID = Customers.Customer_ID";
+          LEFT JOIN Customers ON Transactions.Customer_ID = Customers.Customer_ID";
 
 
 $stmt = $conn->prepare($query);
@@ -45,63 +44,127 @@ if (!$result) {
     die("Query failed: " . mysqli_error($conn));
 }
 
+// Fetch product list for dropdown
+$product_query = "SELECT Product_ID, Product_Name FROM Products";
+$product_result = $conn->query($product_query);
+$products = [];
+while ($row = $product_result->fetch_assoc()) {
+    $products[] = $row;
+}
+
+// Fetch customer list for dropdown
+$customer_query = "SELECT Customer_ID, First_Name, Last_Name FROM Customers";
+$customer_result = $conn->query($customer_query);
+$customers = [];
+while ($row = $customer_result->fetch_assoc()) {
+    $customers[] = $row;
+}
+
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-  $customer_name = $_POST['Customer_Name'];
-  $product_name = $_POST['Product_Name'];
-  $status = $_POST['Status'];
-  $order_type = $_POST['Order_Type'];
-  $quantity = $_POST['Quantity'];
-  $totalprice = $_POST['Total_Price'];
+    $customer_fname = $_POST['Customer_FName'];
+    $customer_lname = $_POST['Customer_LName'];
+    $product_name = $_POST['Product_Name']; // Get product name from form
+    $status = $_POST['Status'];
+    $order_type = $_POST['Order_Type'];
+    $quantity = $_POST['Quantity'];
 
-  // Validate input
-  if (!empty($customer_name) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
-      // Get Product_ID and Price
-      $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("s", $product_name);
-      $stmt->execute();
-      $stmt->bind_result($product_id, $price);
-      $stmt->fetch();
-      $stmt->close();
+        // Check if customer exists
+        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $customer_name);
+        $stmt->execute();
+        $stmt->bind_result($customer_id);
+        $stmt->fetch();
+        $stmt->close();
 
-      if (!$product_id) {
-          echo "<div class='alert alert-danger'>Product not found.</div>";
-          exit();
-      }
+        // If customer does not exist, insert into Customers table
+        if (!$customer_id) {
+            $query = "INSERT INTO Customers (First_Name) VALUES (?)";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $customer_name);
+            $stmt->execute();
+            $customer_id = $stmt->insert_id; // Get the new Customer_ID
+            $stmt->close();
+        }
 
-      // Insert into Orders table
-      $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price) VALUES (?, ?, ?, ?, ?, ?)";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("iissid", $user_id, $product_id, $status, $order_type, $quantity, $total_price);
+        if (!$customer_id) {
+            echo "<div class='alert alert-danger'>Customer not found. Please register the customer first.</div>";
+            exit();
+        }
 
-      if ($stmt->execute()) {
-          header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show new data
-          exit();
-      } else {
-          echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
-      }
+        // Fetch Product_ID from Products table
+        $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $product_name);
+        $stmt->execute();
+        $stmt->bind_result($product_id, $price);
+        $stmt->fetch();
+        $stmt->close();
 
-      $stmt->close();
-  } else {
-      echo "<div class='alert alert-warning'>All fields are required.</div>";
-  }
+        if (!$product_id) {
+            echo "<div class='alert alert-danger'>Product not found.</div>";
+            exit();
+        }
+
+        $total_price = $price * $quantity;
+
+        // Always create a new transaction for each order
+        $query = "INSERT INTO Transactions (Customer_ID, Date, Time) VALUES (?, NOW(), NOW())";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $customer_id);
+        $stmt->execute();
+        $transaction_id = $stmt->insert_id; // Get the new Transaction_ID
+        $stmt->close();
+
+        // Insert order with the retrieved Transaction_ID
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Transaction_ID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iissidi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $transaction_id);
+        $stmt->execute();
+        $order_id = $stmt->insert_id; // Get the newly inserted Order_ID
+        $stmt->close();
+
+        // Update Transactions table with the Order_ID
+        $query = "UPDATE Transactions SET Order_ID = ? WHERE Transaction_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $order_id, $transaction_id);
+        $stmt->execute();
+        $stmt->close();
+
+        if ($stmt->execute()) {
+            header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show new data
+            exit();
+        } else {
+            echo "<div class='alert alert-danger'>Error adding order: " . $conn->error . "</div>";
+        }
+
+        $stmt->close();
+
 }
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
-    $customer_name = $_POST['New_CustomerName'];
-    $product_name = $_POST['New_ProductName'];
     $status = $_POST['New_Status'];
-    $order_type = $_POST['New_OrderType'];
 
-    // Validate input
-    if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type)) {
-        // Get Customer_ID from Customers table
-        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
+    if ($user_role === 'driver') {
+        // Driver can only update status
+        $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $customer_name);
+        $stmt->bind_param("si", $status, $order_id);
+    } else {
+        // Admin and Staff can update all fields
+        $customer_fname = $_POST['New_CustomerFName'];
+        $customer_lname = $_POST['New_CustomerLName'];
+        $product_name = $_POST['New_ProductName'];
+        $order_type = $_POST['New_OrderType'];
+        $quantity = $_POST['New_Quantity'];
+
+        // Get Customer_ID
+        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ss", $customer_fname, $customer_lname);
         $stmt->execute();
         $stmt->bind_result($customer_id);
         $stmt->fetch();
@@ -112,12 +175,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             exit();
         }
 
-        // Get Product_ID from Products table
-        $query = "SELECT Product_ID FROM Products WHERE Product_Name = ?";
+        // Get Product_ID and Price
+        $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("s", $product_name);
         $stmt->execute();
-        $stmt->bind_result($product_id);
+        $stmt->bind_result($product_id, $price);
         $stmt->fetch();
         $stmt->close();
 
@@ -126,23 +189,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             exit();
         }
 
-        // Update Orders table
-        $query = "UPDATE Orders SET User_ID = ?, Product_ID = ?, Status = ?, Order_Type = ? WHERE Order_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("iissi", $customer_id, $product_id, $status, $order_type, $order_id);
+        // Calculate updated Total Price
+        $total_price = $price * $quantity;
 
-        if ($stmt->execute()) {
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
+        // Ensure Transaction_ID is fetched
+        $query = "SELECT Transaction_ID FROM Orders WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $stmt->bind_result($transaction_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (!$transaction_id) {
+            echo "<div class='alert alert-danger'>Transaction not found.</div>";
             exit();
-        } else {
-            echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
         }
 
-        $stmt->close();
-    } else {
-        echo "<div class='alert alert-warning'>All fields are required.</div>";
+        // Update Orders table for admin/staff
+        $query = "UPDATE Orders SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Transaction_ID = ? WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("issidii", $product_id, $status, $order_type, $quantity, $total_price, $transaction_id, $order_id);
     }
+
+    if ($stmt->execute()) {
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
+        exit();
+    } else {
+        echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
+    }
+
+    $stmt->close();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -251,15 +330,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $('#editOrderModal').on('show.bs.modal', function (event) {
             const button = $(event.relatedTarget); // Button that triggered the modal
             const orderId = button.data('order-id');
-            const customerName = button.data('customer-name');
+            const customerFName = button.data('customer-first-name');
+            const customerLName = button.data('customer-last-name');
             const productName = button.data('product-name');
+            const quantity = button.data('quantity');
             const status = button.data('status');
             const orderType = button.data('order-type');
 
             const modal = $(this);
             modal.find('#edit_order_id').val(orderId);
-            modal.find('#edit_customer_name').val(customerName);
+            modal.find('#edit_customer_fname').val(customerFName);
+            modal.find('#edit_customer_lname').val(customerLName);
             modal.find('#edit_product_name').val(productName);
+            modal.find('#edit_quantity').val(quantity);
             modal.find('#edit_status').val(status);
             modal.find('#edit_order_type').val(orderType);
         });
@@ -296,6 +379,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     });
 </script>
 
+<!-----------------------------------------------------
+    DO NOT REMOVE THIS SNIPPET, THIS IS FOR DELETE ENTRY FUNCTION JS
+------------------------------------------------------>
+
+<script>
+    $(document).ready(function() {
+        // Initialize selection mode variables
+        let selectionMode = false;
+        let selectedItems = [];
+
+        // Add checkbox column to table header
+        $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+
+        // Add checkboxes to all rows
+        $("#OrdersTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+
+        // Toggle selection mode
+        $("#toggle-selection-mode").click(function() {
+            if (selectedItems.length > 0) {
+                // If items are selected, open delete modal directly
+                $("#deleteConfirmModal").modal("show");
+            } else {
+                // Toggle selection mode as before
+                selectionMode = !selectionMode;
+                if (selectionMode) {
+                    $(this).addClass("active");
+                } else {
+                    $(this).removeClass("active");
+                    // Clear all checkboxes
+                    $(".row-checkbox").prop("checked", false);
+                    $("#select-all").prop("checked", false);
+                    selectedItems = [];
+                    updateSelectedCount();
+                }
+            }
+        });
+
+        // Select all checkboxes
+        $("#select-all").change(function() {
+            let isChecked = $(this).is(":checked");
+            $(".row-checkbox").prop("checked", isChecked);
+
+            // Update selected items
+            selectedItems = [];
+            if (isChecked) {
+                // Simply gather all row elements that have checkboxes
+                $(".row-checkbox").each(function() {
+                    selectedItems.push($(this).closest("tr")[0]);
+                });
+            }
+            updateSelectedCount();
+        });
+
+        // Individual checkbox selection
+        $(document).on("change", ".row-checkbox", function() {
+            const row = $(this).closest("tr")[0];
+
+            if ($(this).is(":checked")) {
+                // Add this row element to our selections if not already included
+                if (!selectedItems.includes(row)) {
+                    selectedItems.push(row);
+                }
+            } else {
+                // Remove this row from selections
+                selectedItems = selectedItems.filter(item => item !== row);
+                $("#select-all").prop("checked", false);
+            }
+
+            updateSelectedCount();
+        });
+
+        // Update the selected count display
+        function updateSelectedCount() {
+            const count = selectedItems.length;
+            $("#selected-count").text(count + " selected");
+            $("#delete-count").text(count);
+            
+            // Show/hide floating dialog based on selection
+            if (count > 0) {
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
+        }
+
+        // Handle delete confirmation
+        $("#delete-confirmed").click(function() {
+            console.log("Deleting items:", selectedItems);
+            // Here you would normally send the selectedItems to the server for deletion
+
+            // Clear selection and close modal
+            $("#deleteConfirmModal").modal("hide");
+
+            // For demo purposes, let's remove the selected rows from the table
+            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
+                $(this).remove();
+            });
+
+            // Reset selection
+            selectionMode = false;
+            $("#toggle-selection-mode").removeClass("active");
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Connect delete button in floating dialog to delete modal
+        $("#delete-selected-btn").click(function() {
+            $("#deleteConfirmModal").modal("show");
+        });
+    });
+</script>
+
 <div class="wrapper">
     <!-- Sidebar  -->
     <nav id="sidebar">
@@ -320,15 +515,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 </a>
             </li>
 
-            <?php if ($user_role !== 'driver') : // Exclude for drivers 
-            ?>
                 <li class="active">
                     <a href="../ManageOrders">
                         <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
                         <span>&nbsp;Manage Orders</span>
                     </a>
                 </li>
-            <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
             ?>
@@ -374,7 +566,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         ?>
                     </div>
                     <div>
-                        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+                        <h1><?php echo htmlspecialchars($user_first_name . ' ' . $user_last_name); ?></h1>
                         <h2><?php echo htmlspecialchars($user_email); ?></h2>
                         <h5 style="font-size: 1em; background-color: #6fa062; color: #F2f2f2; font-weight: 700; padding: 8px; border-radius: 8px; width: fit-content;"><?php echo htmlspecialchars($user_role); ?></h5>
                     </div>
@@ -410,15 +602,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         <div class="modal-header">
                             <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
                         </div>
-                        <div class="modal-body">
+                            <div class="modal-body">
+                            <!-- Hidden Input for Customer ID -->
+                            <input type="hidden" id="Selected_Customer_ID" name="Customer_ID">
                             <div class="mb-3">
-                                <label for="customer_name" class="form-label">Customer Name</label>
-                                <input type="text" name="Customer_Name" id="Customer_Name" class="form-control" placeholder="e.g., Jon" required>
+                                <label for="Customer_FirstName" class="form-label">Customer First Name</label>
+                                <select class="form-control" id="Customer_FirstName" name="Customer_FName" style = "height: fit-content" required>
+                                    <option value="">Select First Name</option>
+                                    <?php foreach ($customers as $customer): ?>
+                                        <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                            <?= htmlspecialchars($customer['First_Name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <label for="product_name" class="form-label">Product Name</label>
-                                <input type="text" name="Product_Name" id="Product_Name" class="form-control" placeholder="e.g., Coca-Cola" required>
-                                <small class="form-text text-muted">Please enter the exact product name as in the product list.</small>
+                                <label for="Customer_LastName" class="form-label">Customer Last Name</label>
+                                <select class="form-control" id="Customer_LastName" name="Customer_LName" style="height: fit-content" required disabled>
+                                    <option value="">Select Last Name</option>
+                                    <?php foreach ($customers as $customer): ?>
+                                        <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>" data-firstname="<?= htmlspecialchars($customer['First_Name']) ?>">
+                                            <?= htmlspecialchars($customer['Last_Name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+
+                                <script>
+                                $(document).ready(function() {
+                                    // Store all customer data for easy lookup
+                                    const customers = <?php echo json_encode($customers); ?>;
+                                    
+                                    // When first name dropdown changes
+                                    $('#Customer_FirstName').on('change', function() {
+                                        const selectedCustomerId = $(this).val();
+                                        
+                                        // Find the corresponding customer
+                                        const customer = customers.find(c => c.Customer_ID == selectedCustomerId);
+                                        
+                                        // Reset and update the last name dropdown
+                                        $('#Customer_LastName').val('');
+                                        
+                                        if (customer) {
+                                            // Find and select the matching option
+                                            $('#Customer_LastName option').each(function() {
+                                                if ($(this).val() == selectedCustomerId) {
+                                                    $(this).prop('selected', true);
+                                                    return false; // Break the loop
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+                                </script>
+                            </div>
+                            <div class="mb-3">
+                                <label for="product_id" class="form-label">Product Name</label>
+                                <select name="Product_ID" id="Product_ID" class="form-control" style = "height: fit-content" required>
+                                    <option value="">Select Product</option>
+                                    <?php foreach ($products as $product) { ?>
+                                        <option value="<?php echo $product['Product_ID']; ?>">
+                                            <?php echo htmlspecialchars($product['Product_Name']); ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="add_status" class="form-label">Status</label>
@@ -461,37 +707,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
                         </div>
                         <div class="modal-body">
-                            <input type="hidden" id="edit_order_id" name="Order_ID">
-                            <div class="mb-3">
-                                <label for="edit_customer_name" class="form-label">Customer Name</label>
-                                <input type="text" class="form-control" id="edit_customer_name" name="New_CustomerName">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_product_name" class="form-label">Product Name</label>
-                                <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_status" class="form-label">Status</label>
-                                <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;">
-                                    <option value="">Select Status</option>
-                                    <option value="To Pick Up">To Pick Up</option>
-                                    <option value="In Transit">In Transit</option>
-                                    <option value="Delivered">Delivered</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_order_type" class="form-label">Order Type</label>
-                                <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;">
-                                    <option value="">Select Order Type</option>
-                                    <option value="Inbound">Inbound</option>
-                                    <option value="Outbound">Outbound</option>
-                                </select>
-
-                            </div>
+                            <?php if ($user_role === 'staff') : ?>
+                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
+                            <?php else: ?>
+                                <input type="hidden" id="edit_order_id" name="Order_ID">
+                                <?php if ($user_role !== 'driver') : ?>
+                                    <div class="mb-3">
+                                        <label for="edit_customer_fname" class="form-label">Customer First Name</label>
+                                        <input type="text" class="form-control" id="edit_customer_fname" name="New_CustomerFName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_customer_lname" class="form-label">Customer Last Name</label>
+                                        <input type="text" class="form-control" id="edit_customer_lname" name="New_CustomerLName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_product_name" class="form-label">Product Name</label>
+                                        <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_quantity" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="edit_quantity" name="New_Quantity">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_order_type" class="form-label">Order Type</label>
+                                        <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;">
+                                            <option value="">Select Order Type</option>
+                                            <option value="Inbound">Inbound</option>
+                                            <option value="Outbound">Outbound</option>
+                                        </select>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="mb-3">
+                                    <label for="edit_status" class="form-label">Status</label>
+                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;">
+                                        <option value="">Select Status</option>
+                                        <option value="To Pick Up">To Pick Up</option>
+                                        <option value="In Transit">In Transit</option>
+                                        <option value="Delivered">Delivered</option>
+                                    </select>
+                                </div>
+                            <?php endif; ?>
                         </div>
+
                         <div class="modal-footer">
                             <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                            <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                            <?php if ($user_role !== 'driver' && $user_role !== 'staff') : ?>
+                                <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" 
+                                style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
+                            <?php endif; ?>
+                            <?php if ($user_role !== 'staff') : ?>
+                                <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                            <?php endif; ?>
                         </div>
                     </form>
                 </div>
@@ -513,25 +779,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     });
                 </script>
             </div>
-            <!-- Copy Paste Code Here -->
             <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage orders.</h4>
             <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
                 <i class="bi bi-info-circle mr-1"></i>
                 Tap card to edit order details.
             </div>
-            <!-- Copy Paste end -->
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
-                <div class="input-group" style="width: 100%;">
-                <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
-                    <button class="btn btn-outline-secondary" type="button" id="search">
+                <div class="input-group m-0" style="width: 100%;">
+                <div class="search-container">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
-                <!-- Add Order Button -->
-                <button class="add-btn m-2" data-bs-toggle="modal" data-bs-target="#addOrderModal" style="width: auto;">Add Order</button>
+
+                    <!-- Mobile search that will only show below 476px -->
+                    <div class="mobile-search-container d-none">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <?php if ($user_role === 'admin') : ?>
+                    <!-- Add Order Button -->
+                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addOrderModal" style="width: auto;">Add Order</button>
+                <?php endif; ?>
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete <span id="delete-count">0</span> selected order(s)?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">No, Cancel</button>
+                                <button type="button" class="btn custom-btn" id="delete-confirmed">Yes, Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div id="selection-controls" class="delete-selection-floating" style="display: none;">
+                <div class="floating-dialog">
+                    <span id="selected-count">0 selected</span>
+                    <?php if ($user_role === 'admin') : ?>
+                    <button id="delete-selected-btn" class="btn btn-danger btn-sm" style="border-radius: 32px;">Delete Selected</button>
+                    <?php endif; ?>
+                    </div>
+            </div>
+            <script>
+                // Connect delete buttons to delete modal
+                $(document).ready(function() {
+                    $("#delete-selected-btn, #delete-selected-btn-edit").click(function() {
+                        $("#deleteConfirmModal").modal("show");
+                    });
+                });
+            </script>
 
             <!-- Table Layout (Visible on larger screens) -->
             <div style="max-height: 750px; overflow-y: auto;">      
@@ -540,12 +850,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     <thead>
                         <tr>
                             <th onclick="sortTable(0)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Customer Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Status <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Status <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Order Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(7)">Total Price <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
@@ -555,21 +866,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_Name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Total_Price']); ?></td>
+                                    <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
                                     <td class="text-center"> 
-                                        <a href="" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>">
+                                        <a href="" data-bs-toggle="modal" data-bs-target="#editOrderModal" 
+                                        data-order-id="<?php echo $row['Order_ID']; ?>" 
+                                        data-customer-first-name="<?php echo $row['Customer_FName']; ?>" 
+                                        data-customer-last-name="<?php echo $row['Customer_LName']; ?>" 
+                                        data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                        data-quantity="<?php echo $row['Quantity']; ?>"
+                                        data-status="<?php echo $row['Status']; ?>" 
+                                        data-order-type="<?php echo $row['Order_Type']; ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     </td>
                                     <td> 
                                     <a href="#" class="PDFdata"
                                             data-managed-by="<?php echo $row['Full_Name']; ?>" 
-                                            data-customer-name="<?php echo $row['Customer_Name']; ?>" 
+                                            data-customer-name="<?php echo $row['Customer_FName'] . ' ' . $row['Customer_LName']; ?>"
                                             data-product-name="<?php echo $row['Product_Name']; ?>" 
                                             data-status="<?php echo $row['Status']; ?>" 
                                             data-order-type="<?php echo $row['Order_Type']; ?>"
@@ -606,7 +925,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     <?php while ($row = mysqli_fetch_assoc($result)): ?>
                         <div class="col-12 col-md-6 mb-3">
                             <div class="card shadow-sm"
-                            data-bs-toggle="modal" data-bs-target="#editOrderModal" data-order-id="<?php echo $row['Order_ID']; ?>" data-customer-name="<?php echo $row['Customer_Name']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-status="<?php echo $row['Status']; ?>" data-order-type="<?php echo $row['Order_Type']; ?>"
+                            data-bs-toggle="modal" data-bs-target="#editOrderModal" 
+                            data-order-id="<?php echo $row['Order_ID']; ?>" 
+                            data-customer-first-name="<?php echo $row['Customer_FName']; ?>" 
+                            data-customer-last-name="<?php echo $row['Customer_LName']; ?>"
+                            data-product-name="<?php echo $row['Product_Name']; ?>" 
+                            data-status="<?php echo $row['Status']; ?>" 
+                            data-order-type="<?php echo $row['Order_Type']; ?>"
                             >
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
@@ -615,7 +940,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                             <p class="card-text"><strong>Managed by:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
                                         </div>
                                         <div class="col-6">
-                                            <p class="card-text"><strong>Customer Name:</strong> <?php echo htmlspecialchars($row['Customer_Name']); ?></p>
+                                            <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName']); ?></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName']); ?></p>
                                         </div>
                                         <div class="col-6">
                                             <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['Status']); ?></p>
