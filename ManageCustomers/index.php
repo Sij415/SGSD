@@ -18,6 +18,14 @@ $stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
+// Fetch product list for dropdown
+$product_query = "SELECT Product_ID, Product_Name FROM Products";
+$product_result = $conn->query($product_query);
+$products = [];
+while ($row = $product_result->fetch_assoc()) {
+    $products[] = $row;
+}
+
 // Handle adding customer
 if (isset($_POST['add_customer'])) {
     $customer_id = $_POST['Customer_ID'];
@@ -27,7 +35,7 @@ if (isset($_POST['add_customer'])) {
     $contact_number = $_POST['Contact_Number'];
     
 
-    // Insert Product_ID if it doesn't exist
+   // Insert Product_ID if it doesn't exist
     $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
     $product_stmt = $conn->prepare($product_check_query);
     $product_stmt->bind_param("i", $product_id);
@@ -606,11 +614,9 @@ $result = $conn->query($query);
                 <table class="table table-striped table-bordered" id="customersTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Customer ID <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Product ID <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(0)">First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                         </tr>
                     </thead>
@@ -618,8 +624,6 @@ $result = $conn->query($query);
                         <?php if (mysqli_num_rows($result) > 0): ?>
                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['Customer_ID']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Product_ID']); ?></td>
                                     <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Last_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Contact_Number']); ?></td>
@@ -688,10 +692,6 @@ $result = $conn->query($query);
                     <div class="modal-body">
                         <form method="POST" action="">
                             <div class="mb-3">
-                                <label for="product_id" class="form-label">Product ID</label>
-                                <input type="number" class="form-control" id="Product_ID" name="Product_ID" required>
-                            </div>
-                            <div class="mb-3">
                                 <label for="first_name" class="form-label">First Name</label>
                                 <input type="text" class="form-control" id="First_Name" name="First_Name" placeholder="e.g., Jon" required>
                             </div>
@@ -702,6 +702,17 @@ $result = $conn->query($query);
                             <div class="mb-3">
                                 <label for="contact_number" class="form-label">Contact Number</label>
                                 <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="Product_ID" class="form-label">Product Name</label>
+                                <select class="form-control" id="Product_ID" name="Product_ID" style="height: fit-content" required>
+                                    <option value="">Select a Product</option>
+                                    <?php foreach ($products as $product): ?>
+                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                            <?= htmlspecialchars($product['Product_Name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
