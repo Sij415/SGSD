@@ -45,8 +45,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <link rel="icon"  href="../logo.png">
     <link rel="stylesheet" href="../style/styles.css">
+    <script>
+    var app = angular.module('notificationApp', []);
+    app.controller('NotificationController', function ($scope, $http) {
+        $scope.dropdownVisible = false;
+        $scope.notifications = [];
+
+        // Fetch notifications from the server
+        $scope.getNotifications = function () {
+            $http.get('get_notifications.php')
+                .then(function (response) {
+                    console.log("Response Data:", response.data); // Debugging
+                    $scope.notifications = response.data;
+                })
+                .catch(function (error) {
+                    console.error("Error fetching notifications:", error);
+                });
+        };
+
+        // Toggle dropdown
+        $scope.toggleDropdown = function (event) {
+            event.preventDefault();
+            $scope.dropdownVisible = !$scope.dropdownVisible;
+            if ($scope.dropdownVisible) {
+                $scope.getNotifications();
+            }
+        };
+
+        // Clear all notifications
+        $scope.clearAllNotifications = function () {
+            $http.post('clear_notifications.php')
+                .then(function (response) {
+                    if (response.data.success) {
+                        $scope.notifications = []; // Clear UI notifications
+                    } else {
+                        console.error("Failed to clear notifications:", response.data.message);
+                    }
+                })
+                .catch(function (error) {
+                    console.error("Error clearing notifications:", error);
+                });
+        };
+
+        // Fetch notifications when the page loads
+        $scope.getNotifications();
+    });
+</script>
+
 
 </head>
 <body>
@@ -316,12 +364,15 @@ $(document).ready(function () {
                 </a>
             </li>
 
+            <?php if ($user_role !== 'driver') : // Exclude for drivers 
+            ?>
                 <li>
                     <a href="../ManageOrders">
                         <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
                         <span>&nbsp;Manage Orders</span>
                     </a>
                 </li>
+            <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
             ?>
@@ -383,78 +434,55 @@ $(document).ready(function () {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
-    <!-- This is the basis for the finale dashboard. It is a work in progress and will be updated as we go along. It will be distributed to other pages after the backend integration is implemented in the Notification -->
+    <div id="content" >
+    <div ng-app="notificationApp" ng-controller="NotificationController">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
         <div class="container-fluid">
-            <!-- Left-aligned toggle sidebar button (unchanged) -->
-            <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
+            <!-- Sidebar Toggle -->
+            <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
                 <i class="fas fa-align-left"></i>
             </button>
             
-            <!-- Right-aligned group for notification and manual buttons -->
-            <div class="ml-auto d-flex align-items-center">
-                <!-- Notification system -->
-                <div class="dropdown d-inline-block">
-                    <button class="btn position-relative" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="bottom" title="Notifications" style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
+
+            <!-- Right-aligned Buttons -->
+            <div class="d-flex ms-auto align-items-center">
+                <!-- Notification Icon -->
+                <button class="btn position-relative" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="bottom" title="Notifications" style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
                         <i class="fas fa-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size: 0.6rem; top: -5px; right: -5px; background-color: #dc3545;">
-                            3
-                        </span>
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" 
+                          ng-if="notifications.length > 0">
+                        {{ notifications.length }}
+                    </span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right p-0" aria-labelledby="notificationButton" style="width: 300px; max-height: 350px; overflow-y: auto; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
-                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
-                            <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
-                            <a href="#" class="text-muted small" style="color: #6fa062 !important;">Mark all as read</a>
-                        </div>
-                        <div class="notification-item p-2 border-bottom">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <i class="fas fa-box p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">New stock arrival</p>
-                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Coca Cola stock has been updated</p>
-                                    <small class="text-muted" style="font-size: 0.75rem;">2 minutes ago</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="notification-item p-2 border-bottom">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <i class="fas fa-shopping-cart p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">New order received</p>
-                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Order #12345 is waiting for confirmation</p>
-                                    <small class="text-muted" style="font-size: 0.75rem;">30 minutes ago</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="notification-item p-2 border-bottom">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <i class="fas fa-exclamation-triangle p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">Low stock alert</p>
-                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Sprite is running low on inventory</p>
-                                    <small class="text-muted" style="font-size: 0.75rem;">1 hour ago</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-2 text-center border-top">
-                            <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;">View all notifications</a>
-                        </div>
+                
+
+                <!-- Notification Dropdown -->
+                <div class="notification-container">
+                    <div class="dropdown-menu p-2" ng-class="{'show': dropdownVisible}">
+                        <h6 class="dropdown-header">Notifications</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="dropdown-item" ng-repeat="notification in notifications">
+                                {{ notification.Message }}
+                            </li>
+                            <li class="dropdown-item text-muted text-center" ng-if="notifications.length === 0">
+                                No notifications
+                            </li>
+                        </ul>
+                        <button class="btn btn-sm btn-outline-danger w-100 mt-2" ng-click="clearAllNotifications()">
+    Clear All
+</button>
+
+
                     </div>
                 </div>
-                <!-- Manual button (now next to notification) -->
                 <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
                     <i class="fas fa-file-alt"></i>
                 </button>
             </div>
         </div>
     </nav>
+</div>
+
 
         <!-- Dashboard -->
         <div class="p-3" style="max-height: 80vh; overflow-y: auto;">
@@ -816,7 +844,25 @@ hr.line {
 /* ---------------------------------------------------
     CONTENT STYLE
 ----------------------------------------------------- */
+.notification-icon {
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    position: relative;
+}
 
+.notification-icon:hover {
+    color: #007bff;
+}
+
+/* Notification container */
+.notification-container {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 300px;
+    z-index: 1000000; /* Ensures it appears above other elements */
+}
 #content {
     width: 100%;
     padding: 20px;
