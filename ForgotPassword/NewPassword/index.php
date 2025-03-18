@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="../../style/style.css">
     <title>Reset Password</title>
     <link rel="stylesheet" href="../../style/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -17,7 +19,6 @@
 <header class="main-header">
     <nav class="main-nav">
         <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
->>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
     </nav>
 </header>
 
@@ -202,6 +203,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE User_ID = ?";
     $update_stmt = $mysqli->prepare($update_sql);
     $update_stmt->bind_param("si", $password_hash, $user["User_ID"]);
+    logActivity($conn, $user['User_ID'], "User has successfully updated their password");
 
     if ($update_stmt->execute()) {
         echo("<script>
@@ -221,5 +223,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
->>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250

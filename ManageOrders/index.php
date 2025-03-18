@@ -1,6 +1,6 @@
 <?php
 // Include database connection
-$required_role = 'admin';
+$required_role = 'admin,staff,driver';
 include('../check_session.php');
 include '../dbconnect.php';
 ini_set('display_errors', 1);
@@ -69,8 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $order_type = $_POST['Order_Type'];
     $quantity = $_POST['Quantity'];
 
-    // Validate input
-    //if (!empty($customer_fname) && !empty($customer_lname) && !empty($product_name) && !empty($quantity) && !empty($order_type)) {
         // Check if customer exists
         $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ?";
         $stmt = $conn->prepare($query);
@@ -142,25 +140,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         }
 
         $stmt->close();
-    /*} else {
-        echo "<div class='alert alert-warning'>All fields are required.</div>";
-    }*/
+
 }
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
-    $customer_fname = $_POST['New_CustomerFName'];
-    $customer_lname = $_POST['New_CustomerLName'];
-    $product_name = $_POST['New_ProductName'];
     $status = $_POST['New_Status'];
-    $order_type = $_POST['New_OrderType'];
-    $quantity = $_POST['New_Quantity'];
 
-    // Validate input
-    //if (!empty($order_id) && !empty($customer_name) && !empty($product_name) && !empty($status) && !empty($order_type) && !empty($quantity)) {
+    if ($user_role === 'driver') {
+        // Driver can only update status
+        $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("si", $status, $order_id);
+    } else {
+        // Admin and Staff can update all fields
+        $customer_fname = $_POST['New_CustomerFName'];
+        $customer_lname = $_POST['New_CustomerLName'];
+        $product_name = $_POST['New_ProductName'];
+        $order_type = $_POST['New_OrderType'];
+        $quantity = $_POST['New_Quantity'];
 
-        // Get Customer_ID from Customers table
+        // Get Customer_ID
         $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ss", $customer_fname, $customer_lname);
@@ -174,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             exit();
         }
 
-        // Get Product_ID and Price from Products table
+        // Get Product_ID and Price
         $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("s", $product_name);
@@ -205,22 +206,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             exit();
         }
 
-        // Update Orders table while preserving Transaction_ID
+        // Update Orders table for admin/staff
         $query = "UPDATE Orders SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Transaction_ID = ? WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("issidii", $product_id, $status, $order_type, $quantity, $total_price, $transaction_id, $order_id);
+    }
 
-        if ($stmt->execute()) {
-            header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
-            exit();
-        } else {
-            echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
-        }
+    if ($stmt->execute()) {
+        header("Location: " . $_SERVER['PHP_SELF']); // Reload page to show updated data
+        exit();
+    } else {
+        echo "<div class='alert alert-danger'>Error updating order: " . $conn->error . "</div>";
+    }
 
-        $stmt->close();
-    /*} else {
-        echo "<div class='alert alert-warning'>All fields are required.</div>";
-    }*/
+    $stmt->close();
 }
 
 ?>
@@ -516,15 +515,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 </a>
             </li>
 
-            <?php if ($user_role !== 'driver') : // Exclude for drivers 
-            ?>
                 <li class="active">
                     <a href="../ManageOrders">
                         <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
                         <span>&nbsp;Manage Orders</span>
                     </a>
                 </li>
-            <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
             ?>
@@ -595,6 +591,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
             <i class="fas fa-file-alt"></i>
             </button>
+            <!-- <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
+                Test Edit Modal
+            </button> -->
             </div>
         </nav>
 
@@ -622,8 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="Customer_LastName" class="form-label">Customer Last Name</label>
-                                <select class="form-control" id="Customer_LastName" name="Customer_LName" style="height: fit-content" required disabled>
-                                    <option value="">Select Last Name</option>
+                                <input type="text" class="form-control" id="Customer_LastName" name="Customer_LName" readonly>
                                     <?php foreach ($customers as $customer): ?>
                                         <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>" data-firstname="<?= htmlspecialchars($customer['First_Name']) ?>">
                                             <?= htmlspecialchars($customer['Last_Name']) ?>
@@ -692,6 +690,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                 <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
                                 <small class="form-text text-muted">Please enter the quantity of the product.</small>
                             </div>
+                            <!-- Ready for implementation on other Modals -->
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                            </div>
+                            <!-- Copy & Paste -->
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
@@ -711,45 +715,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
                         </div>
                         <div class="modal-body">
-                            <input type="hidden" id="edit_order_id" name="Order_ID">
-                            <div class="mb-3">
-                                <label for="edit_customer_name" class="form-label">Customer First Name</label>
-                                <input type="text" class="form-control" id="edit_customer_fname" name="New_CustomerFName">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_customer_name" class="form-label">Customer Last Name</label>
-                                <input type="text" class="form-control" id="edit_customer_lname" name="New_CustomerLName">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_product_name" class="form-label">Product Name</label>
-                                <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_product_name" class="form-label">Quantity</label>
-                                <input type="number" class="form-control" id="edit_quantity" name="New_Quantity">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_status" class="form-label">Status</label>
-                                <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;">
-                                    <option value="">Select Status</option>
-                                    <option value="To Pick Up">To Pick Up</option>
-                                    <option value="In Transit">In Transit</option>
-                                    <option value="Delivered">Delivered</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_order_type" class="form-label">Order Type</label>
-                                <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;">
-                                    <option value="">Select Order Type</option>
-                                    <option value="Inbound">Inbound</option>
-                                    <option value="Outbound">Outbound</option>
-                                </select>
-                            </div>
+                            <?php if ($user_role === 'staff') : ?>
+                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
+                            <?php else: ?>
+                                <input type="hidden" id="edit_order_id" name="Order_ID">
+                                <?php if ($user_role !== 'driver') : ?>
+                                    <div class="mb-3">
+                                        <label for="edit_customer_fname" class="form-label">Customer First Name</label>
+                                        <input type="text" class="form-control" id="edit_customer_fname" name="New_CustomerFName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_customer_lname" class="form-label">Customer Last Name</label>
+                                        <input type="text" class="form-control" id="edit_customer_lname" name="New_CustomerLName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_product_name" class="form-label">Product Name</label>
+                                        <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_quantity" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="edit_quantity" name="New_Quantity">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_order_type" class="form-label">Order Type</label>
+                                        <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;">
+                                            <option value="">Select Order Type</option>
+                                            <option value="Inbound">Inbound</option>
+                                            <option value="Outbound">Outbound</option>
+                                        </select>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="mb-3">
+                                    <label for="edit_status" class="form-label">Status</label>
+                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;">
+                                        <option value="">Select Status</option>
+                                        <option value="To Pick Up">To Pick Up</option>
+                                        <option value="In Transit">In Transit</option>
+                                        <option value="Delivered">Delivered</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                </div>
+                            <?php endif; ?>
                         </div>
+
                         <div class="modal-footer">
                             <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                            <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
-                            <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                            <?php if ($user_role !== 'driver' && $user_role !== 'staff') : ?>
+                                <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" 
+                                style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
+                            <?php endif; ?>
+                            <?php if ($user_role !== 'staff') : ?>
+                                <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                            <?php endif; ?>
                         </div>
                     </form>
                 </div>
@@ -795,7 +815,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         </button>
                     </div>
                 </div>
-                <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+                <?php if ($user_role === 'admin') : ?>
                     <!-- Add Order Button -->
                     <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addOrderModal" style="width: auto;">Add Order</button>
                 <?php endif; ?>
@@ -821,7 +841,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <div id="selection-controls" class="delete-selection-floating" style="display: none;">
                 <div class="floating-dialog">
                     <span id="selected-count">0 selected</span>
-                    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+                    <?php if ($user_role === 'admin') : ?>
                     <button id="delete-selected-btn" class="btn btn-danger btn-sm" style="border-radius: 32px;">Delete Selected</button>
                     <?php endif; ?>
                     </div>
@@ -880,8 +900,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                     <td> 
                                     <a href="#" class="PDFdata"
                                             data-managed-by="<?php echo $row['Full_Name']; ?>" 
-                                            data-customer-first-name="<?php echo $row['Customer_FName']; ?>" 
-                                            data-customer-last-name="<?php echo $row['Customer_LName']; ?>" 
+                                            data-customer-name="<?php echo $row['Customer_FName'] . ' ' . $row['Customer_LName']; ?>"
                                             data-product-name="<?php echo $row['Product_Name']; ?>" 
                                             data-status="<?php echo $row['Status']; ?>" 
                                             data-order-type="<?php echo $row['Order_Type']; ?>"

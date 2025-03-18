@@ -300,19 +300,6 @@ const sidebar = document.getElementById('sidebar');
       sidebar.classList.remove('active');
     }
 
- // Populate edit modal with existing data
- const editStockModal = document.getElementById('editStockModal');
-    editStockModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const stockId = button.getAttribute('data-stock-id');
-        const newStock = button.getAttribute('data-new-stock');
-        const threshold = button.getAttribute('data-threshold');
-
-        document.getElementById('edit_stock_id').value = stockId;
-        document.getElementById('edit_new_stock').value = newStock;
-        document.getElementById('edit_threshold').value = threshold;
-    });
-
     // Handle adding a stock
     document.getElementById('addStockForm').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -872,6 +859,10 @@ $(document).ready(function() {
                                     <label for="threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                     <button type="submit" name="add_stock" class="btn custom-btn">Add Stock</button>
@@ -900,6 +891,10 @@ $(document).ready(function() {
                                     <label for="edit_threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                     <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
@@ -909,10 +904,7 @@ $(document).ready(function() {
                         </div>
                     </div>
                 </div>
-            </div>
-
-
-            
+            </div>  
         </div>
     </div>
 
