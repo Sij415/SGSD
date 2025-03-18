@@ -29,33 +29,15 @@ while ($row = $product_result->fetch_assoc()) {
 // Handle adding customer
 if (isset($_POST['add_customer'])) {
     $customer_id = $_POST['Customer_ID'];
-    $product_id = $_POST['Product_ID'];
     $first_name = $_POST['First_Name'];
     $last_name = $_POST['Last_Name'];
     $contact_number = $_POST['Contact_Number'];
     
 
-   // Insert Product_ID if it doesn't exist
-    $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
-    $product_stmt = $conn->prepare($product_check_query);
-    $product_stmt->bind_param("i", $product_id);
-    $product_stmt->execute();
-    $product_result = $product_stmt->get_result();
-
-    if ($product_result->num_rows === 0) {
-        $insert_product_query = "INSERT INTO Products (Product_ID) VALUES (?)";
-        $insert_product_stmt = $conn->prepare($insert_product_query);
-        $insert_product_stmt->bind_param("i", $product_id);
-        $insert_product_stmt->execute();
-        $insert_product_stmt->close();
-    }
-
-    $product_stmt->close();
-
     // Proceed with inserting into Customer table
-    $query = "INSERT INTO Customers (Customer_ID, Product_ID, First_Name, Last_Name, Contact_Number) VALUES (?, ?, ?, ?, ?)";
+    $query = "INSERT INTO Customers (Customer_ID, First_Name, Last_Name, Contact_Number) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iisss", $customer_id, $product_id, $first_name, $last_name, $contact_number);
+    $stmt->bind_param("isss", $customer_id, $first_name, $last_name, $contact_number);
 
     if ($stmt->execute()) {
         $success_message = "Customer record added successfully.";
@@ -668,7 +650,6 @@ $result = $conn->query($query);
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['First_Name'] . ' ' . $row['Last_Name']); ?></h5>
                                     <p class="card-text">
                                         <strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?><br>
-                                        <strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?><br>
                                         <strong>Contact:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?>
                                     </p>
                                 </div>
@@ -691,6 +672,9 @@ $result = $conn->query($query);
                     </div>
                     <div class="modal-body">
                         <form method="POST" action="">
+                            <!-- Hidden field for Customer_ID (auto-incremented, not user-inputted) -->
+                            <input type="hidden" name="Customer_ID">
+
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">First Name</label>
                                 <input type="text" class="form-control" id="First_Name" name="First_Name" placeholder="e.g., Jon" required>
@@ -702,17 +686,6 @@ $result = $conn->query($query);
                             <div class="mb-3">
                                 <label for="contact_number" class="form-label">Contact Number</label>
                                 <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Product_ID" class="form-label">Product Name</label>
-                                <select class="form-control" id="Product_ID" name="Product_ID" style="height: fit-content" required>
-                                    <option value="">Select a Product</option>
-                                    <?php foreach ($products as $product): ?>
-                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                            <?= htmlspecialchars($product['Product_Name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>

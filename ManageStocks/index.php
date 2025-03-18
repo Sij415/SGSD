@@ -706,18 +706,18 @@ $(document).ready(function() {
                 <?php if (mysqli_num_rows($result) > 0): ?>
                     <?php 
                         while ($row = mysqli_fetch_assoc($result)): 
-                            $newStock = $row['New_Stock'];
+                            $oldStock = $row['Old_Stock'];
                             $threshold = $row['Threshold'];
 
                               // Apply color only to the Threshold column
-                            if ($newStock <= $threshold) {
-                                $newStockClass = "table-danger"; // Red
-                            } elseif ($newStock <= $threshold + 10) {
-                                $newStockClass = "bg-orange text-dark"; // Distinct orange
-                            } elseif ($newStock <= $threshold + 30) {
-                                $newStockClass = "table-warning"; // Yellow
+                            if ($oldStock <= $threshold) {
+                                $oldStockClass = "table-danger"; // Red
+                            } elseif ($oldStock <= $threshold + 10) {
+                                $oldStockClass = "bg-orange text-dark"; // Distinct orange
+                            } elseif ($oldStock <= $threshold + 30) {
+                                $oldStockClass = "table-warning"; // Yellow
                             }else {
-                                $newStockClass = "";
+                                $oldStockClass = "";
                             }
 
                         ?>
@@ -725,8 +725,8 @@ $(document).ready(function() {
                             <tr data-new-stock="<?php echo $newStock; ?>" data-threshold="<?php echo $threshold; ?>">
                                 <td><?php echo $row['First_Name']; ?></td>
                                 <td><?php echo $row['Product_Name']; ?></td>
-                                <td><?php echo $row['Old_Stock']; ?></td>
-                                <td class="<?php echo $newStockClass; ?>"><?php echo $row['New_Stock']; ?></td>
+                                <td class="<?php echo $oldStockClass; ?>"><?php echo $row['Old_Stock']; ?></td>
+                                <td><?php echo $row['New_Stock']; ?></td>
                                 <td class="<?php echo $thresholdClass; ?>"><?php echo $row['Threshold']; ?></td>
                                 <td class="text-dark text-center">
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
@@ -754,14 +754,14 @@ $(document).ready(function() {
 
                 if (mysqli_num_rows($result) > 0): ?>
                     <?php while ($row = mysqli_fetch_assoc($result)): 
-                        $newStock = $row['New_Stock'];
+                        $oldStock = $row['Old_Stock'];
                         $threshold = $row['Threshold'];
 
-                        if ($newStock <= $threshold) {
+                        if ($oldStock <= $threshold) {
                             $cardClass = "bg-danger text-white"; // Red (below threshold)
-                        } elseif ($newStock <= $threshold + 10) {
+                        } elseif ($oldStock <= $threshold + 10) {
                             $cardClass = "bg-orange text-white"; // Custom Orange
-                        } elseif ($newStock <= $threshold + 30) {
+                        } elseif ($oldStock <= $threshold + 30) {
                             $cardClass = "bg-warning text-dark"; // Yellow
                         } else {
                             $cardClass = "";
@@ -859,6 +859,10 @@ $(document).ready(function() {
                                     <label for="threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                     <button type="submit" name="add_stock" class="btn custom-btn">Add Stock</button>
@@ -886,6 +890,10 @@ $(document).ready(function() {
                                 <div class="mb-3">
                                     <label for="edit_threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
