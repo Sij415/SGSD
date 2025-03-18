@@ -1,7 +1,7 @@
 <?php
 // Include database connection
 
-$required_role = 'admin';
+$required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
  // Start the session
