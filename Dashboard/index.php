@@ -46,27 +46,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
     <link rel="icon"  href="../logo.png">
     <link rel="stylesheet" href="../style/styles.css">
     <script>
-    var app = angular.module('notificationApp', []);
-    app.controller('NotificationController', function ($scope, $http) {
+    var app = angular.module("notificationApp", []);
+
+    app.controller("NotificationController", function ($scope, $http) {
         $scope.dropdownVisible = false;
         $scope.notifications = [];
 
         // Fetch notifications from the server
         $scope.getNotifications = function () {
-            $http.get('get_notifications.php')
-                .then(function (response) {
-                    console.log("Response Data:", response.data); // Debugging
-                    $scope.notifications = response.data;
-                })
-                .catch(function (error) {
-                    console.error("Error fetching notifications:", error);
-                });
-        };
+    $http.get('get_notifications.php')
+        .then(function (response) {
+            console.log("Response Data:", response.data); // Debugging
+            $scope.notifications = response.data.map(notification => {
+                // Format timestamps for better readability
+                notification.Created_At = new Date(notification.Created_At).toLocaleString();
+                return notification;
+            });
+        })
+        .catch(function (error) {
+            console.error("Error fetching notifications:", error);
+        });
+};
 
-        // Toggle dropdown
+
+        // Toggle dropdown visibility
         $scope.toggleDropdown = function (event) {
             event.preventDefault();
             $scope.dropdownVisible = !$scope.dropdownVisible;
@@ -75,22 +83,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
             }
         };
 
-        // Clear all notifications
+        // Clear all notifications for the user
         $scope.clearAllNotifications = function () {
-            $http.post('clear_notifications.php')
-                .then(function (response) {
-                    if (response.data.success) {
-                        $scope.notifications = []; // Clear UI notifications
-                    } else {
-                        console.error("Failed to clear notifications:", response.data.message);
-                    }
-                })
-                .catch(function (error) {
-                    console.error("Error clearing notifications:", error);
-                });
-        };
+    $http.post('clear_notifications.php', {})
+        .then(function (response) {
+            if (response.data.success) {
+                $scope.notifications = []; // Clear UI notifications
+            }
+        })
+        .catch(function (error) {
+            console.error("Error clearing notifications:", error);
+        });
+};
 
-        // Fetch notifications when the page loads
+        // Fetch notifications on page load
         $scope.getNotifications();
     });
 </script>
@@ -425,10 +431,17 @@ $(document).ready(function () {
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
+
             </li>
         </ul>
     </nav>
@@ -443,49 +456,65 @@ $(document).ready(function () {
                 <i class="fas fa-align-left"></i>
             </button>
             
-
-            <!-- Right-aligned Buttons -->
-            <div class="d-flex ms-auto align-items-center">
-                <!-- Notification Icon -->
-                <button class="btn position-relative" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="bottom" title="Notifications" style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
+            <!-- Right-aligned group for notification and manual buttons -->
+            <div class="ml-auto d-flex align-items-center">
+                <!-- Notification system -->
+                <div class="dropdown d-inline-block">
+                    <button class="btn position-relative" type="button" id="notificationButton" 
+                            ng-click="toggleDropdown($event)" aria-haspopup="true" aria-expanded="false" 
+                            data-toggle="tooltip" data-placement="bottom" title="Notifications" 
+                            style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
                         <i class="fas fa-bell"></i>
-                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" 
-                          ng-if="notifications.length > 0">
-                        {{ notifications.length }}
-                    </span>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" 
+                              style="font-size: 0.6rem; top: -5px; right: -5px; background-color: #dc3545;"
+                              ng-if="notifications.length > 0">
+                            {{ notifications.length }}
+                        </span>
                     </button>
-                
-
-                <!-- Notification Dropdown -->
-                <div class="notification-container">
-                    <div class="dropdown-menu p-2" ng-class="{'show': dropdownVisible}">
-                        <h6 class="dropdown-header">Notifications</h6>
-                        <ul class="list-unstyled mb-0">
-                            <li class="dropdown-item" ng-repeat="notification in notifications">
-                                {{ notification.Message }}
-                            </li>
-                            <li class="dropdown-item text-muted text-center" ng-if="notifications.length === 0">
-                                No notifications
-                            </li>
-                        </ul>
-                        <button class="btn btn-sm btn-outline-danger w-100 mt-2" ng-click="clearAllNotifications()">
-    Clear All
-</button>
-
-
+                        <div class="dropdown-menu dropdown-menu-right p-0" ng-class="{'show': dropdownVisible}"
+                             aria-labelledby="notificationButton" 
+                             style="width: 300px; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                            <div class="p-2 border-bottom d-flex justify-content-between align-items-center position-sticky top-0 bg-white" 
+                                 style="border-radius: 12px; z-index: 1030; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
+                                <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;"
+                                   ng-click="clearAllNotifications()">Clear all notifications</a>
+                            </div>
+                        <div class="p-2 h-100" 
+                        style="overflow-y: auto; width: 300px; max-height: 350px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                            <div ng-if="notifications.length === 0" class="notification-item p-3 text-center">
+                                <i class="fas fa-bell-slash mb-2" style="font-size: 1.5rem; color: #adb5bd;"></i>
+                                <p class="mb-0" style="color: #6c757d;">No notifications</p>
+                            </div>
+                            <div ng-repeat="notification in notifications" class="notification-item p-2 border-bottom">
+                                <div class="d-flex">
+                                    <div class="mr-3">
+                                        <i class="fas fa-bell p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">
+                                            {{ notification.Title || 'Notification' }}
+                                        </p>
+                                        <p class="text-muted mb-0" style="font-size: 0.8rem;">{{ notification.Message }}</p>
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            {{ notification.Created_At || 'Just now' }}
+                                        </small>
+                                    </div>
+                        </div>
+                            </div>  
+                            </div>
+                        </div>
                     </div>
+                    <!-- Manual button (now next to notification) -->
+                    <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
                 </div>
-                <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button>
             </div>
         </div>
-    </nav>
-</div>
-
-
+    
         <!-- Dashboard -->
-        <div class="p-3" style="max-height: 80vh; overflow-y: auto;">
+        <div class="p-3" style="max-height: 85vh; overflow-y: auto;">
         <div class="dashboard">
             <div class="dashboard-summary">
             <div class="pb-4">
@@ -863,6 +892,7 @@ hr.line {
     width: 300px;
     z-index: 1000000; /* Ensures it appears above other elements */
 }
+
 #content {
     width: 100%;
     padding: 20px;
