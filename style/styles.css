@@ -81,6 +81,7 @@ a.logout:hover {
 
 .add-btn {
     height: 37px;
+    margin: 8px 0px 8px 8px;
 } 
 
 .search-actions {
@@ -130,4 +131,186 @@ a.logout:hover {
 .input-group .btn-outline-secondary:hover {
     background-color: #f8f9fa;
     color: #5a6268;
+}
+
+.btn-selected {
+    background-color: #6fa062;
+    color: #fff;
+    border-color: #6fa062;
+    border-radius: 12px;
+    font-size: 12px;
+    padding: 12px 24px;
+}
+
+.btn-selected:hover {
+    color: #fff;
+}
+
+.btn-delete-entries {
+    margin: 8px 0px 8px 8px;
+    border-radius: 12px;
+    align-items: center;
+    font-size: 12px;
+    padding: 8px 12px;
+    text-align: center !important;
+}
+
+/* Regular layout */
+.search-container {
+    display: flex;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.search-input-main {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.search-btn-main {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.mobile-search-container {
+    width: 100%;
+    margin-bottom: 15px;
+    display: flex;
+}
+
+.delete-selection-floating {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.floating-dialog {
+    background-color: #f2f4f0;
+    color: 242424;
+    padding: 12px 20px;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+}
+
+#deleteConfirmModal {
+    z-index: 2147483647;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+            Modal Styles
+            ========================================================================== */
+            .modal-content {
+                border: none;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            }
+    
+            .modal-header {
+                background-color: #f2f4f0;
+                padding: 1.5rem;
+                border-bottom: 1px solid #e9ecef;
+            }
+    
+            .modal-title {
+                font-weight: 700;
+                letter-spacing: -0.045em;
+                color: #333;
+                font-size: 1.5rem;
+            }
+    
+            .modal-body {
+                padding: 1.5rem;
+            }
+    
+            .modal-footer {
+                padding: 1.2rem 1.5rem;
+                border-top: 1px solid #e9ecef;
+            }
+    
+            /* Form Controls inside Modal */
+            .form-label {
+                font-weight: 600;
+                color: #444;
+                margin-bottom: 0.5rem;
+            }
+    
+            .form-control {
+                border-radius: 10px;
+                padding: 0.75rem 1rem;
+                border: 1px solid #ced4da;
+                transition: all 0.3s ease;
+            }
+    
+            .form-control:focus {
+                border-color: #6fa062;
+                box-shadow: 0 0 0 0.2rem rgba(111, 160, 98, 0.25);
+            }
+    
+            select.form-control {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right 1rem center;
+                background-size: 16px 12px;
+                appearance: none;
+                padding-right: 2.5rem;
+            }
+
+@media screen and (max-width: 320px) {
+    body {
+        display: none; /* Hide the entire page */
+    }
+
+    /* Show a warning message */
+    body::before {
+        content: "This page is not supported on screens smaller than 320px.";
+        display: block;
+        text-align: center;
+        padding-top: 50%; /* Use padding instead of margin for better centering */
+        width: 100%; /* Ensure the pseudo-element takes up the full width */
+        font-size: 1.2em;
+        color: red;
+        background-color: white; /* Ensure the text is readable by setting a background color */
+        position: fixed; /* Use fixed positioning to cover the entire screen */
+        top: 0;
+        left: 0;
+        z-index: 1000; /* Ensure it's on top of other content */
+    }
+}
+
+@media (max-width: 476px) {
+    .d-flex.align-items-center.justify-content-between.mb-3 {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .search-container {
+        margin-bottom: 15px;
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .add-btn, .btn-delete-entries {
+        margin: 0px;
+        margin-bottom: 8px;
+    }
+}
+
+.btn-delete-entries {
+    display: none !important;
+}
+
+@media (min-width: 769px) {
+    .btn-delete-entries {
+        display: flex !important;
+    }
 }

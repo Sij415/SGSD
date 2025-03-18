@@ -1,12 +1,11 @@
 <?php
 // Include database connection
 
-$required_role = 'admin';
+$required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
-
 
 
 // Fetch user details from session
@@ -31,7 +30,7 @@ if (isset($_POST['add_product'])) {
     // Proceed with inserting into Product table
     $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("issi", $product_id, $product_name, $product_type, $price);
+    $stmt->bind_param("issd", $product_id, $product_name, $product_type, $price);
 
     if ($stmt->execute()) {
         $success_message = "Product added successfully.";
@@ -51,7 +50,7 @@ if (isset($_POST['edit_product'])) {
 
     $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("ssii", $new_productname, $new_producttype, $new_price, $product_id);
+    $stmt->bind_param("ssdi", $new_productname, $new_producttype, $new_price, $product_id);
 
     if ($stmt->execute()) {
         $success_message = "Product updated successfully.";
@@ -113,6 +112,23 @@ $result = $conn->query($query);
 ------------------------------------------------------>
 
 <script>
+    $(document).ready(function () {
+    // Populate edit modal with existing data
+    $('#editProductModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var productId = button.data('product-id'); // Extract info from data-* attributes
+    var productName = button.data('product-name');
+    var productType = button.data('product-type');
+    var price = button.data('price');
+
+    var modal = $(this);
+    modal.find('#edit_product_id').val(productId);
+    modal.find('#edit_product_name').val(productName);
+    modal.find('#edit_product_type').val(productType);
+    modal.find('#edit_price').val(price);
+    });
+})
+
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
 
@@ -175,21 +191,6 @@ $result = $conn->query($query);
         }
     }
 
-    // Populate edit modal with existing data
-    const editStockModal = document.getElementById('editProductModal');
-    editStockModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const productId = button.getAttribute('data-product-id');
-        const productName = button.getAttribute('data-product-name');
-        const productType = button.getAttribute('data-product-type');
-        const price = button.getAttribute('data-price');
-
-        document.getElementById('edit_product_id').value = productId;
-        document.getElementById('edit_product_name').value = productName;
-        document.getElementById('edit_product_type').value = productType;
-        document.getElementById('edit_price').value = price;
-    });
-
     // Handle adding a product
     document.getElementById('addProductForm').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -235,6 +236,117 @@ $result = $conn->query($query);
     });
 </script>
 
+<!-----------------------------------------------------
+    DO NOT REMOVE THIS SNIPPET, THIS IS FOR DELETE ENTRY FUNCTION JS
+------------------------------------------------------>
+
+<script>
+    $(document).ready(function() {
+        // Initialize selection mode variables
+        let selectionMode = false;
+        let selectedItems = [];
+
+        // Add checkbox column to table header
+        $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+
+        // Add checkboxes to all rows
+        $("#ProductsTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+
+        // Toggle selection mode
+        $("#toggle-selection-mode").click(function() {
+            if (selectedItems.length > 0) {
+                // If items are selected, open delete modal directly
+                $("#deleteConfirmModal").modal("show");
+            } else {
+                // Toggle selection mode as before
+                selectionMode = !selectionMode;
+                if (selectionMode) {
+                    $(this).addClass("active");
+                } else {
+                    $(this).removeClass("active");
+                    // Clear all checkboxes
+                    $(".row-checkbox").prop("checked", false);
+                    $("#select-all").prop("checked", false);
+                    selectedItems = [];
+                    updateSelectedCount();
+                }
+            }
+        });
+
+        // Select all checkboxes
+        $("#select-all").change(function() {
+            let isChecked = $(this).is(":checked");
+            $(".row-checkbox").prop("checked", isChecked);
+
+            // Update selected items
+            selectedItems = [];
+            if (isChecked) {
+                // Simply gather all row elements that have checkboxes
+                $(".row-checkbox").each(function() {
+                    selectedItems.push($(this).closest("tr")[0]);
+                });
+            }
+            updateSelectedCount();
+        });
+
+        // Individual checkbox selection
+        $(document).on("change", ".row-checkbox", function() {
+            const row = $(this).closest("tr")[0];
+
+            if ($(this).is(":checked")) {
+                // Add this row element to our selections if not already included
+                if (!selectedItems.includes(row)) {
+                    selectedItems.push(row);
+                }
+            } else {
+                // Remove this row from selections
+                selectedItems = selectedItems.filter(item => item !== row);
+                $("#select-all").prop("checked", false);
+            }
+
+            updateSelectedCount();
+        });
+
+        // Update the selected count display
+        function updateSelectedCount() {
+            const count = selectedItems.length;
+            $("#selected-count").text(count + " selected");
+            $("#delete-count").text(count);
+            
+            // Show/hide floating dialog based on selection
+            if (count > 0) {
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
+        }
+
+        // Handle delete confirmation
+        $("#delete-confirmed").click(function() {
+            console.log("Deleting items:", selectedItems);
+            // Here you would normally send the selectedItems to the server for deletion
+
+            // Clear selection and close modal
+            $("#deleteConfirmModal").modal("hide");
+
+            // For demo purposes, let's remove the selected rows from the table
+            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
+                $(this).remove();
+            });
+
+            // Reset selection
+            selectionMode = false;
+            $("#toggle-selection-mode").removeClass("active");
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Connect delete button in floating dialog to delete modal
+        $("#delete-selected-btn").click(function() {
+            $("#deleteConfirmModal").modal("show");
+        });
+    });
+</script>
 
 <div class="wrapper">
     <!-- Sidebar  -->
@@ -314,7 +426,7 @@ $result = $conn->query($query);
                         ?>
                     </div>
                     <div>
-                        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
+                        <h1><?php echo htmlspecialchars($user_first_name . ' ' . $user_last_name); ?></h1>
                         <h2><?php echo htmlspecialchars($user_email); ?></h2>
                         <h5 style="font-size: 1em; background-color: #6fa062; color: #F2f2f2; font-weight: 700; padding: 8px; border-radius: 8px; width: fit-content;"><?php echo htmlspecialchars($user_role); ?></h5>
                     </div>
@@ -367,14 +479,61 @@ $result = $conn->query($query);
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
-                <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
-                    <button class="btn btn-outline-secondary rounded" type="button" id="search">
-                        <i class="fa fa-search"></i>
-                    </button>
+                <div class="input-group m-0" style="width: 100%;">
+                    <div class="search-container">
+                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                        <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <!-- Mobile search that will only show below 476px -->
+                    <div class="mobile-search-container d-none">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
                 </div>
-                <button class="add-btn m-2" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
+                <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+                    <!-- Add Product Button -->
+                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addProductModal" style="width: auto;">Add Product</button>
+                <?php endif; ?>
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete <span id="delete-count">0</span> selected product(s)?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">No, Cancel</button>
+                                <button type="button" class="btn custom-btn" id="delete-confirmed">Yes, Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div id="selection-controls" class="delete-selection-floating" style="display: none;">
+                <div class="floating-dialog">
+                    <span id="selected-count">0 selected</span>
+                    <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
+                    <button id="delete-selected-btn" class="btn btn-danger btn-sm" style="border-radius: 32px;">Delete Selected</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <script>
+                // Connect delete buttons to delete modal
+                $(document).ready(function() {
+                    $("#delete-selected-btn, #delete-selected-btn-edit").click(function() {
+                        $("#deleteConfirmModal").modal("show");
+                    });
+                });
+            </script>
             <!-- Table Layout (Visible on larger screens) -->
             <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
             <div class="table-responsive d-none d-md-block">
@@ -395,7 +554,11 @@ $result = $conn->query($query);
                                     <td><?php echo $row['Product_Type']; ?></td>
                                     <td><?php echo $row['Price']; ?></td>
                                     <td class="text-dark text-center">
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" data-product-id="<?php echo $row['Product_ID']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-product-type="<?php echo $row['Product_Type']; ?>" data-price="<?php echo $row['Price']; ?>">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                                        data-product-id="<?php echo $row['Product_ID']; ?>" 
+                                        data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                        data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                        data-price="<?php echo $row['Price']; ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     </td>
@@ -418,7 +581,11 @@ $result = $conn->query($query);
                     <?php while ($row = mysqli_fetch_assoc($result)) : ?>
                         <div class="col-12 col-md-6 mb-3">
                             <div class="card shadow-sm">
-                                <div class="card-body rounded" data-bs-toggle="modal" data-bs-target="#editProductModal" data-product-id="<?php echo $row['Product_ID']; ?>" data-product-name="<?php echo $row['Product_Name']; ?>" data-product-type="<?php echo $row['Product_Type']; ?>" data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
+                                <div class="card-body rounded" data-bs-toggle="modal" data-bs-target="#editProductModal" 
+                                data-product-id="<?php echo $row['Product_ID']; ?>" 
+                                data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                                     <div class="row">
                                         <div class="col-6">
@@ -447,10 +614,6 @@ $result = $conn->query($query);
                     </div>
                     <div class="modal-body">
                         <form method="POST" action="">
-                            <div class="mb-3">
-                                <label for="product_id" class="form-label">Product ID</label>
-                                <input type="number" class="form-control" id="Product_ID" name="Product_ID" placeholder="Enter Product ID" required>
-                            </div>
                             <div class="mb-3">
                                 <label for="product_name" class="form-label">Product Name</label>
                                 <input type="text" class="form-control" id="Product_Name" name="Product_Name" placeholder="Enter Product Name" required>
@@ -496,6 +659,7 @@ $result = $conn->query($query);
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                                 <button type="submit" name="edit_product" class="btn custom-btn">Save Changes</button>
                             </div>
                         </form>
