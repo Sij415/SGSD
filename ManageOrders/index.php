@@ -591,9 +591,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
             <i class="fas fa-file-alt"></i>
             </button>
-            <!-- <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
+            <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
                 Test Edit Modal
-            </button> -->
+            </button>
             </div>
         </nav>
 
@@ -716,7 +716,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         </div>
                         <div class="modal-body">
                             <?php if ($user_role === 'staff') : ?>
-                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
+                                <div class="alert alert-danger d-flex flex-column align-items-center py-4" style="border-radius: 12px;">
+                                    <i class="bi bi-exclamation-triangle-fill mb-3" style="font-size: 3rem; color: #dc3545;"></i>
+                                    <div class="text-center">
+                                        <h5 class="mb-1" style="font-weight: 600; letter-spacing: -0.025em; color: #721c24;">Permission Restricted</h5>
+                                        <p class="mb-0" style="font-size: 0.85rem; color: #721c24;">You don't have permission to edit order details.</p>
+                                    </div>
+                                </div>
                             <?php else: ?>
                                 <input type="hidden" id="edit_order_id" name="Order_ID">
                                 <?php if ($user_role !== 'driver') : ?>
