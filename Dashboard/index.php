@@ -709,7 +709,7 @@ $(document).ready(function () {
             </div>
 
             <div class="dashboard-top">
-            <h1 style="font-size: 40px; font-weight: 800;">Core Data
+            <h1 style="font-size: 40px; font-weight: 800;">Static Data
                     <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Placeholder"></i>
                     <script>
                         $(document).ready(function(){
@@ -723,25 +723,30 @@ $(document).ready(function () {
             <div class="parent">
 <div class="div1">
     <div class=''>
-        <div class='card p-3 text-center'>
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class='mb-2'>Total Customers</h5>
+        <div class='card p-4 text-center'>
+        <div class="d-flex justify-content-between align-items-center">
+        <div class="text-left">
+        <span id="totalCustomers" class='display-4 ml-4' style='font-weight: 500;'></span>
+                <h5 class='mb-2 mt-2'>Total Customers</h5>
             </div>
-            <div class='mt-3'>
-                <span id="totalCustomers" class='display-4'></span>
+            <div class='mr-2'>
+                <i class="fas fa-user-circle" style="font-size: 13rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                    </div>
             </div>
         </div>
     </div>
 </div>
 <div class="div2">
     <div class=''>
-        <div class='card p-3 text-center'>
+    <div class='card p-4 text-center'>
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class='mb-2'>Total Products</h5>
-            </div>
-            <div class='mt-3'>
-                <span id="totalProducts" class='display-4'></span>
-            </div>
+                <div class="text-left">
+                    <span id="totalProducts" class='display-4 ml-4' style='font-weight: 500;'></span>
+                    <h5 class='mb-2 mt-2'>Total Products</h5>
+                </div>
+                <div class='mr-2'>
+                    <i class="fas fa-cubes" style="font-size: 10rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                </div>
         </div>
     </div>
 </div>
