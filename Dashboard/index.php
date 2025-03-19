@@ -154,9 +154,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
         }
 
         function calculatePercentageChange(current, previous) {
-            if (previous === 0) return '0.00%';
-            return ((current - previous) / previous * 100).toFixed(2) + '%';
-        }
+    if (previous === 0) return current === 0 ? '0.00%' : '100.00%';
+    return ((current - previous) / previous * 100).toFixed(2) + '%';
+}
 
         function updatePercentageSpan(spanId, percentageChange) {
             const spanElement = document.getElementById(spanId);
@@ -397,57 +397,60 @@ $(document).ready(function () {
                 }
 
                 productPieChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: colors
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            legend: {
-                                position: 'left',
-                                labels: {
-                                    generateLabels: function (chart) {
-                                        let dataset = chart.data.datasets[0]; 
-                                        if (!dataset || !dataset.data || dataset.data.length === 0) {
-                                            console.warn("⚠️ No product quantity data found in dataset!");
-                                            return [];
-                                        }
-
-                                        return filteredData.map((product, index) => ({
-                                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage}%)`,
-                                            fillStyle: dataset.backgroundColor[index],
-                                            hidden: !chart.getDataVisibility(index),
-                                            index: index
-                                        }));
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function (tooltipItem) {
-                                        let index = tooltipItem.dataIndex;
-                                        let dataset = tooltipItem.chart.data.datasets[0];
-
-                                        if (!dataset || !dataset.data || !filteredData) {
-                                            return "No data available";
-                                        }
-
-                                        let productData = filteredData[index];
-                                        if (!productData) {
-                                            return "No data available";
-                                        }
-
-                                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage}%)`;
-                                    }
-                                }
-                            }
+    type: 'pie',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: values,
+            backgroundColor: colors
+        }]
+    },
+    options: {
+        responsive: true, // Ensure it scales properly
+        maintainAspectRatio: false, // Prevents it from forcing a square aspect ratio
+        aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
+        plugins: {
+            legend: {
+                position: 'left',
+                labels: {
+                    generateLabels: function (chart) {
+                        let dataset = chart.data.datasets[0]; 
+                        if (!dataset || !dataset.data || dataset.data.length === 0) {
+                            console.warn("⚠️ No product quantity data found in dataset!");
+                            return [];
                         }
+                        return filteredData.map((product, index) => ({
+                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage.toFixed(2)}%)`,
+                            fillStyle: dataset.backgroundColor[index],
+                            hidden: !chart.getDataVisibility(index),
+                            index: index
+                        }));
                     }
-                });
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (tooltipItem) {
+                        let index = tooltipItem.dataIndex;
+                        let dataset = tooltipItem.chart.data.datasets[0];
+
+                        if (!dataset || !dataset.data || !filteredData) {
+                            return "No data available";
+                        }
+
+                        let productData = filteredData[index];
+                        if (!productData) {
+                            return "No data available";
+                        }
+
+                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage.toFixed(2)}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+
             },
             error: function (xhr, status, error) {
                 console.error("Error fetching pie chart data:", error);
@@ -463,9 +466,6 @@ $(document).ready(function () {
 
     fetchPieChartData('monthly');
 });
-
-
-
 </script>
 
 
@@ -709,7 +709,7 @@ $(document).ready(function () {
             </div>
 
             <div class="dashboard-top">
-            <h1 style="font-size: 40px; font-weight: 800;">Static Data
+            <h1 style="font-size: 40px; font-weight: 800;">Core Data
                     <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Placeholder"></i>
                     <script>
                         $(document).ready(function(){
@@ -747,7 +747,7 @@ $(document).ready(function () {
 </div>
             </div>
             </div>
-
+            
 <!-- Placeholder for Pie Graph -->
 <div class="dashboard-top-2">
     <h1 style="font-size: 40px; font-weight: 800;">Top Selling Products
@@ -780,8 +780,8 @@ $(document).ready(function () {
         <div class="d-flex justify-content-between align-items-center">
             <h5 class='mb-2' style="text-align: left;">Top Selling Products</h5>
         </div>
-        <div class='chart-container mt-3' style="height: 400px; display: flex; justify-content: center; align-items: center;">
-            <canvas id="productPieChart"></canvas>
+        <div class='pie-chart-container mt-3'>
+        <canvas id="productPieChart" width="500" height="500"></canvas>
         </div>
     </div>
     <hr>
@@ -1232,6 +1232,7 @@ hr.line {
             }
 
         }
+        
 
         /* Card animations */
         .card {
