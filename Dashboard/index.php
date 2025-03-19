@@ -468,11 +468,6 @@ $(document).ready(function () {
 });
 </script>
 
-
-
-
-
-
 <div class="wrapper">
     <!-- Sidebar  -->
     <nav id="sidebar">
@@ -575,10 +570,6 @@ $(document).ready(function () {
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
                 <i class="fas fa-align-left"></i>
             </button>
-            
-
-
-
             <!-- Right-aligned group for notification and manual buttons -->
             <div class="ml-auto d-flex align-items-center">
                 <!-- Notification system -->
@@ -636,9 +627,6 @@ $(document).ready(function () {
             </div>
         </div>
     
-
-
-
         <!-- Dashboard -->
         <div class="p-3" style="max-height: 80vh; overflow-y: auto;">
         <div class="dashboard">
@@ -702,31 +690,31 @@ $(document).ready(function () {
                 </div>
                 </div>
                 <div class="div3">
-    <div class=''>
-        <div class='card p-3 text-center'>
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class='mb-2'>Transactions</h5>
-                <span id="transactionsChangeSpan" class='badge green'></span> <!-- Corrected span ID -->
+                <div class=''>
+                    <div class='card p-3 text-center'>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class='mb-2'>Transactions</h5>
+                            <span id="transactionsChangeSpan" class='badge green'></span> <!-- Corrected span ID -->
+                        </div>
+                        <div class='chart-container mt-3'>
+                            <canvas id='transactionsLineChart'></canvas> <!-- Corrected canvas ID -->
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class='chart-container mt-3'>
-                <canvas id='transactionsLineChart'></canvas> <!-- Corrected canvas ID -->
+            <div class="div4">
+                <div class=''>
+                    <div class='card p-3 text-center'>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class='mb-2'>Items Sold</h5>
+                            <span id="itemsSoldChangeSpan" class='badge red'></span>
+                        </div>
+                        <div class='chart-container mt-3'>
+                            <canvas id='itemsSoldBarChart'></canvas> <!-- Corrected canvas ID -->
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-<div class="div4">
-    <div class=''>
-        <div class='card p-3 text-center'>
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class='mb-2'>Items Sold</h5>
-                <span id="itemsSoldChangeSpan" class='badge red'></span>
-            </div>
-            <div class='chart-container mt-3'>
-                <canvas id='itemsSoldBarChart'></canvas> <!-- Corrected canvas ID -->
-            </div>
-        </div>
-    </div>
-</div>
             </div>
             </div>
 
@@ -743,35 +731,35 @@ $(document).ready(function () {
             <h4 class="pb-3 pt-1" style="color: gray; font-size: 18px; font-weight: 300;">A summary of our total customers and products.</h4>
             <div class="dashboard-summary">
             <div class="parent">
-<div class="div1">
-    <div class=''>
-        <div class='card p-4 text-center'>
-        <div class="d-flex justify-content-between align-items-center">
-        <div class="text-left">
-        <span id="totalCustomers" class='display-4 ml-4' style='font-weight: 500;'></span>
-                <h5 class='mb-2 mt-2'>Total Customers</h5>
-            </div>
-            <div class='mr-2'>
-                <i class="fas fa-user-circle" style="font-size: 13rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+            <div class="div1">
+                <div class=''>
+                    <div class='card p-4 text-center'>
+                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-left">
+                    <span id="totalCustomers" class='display-4 ml-4' style='font-weight: 500;'></span>
+                            <h5 class='mb-2 mt-2'>Total Customers</h5>
+                        </div>
+                        <div class='mr-2'>
+                            <i class="fas fa-user-circle" style="font-size: 13rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                                </div>
+                        </div>
                     </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-<div class="div2">
-    <div class=''>
-    <div class='card p-4 text-center'>
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-left">
-                    <span id="totalProducts" class='display-4 ml-4' style='font-weight: 500;'></span>
-                    <h5 class='mb-2 mt-2'>Total Products</h5>
+            <div class="div2">
+                <div class=''>
+                <div class='card p-4 text-center'>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-left">
+                                <span id="totalProducts" class='display-4 ml-4' style='font-weight: 500;'></span>
+                                <h5 class='mb-2 mt-2'>Total Products</h5>
+                            </div>
+                            <div class='mr-2'>
+                                <i class="fas fa-cubes" style="font-size: 10rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                    </div>
                 </div>
-                <div class='mr-2'>
-                    <i class="fas fa-cubes" style="font-size: 10rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
-                </div>
-        </div>
-    </div>
-</div>
+            </div>
             </div>
             </div>
             
