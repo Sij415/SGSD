@@ -40,18 +40,23 @@ function fill_missing_dates($data, $date_format, $interval_clause, $conn, $value
 if ($period === 'daily') {
     $date_format = '%Y-%m-%d';
     $interval_clause = "DATE_SUB(CURDATE(), INTERVAL 6 DAY)";
+    $pie_interval_clause = "DATE(t.Date) = CURDATE()";
 } elseif ($period === 'weekly') {
     $date_format = '%Y-%u';
     $interval_clause = "DATE_SUB(CURDATE(), INTERVAL 5 WEEK)";
+    $pie_interval_clause = "YEARWEEK(t.Date, 1) = YEARWEEK(CURDATE(), 1)";
 } elseif ($period === 'monthly') {
     $date_format = '%Y-%m';
     $interval_clause = "DATE_SUB(CURDATE(), INTERVAL 6 MONTH)";
+    $pie_interval_clause = "DATE_FORMAT(t.Date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')";
 } elseif ($period === 'yearly') {
     $date_format = '%Y';
     $interval_clause = "DATE_SUB(CURDATE(), INTERVAL 3 YEAR)";
+    $pie_interval_clause = "YEAR(t.Date) = YEAR(CURDATE())";
 } else {
     $date_format = '%Y-%m-%d';
     $interval_clause = "DATE_SUB(CURDATE(), INTERVAL 6 DAY)";
+    $pie_interval_clause = "DATE(t.Date) = CURDATE()";
 }
 
 // Fetch Revenue Data (Including only completed orders)
@@ -127,7 +132,7 @@ $query = "SELECT p.Product_Name, SUM(o.quantity) AS quantity_sold
           JOIN Products p ON o.Product_ID = p.Product_ID
           JOIN Transactions t ON o.Order_ID = t.Order_ID
           WHERE o.Status = 'Completed' AND o.Order_Type = 'Sale'
-          AND DATE(t.Date) >= $interval_clause
+          AND $pie_interval_clause
           GROUP BY p.Product_Name";
 $result = $conn->query($query);
 $product_quantity_data = [];
