@@ -154,9 +154,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
         }
 
         function calculatePercentageChange(current, previous) {
-            if (previous === 0) return '0.00%';
-            return ((current - previous) / previous * 100).toFixed(2) + '%';
-        }
+    if (previous === 0) return current === 0 ? '0.00%' : '100.00%';
+    return ((current - previous) / previous * 100).toFixed(2) + '%';
+}
 
         function updatePercentageSpan(spanId, percentageChange) {
             const spanElement = document.getElementById(spanId);
@@ -397,57 +397,60 @@ $(document).ready(function () {
                 }
 
                 productPieChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: colors
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            legend: {
-                                position: 'left',
-                                labels: {
-                                    generateLabels: function (chart) {
-                                        let dataset = chart.data.datasets[0]; 
-                                        if (!dataset || !dataset.data || dataset.data.length === 0) {
-                                            console.warn("⚠️ No product quantity data found in dataset!");
-                                            return [];
-                                        }
-
-                                        return filteredData.map((product, index) => ({
-                                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage}%)`,
-                                            fillStyle: dataset.backgroundColor[index],
-                                            hidden: !chart.getDataVisibility(index),
-                                            index: index
-                                        }));
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function (tooltipItem) {
-                                        let index = tooltipItem.dataIndex;
-                                        let dataset = tooltipItem.chart.data.datasets[0];
-
-                                        if (!dataset || !dataset.data || !filteredData) {
-                                            return "No data available";
-                                        }
-
-                                        let productData = filteredData[index];
-                                        if (!productData) {
-                                            return "No data available";
-                                        }
-
-                                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage}%)`;
-                                    }
-                                }
-                            }
+    type: 'pie',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: values,
+            backgroundColor: colors
+        }]
+    },
+    options: {
+        responsive: true, // Ensure it scales properly
+        maintainAspectRatio: false, // Prevents it from forcing a square aspect ratio
+        aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
+        plugins: {
+            legend: {
+                position: 'left',
+                labels: {
+                    generateLabels: function (chart) {
+                        let dataset = chart.data.datasets[0]; 
+                        if (!dataset || !dataset.data || dataset.data.length === 0) {
+                            console.warn("⚠️ No product quantity data found in dataset!");
+                            return [];
                         }
+                        return filteredData.map((product, index) => ({
+                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage.toFixed(2)}%)`,
+                            fillStyle: dataset.backgroundColor[index],
+                            hidden: !chart.getDataVisibility(index),
+                            index: index
+                        }));
                     }
-                });
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (tooltipItem) {
+                        let index = tooltipItem.dataIndex;
+                        let dataset = tooltipItem.chart.data.datasets[0];
+
+                        if (!dataset || !dataset.data || !filteredData) {
+                            return "No data available";
+                        }
+
+                        let productData = filteredData[index];
+                        if (!productData) {
+                            return "No data available";
+                        }
+
+                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage.toFixed(2)}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+
             },
             error: function (xhr, status, error) {
                 console.error("Error fetching pie chart data:", error);
@@ -463,9 +466,6 @@ $(document).ready(function () {
 
     fetchPieChartData('monthly');
 });
-
-
-
 </script>
 
 
@@ -577,44 +577,66 @@ $(document).ready(function () {
             </button>
             
 
-            <!-- Right-aligned Buttons -->
-            <div class="d-flex ms-auto align-items-center">
-                <!-- Notification Icon -->
-                <button class="btn position-relative" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="bottom" title="Notifications" style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
+
+
+            <!-- Right-aligned group for notification and manual buttons -->
+            <div class="ml-auto d-flex align-items-center">
+                <!-- Notification system -->
+                <div class="dropdown d-inline-block">
+                    <button class="btn position-relative" type="button" id="notificationButton" 
+                            ng-click="toggleDropdown($event)" aria-haspopup="true" aria-expanded="false" 
+                            data-toggle="tooltip" data-placement="bottom" title="Notifications" 
+                            style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
                         <i class="fas fa-bell"></i>
-                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" 
-                          ng-if="notifications.length > 0">
-                        {{ notifications.length }}
-                    </span>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" 
+                              style="font-size: 0.6rem; top: -5px; right: -5px; background-color: #dc3545;"
+                              ng-if="notifications.length > 0">
+                            {{ notifications.length }}
+                        </span>
                     </button>
-                
-
-                <!-- Notification Dropdown -->
-                <div class="notification-container">
-                    <div class="dropdown-menu p-2" ng-class="{'show': dropdownVisible}">
-                        <h6 class="dropdown-header">Notifications</h6>
-                        <ul class="list-unstyled mb-0">
-                            <li class="dropdown-item" ng-repeat="notification in notifications">
-                                {{ notification.Message }}
-                            </li>
-                            <li class="dropdown-item text-muted text-center" ng-if="notifications.length === 0">
-                                No notifications
-                            </li>
-                        </ul>
-                        <button class="btn btn-sm btn-outline-danger w-100 mt-2" ng-click="clearAllNotifications()">
-    Clear All
-</button>
-
-
+                        <div class="dropdown-menu dropdown-menu-right p-0" ng-class="{'show': dropdownVisible}"
+                             aria-labelledby="notificationButton" 
+                             style="width: 300px; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                            <div class="p-2 border-bottom d-flex justify-content-between align-items-center position-sticky top-0 bg-white" 
+                                 style="border-radius: 12px; z-index: 1030; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
+                                <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;"
+                                   ng-click="clearAllNotifications()">Clear all notifications</a>
+                            </div>
+                        <div class="p-2 h-100" 
+                        style="overflow-y: auto; width: 300px; max-height: 350px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                            <div ng-if="notifications.length === 0" class="notification-item p-3 text-center">
+                                <i class="fas fa-bell-slash mb-2" style="font-size: 1.5rem; color: #adb5bd;"></i>
+                                <p class="mb-0" style="color: #6c757d;">No notifications</p>
+                            </div>
+                            <div ng-repeat="notification in notifications" class="notification-item p-2 border-bottom">
+                                <div class="d-flex">
+                                    <div class="mr-3">
+                                        <i class="fas fa-bell p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">
+                                            {{ notification.Title || 'Notification' }}
+                                        </p>
+                                        <p class="text-muted mb-0" style="font-size: 0.8rem;">{{ notification.Message }}</p>
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            {{ notification.Created_At || 'Just now' }}
+                                        </small>
+                                    </div>
+                        </div>
+                            </div>  
+                            </div>
+                        </div>
                     </div>
+                    <!-- Manual button (now next to notification) -->
+                    <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
                 </div>
-                <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button>
             </div>
         </div>
-    </nav>
-</div>
+    
+
 
 
         <!-- Dashboard -->
@@ -709,8 +731,8 @@ $(document).ready(function () {
             </div>
 
             <div class="dashboard-top">
-            <h1 style="font-size: 40px; font-weight: 800;">Static Data
-                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Placeholder"></i>
+            <h1 style="font-size: 40px; font-weight: 800;">Core Assets
+                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="This section provides a summary of the core assets of the business, including the total number of customers and products."></i>
                     <script>
                         $(document).ready(function(){
                             $('[data-toggle="tooltip"]').tooltip();   
@@ -724,21 +746,21 @@ $(document).ready(function () {
 <div class="div1">
     <div class=''>
         <div class='card p-4 text-center'>
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-left">
-                    <span id="totalCustomers" class='display-4 ml-4' style='font-weight: 500;'></span>
-                    <h5 class='mb-2 mt-2'>Total Customers</h5>
-                </div>
-                <div class='mr-2'>
-                    <i class="fas fa-user-circle" style="font-size: 13rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
-                </div>
+        <div class="d-flex justify-content-between align-items-center">
+        <div class="text-left">
+        <span id="totalCustomers" class='display-4 ml-4' style='font-weight: 500;'></span>
+                <h5 class='mb-2 mt-2'>Total Customers</h5>
+            </div>
+            <div class='mr-2'>
+                <i class="fas fa-user-circle" style="font-size: 13rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                    </div>
             </div>
         </div>
     </div>
 </div>
 <div class="div2">
     <div class=''>
-        <div class='card p-4 text-center'>
+    <div class='card p-4 text-center'>
             <div class="d-flex justify-content-between align-items-center">
                 <div class="text-left">
                     <span id="totalProducts" class='display-4 ml-4' style='font-weight: 500;'></span>
@@ -747,13 +769,12 @@ $(document).ready(function () {
                 <div class='mr-2'>
                     <i class="fas fa-cubes" style="font-size: 10rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
                 </div>
-            </div>
         </div>
     </div>
 </div>
             </div>
             </div>
-
+            
 <!-- Placeholder for Pie Graph -->
 <div class="dashboard-top-2">
     <h1 style="font-size: 40px; font-weight: 800;">Top Selling Products
@@ -786,8 +807,8 @@ $(document).ready(function () {
         <div class="d-flex justify-content-between align-items-center">
             <h5 class='mb-2' style="text-align: left;">Top Selling Products</h5>
         </div>
-        <div class='chart-container mt-3' style="height: 400px; display: flex; justify-content: center; align-items: center;">
-            <canvas id="productPieChart"></canvas>
+        <div class='pie-chart-container mt-3'>
+        <canvas id="productPieChart" width="500" height="500"></canvas>
         </div>
     </div>
     <hr>
@@ -1238,6 +1259,7 @@ hr.line {
             }
 
         }
+        
 
         /* Card animations */
         .card {

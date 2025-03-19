@@ -24,14 +24,10 @@ body {
     color: white;
 }
 .chart-container {
-    height: 125px; /* Adjust for larger charts */
+    height: 200px; display: flex; align-items: center; justify-content: space-between; /* Adjust for better spacing */
     width: 100%;
 }
-.doughnut-container {
-    height: 350px !important; /* Increase size for doughnut chart */
-    width: 350px !important;
-    margin: auto;
-}
+
 h1, h5 {
     color: #333;
 }
@@ -67,4 +63,45 @@ h1, h5 {
     font-size: 3rem;
     font-weight: 700;
     text-align: center;
+}
+
+
+/* Add these styles to your CSS file */
+
+.pie-chart-container {
+    height: 250px; /* Adjust height to make the chart smaller */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#productPieChart {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+@media (max-width: 768px) {
+    .pie-chart-container {
+        height: 150px; /* Adjust height for smaller screens */
+    }
+}
+
+/* Ensure the legend does not get covered by the pie chart */
+.pie-chart-container .chartjs-legend {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 200px; /* Adjust max-width as needed */
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.pie-chart-container .chartjs-legend li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

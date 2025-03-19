@@ -859,10 +859,6 @@ $(document).ready(function() {
                                     <label for="threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
-                                </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                     <button type="submit" name="add_stock" class="btn custom-btn">Add Stock</button>
@@ -890,10 +886,6 @@ $(document).ready(function() {
                                 <div class="mb-3">
                                     <label for="edit_threshold" class="form-label">Threshold</label>
                                     <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>

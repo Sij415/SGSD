@@ -591,9 +591,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
             <i class="fas fa-file-alt"></i>
             </button>
-            <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
-                Test Edit Modal
-            </button>
             </div>
         </nav>
 
@@ -621,7 +618,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="Customer_LastName" class="form-label">Customer Last Name</label>
-                                <input type="text" class="form-control" id="Customer_LastName" name="Customer_LName" readonly>
+                                <select class="form-control" id="Customer_LastName" name="Customer_LName" style="height: fit-content" required disabled>
+                                    <option value="">Select Last Name</option>
                                     <?php foreach ($customers as $customer): ?>
                                         <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>" data-firstname="<?= htmlspecialchars($customer['First_Name']) ?>">
                                             <?= htmlspecialchars($customer['Last_Name']) ?>
@@ -690,12 +688,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                 <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
                                 <small class="form-text text-muted">Please enter the quantity of the product.</small>
                             </div>
-                            <!-- Ready for implementation on other Modals -->
-                            <div class="mb-3">
-                                <label for="notes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
-                            </div>
-                            <!-- Copy & Paste -->
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
@@ -716,13 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                         </div>
                         <div class="modal-body">
                             <?php if ($user_role === 'staff') : ?>
-                                <div class="alert alert-danger d-flex flex-column align-items-center py-4" style="border-radius: 12px;">
-                                    <i class="bi bi-exclamation-triangle-fill mb-3" style="font-size: 3rem; color: #dc3545;"></i>
-                                    <div class="text-center">
-                                        <h5 class="mb-1" style="font-weight: 600; letter-spacing: -0.025em; color: #721c24;">Permission Restricted</h5>
-                                        <p class="mb-0" style="font-size: 0.85rem; color: #721c24;">You don't have permission to edit order details.</p>
-                                    </div>
-                                </div>
+                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
                             <?php else: ?>
                                 <input type="hidden" id="edit_order_id" name="Order_ID">
                                 <?php if ($user_role !== 'driver') : ?>
@@ -759,10 +745,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                         <option value="In Transit">In Transit</option>
                                         <option value="Delivered">Delivered</option>
                                     </select>
-                                </div>
-                                <div class="mb-3">
-                                <label for="notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                                 </div>
                             <?php endif; ?>
                         </div>
