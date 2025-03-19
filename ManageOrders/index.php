@@ -23,6 +23,7 @@ $query = "SELECT
             Customers.First_Name AS Customer_FName, 
             Customers.Last_Name AS Customer_LName,
             Products.Product_Name, 
+            Products.Product_Type, 
             Orders.Status, 
             Orders.Order_Type,
             Orders.Quantity,
@@ -39,8 +40,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 $stmt->close();
 
-// Fetch product list for dropdown
-$product_query = "SELECT Product_ID, Product_Name FROM Products";
+// Fetch Product Names for dropdown
+$product_query = "SELECT Product_ID, Product_Name, Product_Type FROM Products";
 $product_result = $conn->query($product_query);
 $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
@@ -51,8 +52,8 @@ $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-    $customer_id = $_POST['Customer_ID']; // Directly pass Customer_ID
-    $product_id = $_POST['Product_ID']; // Directly pass Product_ID
+    $customer_id = $_POST['Customer_ID'];
+    $product_id = $_POST['Product_ID'];
     $status = $_POST['Status'];
     $order_type = $_POST['Order_Type'];
     $quantity = $_POST['Quantity'];
@@ -77,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $transaction_id = $stmt->insert_id;
     $stmt->close();
 
-    //Fetch stock details
+    // Fetch stock details
     $query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $product_id);
@@ -89,46 +90,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     //Validate stock availability
     if ($quantity > $old_stock && $quantity > $new_stock) {
         $error_message = "Insufficient stock available for this product.";
+        
+    if ($order_type === "Inbound") {
+        // Inbound Order: Add to New_Stock
+        $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $quantity, $product_id);
     } else {
-        //Deduct stock accordingly
+        // Outbound Order: Deduct from Old_Stock first, then New_Stock if needed
         if ($quantity <= $old_stock) {
             $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ii", $quantity, $product_id);
         } else {
-            // Deduct remaining quantity from New_Stock if Old_Stock is exhausted
             $remaining_qty = $quantity - $old_stock;
-
-            $query = "UPDATE Stocks 
-                    SET Old_Stock = 0, New_Stock = New_Stock - ? 
-                    WHERE Product_ID = ?";
+            $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ii", $remaining_qty, $product_id);
         }
-        $stmt->execute();
-        $stmt->close();
-
-        //Insert Order since stock is available
-        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("iissidsi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $notes, $transaction_id);
-        $stmt->execute();
-        $order_id = $stmt->insert_id;
-        $stmt->close();
-
-        //Update Transactions with Order_ID
-        $query = "UPDATE Transactions SET Order_ID = ? WHERE Transaction_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ii", $order_id, $transaction_id);
-        $stmt->execute();
-        $stmt->close();
-
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
-        
     }
+    
+    $stmt->execute();
+    $stmt->close();
 
+    // Insert Order
+    $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iissidsi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $notes, $transaction_id);
+    $stmt->execute();
+    $order_id = $stmt->insert_id;
+    $stmt->close();
+
+    // Update Transactions with Order_ID
+    $query = "UPDATE Transactions SET Order_ID = ? WHERE Transaction_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ii", $order_id, $transaction_id);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+
+    }
 }
 
 // Handle editing an order
@@ -137,20 +141,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $status = $_POST['New_Status'];
 
     if ($user_role === 'driver') {
-        // Driver can only update the status
         $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("si", $status, $order_id);
     } else {
-        //Fetch updated order details
-        $customer_fname = $_POST['New_CustomerFName'];
-        $customer_lname = $_POST['New_CustomerLName'];
-        $product_name = $_POST['New_ProductName'];
+        // Fetch updated order details
+        $customer_id = $_POST['New_CustomerID'];  // Directly from form
+        $product_id = $_POST['New_ProductID'];    // Directly from form
         $order_type = $_POST['New_OrderType'];
         $quantity = $_POST['New_Quantity'];
         $notes = $_POST['New_Notes'];
 
-        //Get Customer_ID
+        // Get Customer_ID
         $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ss", $customer_fname, $customer_lname);
@@ -159,16 +161,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-        //Get Product_ID and Price
-        $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ?";
+        // Get Product_ID and Price
+        $query = "SELECT Price FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("s", $product_name);
+        $stmt->bind_param("i", $product_id);
         $stmt->execute();
-        $stmt->bind_result($product_id, $price);
+        $stmt->bind_result($price);
         $stmt->fetch();
         $stmt->close();
 
-        //Get Current Quantity from Orders
+        // Get Current Quantity from Orders
         $query = "SELECT Quantity FROM Orders WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $order_id);
@@ -177,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-        //Get Stock Levels
+        // Get Stock Levels
         $query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
@@ -186,43 +188,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-        //Check if the new quantity is greater than the old quantity
-        if ($quantity > $current_quantity) {
-            $additional_qty = $quantity - $current_quantity;
+        $quantity_difference = $quantity - $current_quantity;
 
-            if ($additional_qty > $old_stock && $additional_qty > $new_stock) {
-                $error_message = "Insufficient stock available for this product.";
+        if ($quantity_difference > 0) {
+            // If new quantity is greater, validate and update stock
+            if ($order_type === "Inbound") {
+                $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $quantity_difference, $product_id);
             } else {
-                // Deduct from stock
-                if ($additional_qty <= $old_stock) {
+                if ($quantity_difference <= $old_stock) {
                     $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
                     $stmt = $conn->prepare($query);
-                    $stmt->bind_param("ii", $additional_qty, $product_id);
+                    $stmt->bind_param("ii", $quantity_difference, $product_id);
                 } else {
-                    $remaining_qty = $additional_qty - $old_stock;
+                    $remaining_qty = $quantity_difference - $old_stock;
                     $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
                     $stmt = $conn->prepare($query);
                     $stmt->bind_param("ii", $remaining_qty, $product_id);
                 }
-                $stmt->execute();
-                $stmt->close();
             }
-        }
-
-        // Update Order if stock is available
-        if (!isset($error_message)) {
-            $total_price = $price * $quantity;
-            $query = "UPDATE Orders 
-                      SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
-                      WHERE Order_ID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
             $stmt->execute();
             $stmt->close();
-
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
         }
+
+        // Update Order
+        $total_price = $price * $quantity;
+        $query = "UPDATE Orders 
+                  SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
+                  WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
+        $stmt->execute();
+        $stmt->close();
+
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 }
 
@@ -363,29 +364,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         }
     });
 
+    document.addEventListener("DOMContentLoaded", function () {
+        // Get the product name and product type input fields
+        const productNameInput = document.getElementById("Product_Name");
+        const productTypeInput = document.getElementById("Product_Type");
+        //const productIDInput = document.getElementById("Product_ID"); // Hidden field for Product ID
 
-        // Edit order modal functionality
-        $('#editOrderModal').on('show.bs.modal', function (event) {
-            const button = $(event.relatedTarget); // Button that triggered the modal
-            const orderId = button.data('order-id');
-            const customerFName = button.data('customer-first-name');
-            const customerLName = button.data('customer-last-name');
-            const productName = button.data('product-name');
-            const quantity = button.data('quantity');
-            const status = button.data('status');
-            const orderType = button.data('order-type');
-            const notes = button.data('notes');
+        // Ensure the product type field is disabled
+        if (productTypeInput) {
+            productTypeInput.disabled = true;
+        }
 
-            const modal = $(this);
-            modal.find('#edit_order_id').val(orderId);
-            modal.find('#edit_customer_fname').val(customerFName);
-            modal.find('#edit_customer_lname').val(customerLName);
-            modal.find('#edit_product_name').val(productName);
-            modal.find('#edit_quantity').val(quantity);
-            modal.find('#edit_status').val(status);
-            modal.find('#edit_order_type').val(orderType);
-            modal.find('#edit_notes').val(notes);
+        // Add event listener for product name input
+        if (productNameInput) {
+            productNameInput.addEventListener("input", function () {
+                let productName = productNameInput.value.trim();
+
+                if (productName !== "") {
+                    // Make AJAX request to fetch product type and ID
+                    fetch(`manageorders.php?product_name=${encodeURIComponent(productName)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                productTypeInput.value = data.product_type;
+                                productIDInput.value = data.product_id; // Store product ID
+                            } else {
+                                productTypeInput.value = ""; // Clear if no match found
+                                productIDInput.value = "";
+                            }
+                        })
+                        .catch(error => console.error("Error fetching product type:", error));
+                } else {
+                    productTypeInput.value = ""; // Clear if input is empty
+                    productIDInput.value = "";
+                }
+            });
+        }
+    });
+
+    // Edit order modal functionality
+    $(document).ready(function () {
+    $("a[data-bs-target='#editOrderModal']").click(function () {
+        var orderID = $(this).data("order-id");
+        var customerFName = $(this).data("customer-first-name");
+        var customerLName = $(this).data("customer-last-name");
+        var productNameType = $(this).data("product-name") + " (" + $(this).data("product-type") + ")";
+        var quantity = $(this).data("quantity");
+        var orderType = $(this).data("order-type");
+        var status = $(this).data("status");
+        var notes = $(this).data("notes");
+
+        // Populate the modal fields
+        $("#edit_order_id").val(orderID);
+        $("#edit_quantity").val(quantity);
+        $("#edit_order_type").val(orderType);
+        $("#edit_status").val(status);
+        $("#edit_notes").val(notes);
+
+        // Match Product Name + Type with the correct Product_ID
+        $("#editProductID option").each(function () {
+            if ($(this).text().trim() === productNameType.trim()) {
+                $(this).prop("selected", true);
+                return false; // Stop looping once a match is found
+            }
         });
+    });
+});
 
         // PDF generation functionality
         $('.PDFdata').click(function(e) {
@@ -648,12 +692,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
                         </div>
                         <div class="modal-body">
-                            <!--Display Error Message -->
+                            <!-- Display Error Message -->
                             <?php if (!empty($add_error_message)): ?>
                                 <div class="alert alert-danger text-center"><?php echo $add_error_message; ?></div>
                             <?php endif; ?>
-                            <!-- Hidden Input for Customer ID -->
-                            <input type="hidden" id="Selected_Customer_ID" name="Customer_ID">
                             <div class="mb-3">
                                 <label for="Customer" class="form-label">Customer Name</label>
                                 <select class="form-control" id="Customer" name="Customer_ID" style="height: fit-content;" required>
@@ -666,14 +708,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="Product_ID" class="form-label">Product Name</label>
-                                <select name="Product_ID" id="Product_ID" class="form-control" style="height: fit-content;" required>
+                                <label for="Product" class="form-label">Product</label>
+                                <select class="form-control" id="Product" name="Product_ID" style="height: fit-content;" required>
                                     <option value="">Select Product</option>
-                                    <?php foreach ($products as $product) { ?>
-                                        <option value="<?php echo htmlspecialchars($product['Product_ID']); ?>">
-                                            <?php echo htmlspecialchars($product['Product_Name']); ?>
+                                    <?php foreach ($products as $product): ?>
+                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                            <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Product_Type'] . ')') ?>
                                         </option>
-                                    <?php } ?>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -696,7 +738,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <div class="mb-3">
                                 <label for="Quantity" class="form-label">Quantity</label>
                                 <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
-                                <small class="form-text text-muted">Please enter the quantity of the product.</small>
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
@@ -704,7 +745,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
                             <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
                         </div>
                     </form>
@@ -721,7 +762,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
                         </div>
                         <div class="modal-body">
-                            <!-- Display Error Message -->
                             <?php if (!empty($edit_error_message)): ?>
                                 <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
                             <?php endif; ?>
@@ -729,54 +769,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                 <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
                             <?php else: ?>
                                 <input type="hidden" id="edit_order_id" name="Order_ID">
-                                <?php if ($user_role !== 'driver') : ?>
-                                    <div class="mb-3">
-                                        <label for="edit_customer_fname" class="form-label">Customer First Name</label>
-                                        <input type="text" class="form-control" id="edit_customer_fname" name="New_CustomerFName">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="edit_customer_lname" class="form-label">Customer Last Name</label>
-                                        <input type="text" class="form-control" id="edit_customer_lname" name="New_CustomerLName">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="edit_product_name" class="form-label">Product Name</label>
-                                        <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="edit_quantity" class="form-label">Quantity</label>
-                                        <input type="number" class="form-control" id="edit_quantity" name="New_Quantity">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="edit_order_type" class="form-label">Order Type</label>
-                                        <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;">
-                                            <option value="">Select Order Type</option>
-                                            <option value="Inbound">Inbound</option>
-                                            <option value="Outbound">Outbound</option>
-                                        </select>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="mb-3">
+                                    <label for="editCustomer" class="form-label">Customer Name</label>
+                                    <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
+                                        <?php foreach ($customers as $customer): ?>
+                                            <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                                <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editProductID">Product</label>
+                                    <select class="form-control" id="editProductID" name="New_ProductID" style="height: fit-content;" required>
+                                        <?php foreach ($products as $product) : ?>
+                                            <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                                <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Product_Type'] . ')') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_quantity" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_order_type" class="form-label">Order Type</label>
+                                    <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
+                                        <option value="Inbound">Inbound</option>
+                                        <option value="Outbound">Outbound</option>
+                                    </select>
+                                </div>
                                 <div class="mb-3">
                                     <label for="edit_status" class="form-label">Status</label>
-                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;">
-                                        <option value="">Select Status</option>
+                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
                                         <option value="To Pick Up">To Pick Up</option>
                                         <option value="In Transit">In Transit</option>
                                         <option value="Delivered">Delivered</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                <label for="notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="notes" name="New_Notes" rows="3" placeholder="Enter notes"></textarea>
+                                    <label for="edit_notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
                                 </div>
                             <?php endif; ?>
                         </div>
-
                         <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                            <?php if ($user_role !== 'driver' && $user_role !== 'staff') : ?>
-                                <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" 
-                                style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
-                            <?php endif; ?>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
                             <?php if ($user_role !== 'staff') : ?>
                                 <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
                             <?php endif; ?>
@@ -874,7 +913,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <th onclick="sortTable(0)">Managed by <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(1)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(2)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Product<i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(4)">Status <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(5)">Order Type <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(6)">Quantity <i class="bi bi-arrow-down-up"></i></th>
@@ -891,30 +930,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Product_Type'] . ')'); ?></td>
                                     <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                                     <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                     <td class="text-center"> 
-                                        <a href="" data-bs-toggle="modal" data-bs-target="#editOrderModal" 
-                                        data-order-id="<?php echo $row['Order_ID']; ?>" 
-                                        data-customer-first-name="<?php echo $row['Customer_FName']; ?>" 
-                                        data-customer-last-name="<?php echo $row['Customer_LName']; ?>" 
-                                        data-product-name="<?php echo $row['Product_Name']; ?>" 
-                                        data-quantity="<?php echo $row['Quantity']; ?>"
-                                        data-status="<?php echo $row['Status']; ?>" 
-                                        data-order-type="<?php echo $row['Order_Type']; ?>"
-                                        data-notes="<?php echo $row['Order_Type']; ?>">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal"
+                                        data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>" 
+                                        data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>" 
+                                        data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>" 
+                                        data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>" 
+                                        data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
+                                        data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
+                                        data-status="<?php echo htmlspecialchars($row['Status']); ?>" 
+                                        data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
+                                        data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
                                     </td>
                                     <td> 
                                     <a href="#" class="PDFdata"
                                             data-managed-by="<?php echo $row['Full_Name']; ?>" 
                                             data-customer-name="<?php echo $row['Customer_FName'] . ' ' . $row['Customer_LName']; ?>"
-                                            data-product-name="<?php echo $row['Product_Name']; ?>" 
+                                            data-product="<?php echo $row['Product_Name'].' ('.$row['Product_Type'].')'; ?>"
                                             data-status="<?php echo $row['Status']; ?>" 
                                             data-order-type="<?php echo $row['Order_Type']; ?>"
                                             data-quantity="<?php echo $row['Quantity']; ?>"
