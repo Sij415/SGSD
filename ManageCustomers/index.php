@@ -29,33 +29,15 @@ while ($row = $product_result->fetch_assoc()) {
 // Handle adding customer
 if (isset($_POST['add_customer'])) {
     $customer_id = $_POST['Customer_ID'];
-    $product_id = $_POST['Product_ID'];
     $first_name = $_POST['First_Name'];
     $last_name = $_POST['Last_Name'];
     $contact_number = $_POST['Contact_Number'];
     
 
-   // Insert Product_ID if it doesn't exist
-    $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
-    $product_stmt = $conn->prepare($product_check_query);
-    $product_stmt->bind_param("i", $product_id);
-    $product_stmt->execute();
-    $product_result = $product_stmt->get_result();
-
-    if ($product_result->num_rows === 0) {
-        $insert_product_query = "INSERT INTO Products (Product_ID) VALUES (?)";
-        $insert_product_stmt = $conn->prepare($insert_product_query);
-        $insert_product_stmt->bind_param("i", $product_id);
-        $insert_product_stmt->execute();
-        $insert_product_stmt->close();
-    }
-
-    $product_stmt->close();
-
     // Proceed with inserting into Customer table
-    $query = "INSERT INTO Customers (Customer_ID, Product_ID, First_Name, Last_Name, Contact_Number) VALUES (?, ?, ?, ?, ?)";
+    $query = "INSERT INTO Customers (Customer_ID, First_Name, Last_Name, Contact_Number) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iisss", $customer_id, $product_id, $first_name, $last_name, $contact_number);
+    $stmt->bind_param("isss", $customer_id, $first_name, $last_name, $contact_number);
 
     if ($stmt->execute()) {
         $success_message = "Customer record added successfully.";
@@ -87,9 +69,77 @@ if (isset($_POST['edit_customer'])) {
     $stmt->close();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
+
+
+
+
+
+
+
+// Handle deleting customers
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) {
+    $customer_ids = json_decode($_POST['customer_ids']);
+
+    foreach ($customer_ids as $customer_id) {
+        // Delete the customer
+        $query = "DELETE FROM Customers WHERE Customer_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $customer_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ?>
 
@@ -321,11 +371,17 @@ $result = $conn->query($query);
         let selectionMode = false;
         let selectedItems = [];
 
-        // Add checkbox column to table header
-        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Check if there are any customers
+        if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
+            // Add checkbox column to table header
+            $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-        // Add checkboxes to all rows
-        $("#customersTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+            // Add checkboxes to all rows
+            $("#customersTable tbody tr").prepend(function() {
+            var customerId = $(this).data("customer-id");
+            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + customerId + '"></td>';
+            });
+        }
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -398,24 +454,12 @@ $result = $conn->query($query);
 
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            console.log("Deleting items:", selectedItems);
-            // Here you would normally send the selectedItems to the server for deletion
-
-            // Clear selection and close modal
-            $("#deleteConfirmModal").modal("hide");
-
-            // For demo purposes, let's remove the selected rows from the table
-            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
-                $(this).remove();
-            });
-
-            // Reset selection
-            selectionMode = false;
-            $("#toggle-selection-mode").removeClass("active");
-            selectedItems = [];
-            updateSelectedCount();
+            const customerIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            console.log("Selected Customer IDs: ", customerIds); // Debug log to check customer IDs
+            $("#customer_ids").val(JSON.stringify(customerIds));
+            $("#deleteForm").submit();
         });
-        
+
         // Connect delete button in floating dialog to delete modal
         $("#delete-selected-btn").click(function() {
             $("#deleteConfirmModal").modal("show");
@@ -508,10 +552,16 @@ $result = $conn->query($query);
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
     </nav>
@@ -599,6 +649,11 @@ $result = $conn->query($query);
                     <?php endif; ?>
                 </div>
             </div>
+            <!-- Hidden Form for Deletion -->
+<form id="deleteForm" method="POST" action="" style="display:none;">
+    <input type="hidden" name="delete_customers" value="1">
+    <input type="hidden" name="customer_ids" id="customer_ids">
+</form>
             <script>
                 // Connect delete buttons to delete modal
                 $(document).ready(function() {
@@ -623,7 +678,7 @@ $result = $conn->query($query);
                     <tbody>
                         <?php if (mysqli_num_rows($result) > 0): ?>
                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                                <tr>
+                                <tr data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Last_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Contact_Number']); ?></td>
@@ -640,7 +695,7 @@ $result = $conn->query($query);
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6">No customers found.</td>
+                                <td colspan="6" class="text-center">No customers found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -668,7 +723,6 @@ $result = $conn->query($query);
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['First_Name'] . ' ' . $row['Last_Name']); ?></h5>
                                     <p class="card-text">
                                         <strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?><br>
-                                        <strong>Product ID:</strong> <?php echo htmlspecialchars($row['Product_ID']); ?><br>
                                         <strong>Contact:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?>
                                     </p>
                                 </div>
@@ -691,6 +745,9 @@ $result = $conn->query($query);
                     </div>
                     <div class="modal-body">
                         <form method="POST" action="">
+                            <!-- Hidden field for Customer_ID (auto-incremented, not user-inputted) -->
+                            <input type="hidden" name="Customer_ID">
+
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">First Name</label>
                                 <input type="text" class="form-control" id="First_Name" name="First_Name" placeholder="e.g., Jon" required>
@@ -702,17 +759,6 @@ $result = $conn->query($query);
                             <div class="mb-3">
                                 <label for="contact_number" class="form-label">Contact Number</label>
                                 <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Product_ID" class="form-label">Product Name</label>
-                                <select class="form-control" id="Product_ID" name="Product_ID" style="height: fit-content" required>
-                                    <option value="">Select a Product</option>
-                                    <?php foreach ($products as $product): ?>
-                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                            <?= htmlspecialchars($product['Product_Name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
