@@ -22,15 +22,15 @@ $stmt->close();
 
 // Handle adding product
 if (isset($_POST['add_product'])) {
-    $product_id = $_POST['Product_ID'];
     $product_name = $_POST['Product_Name'];
-    $product_type= $_POST['Product_Type'];
+    $product_type = $_POST['Product_Type'];
     $price = $_POST['Price'];
+    $unit = $_POST['Unit'];
 
     // Proceed with inserting into Product table
-    $query = "INSERT INTO Products (Product_ID, Product_Name, Product_Type, Price) VALUES (?, ?, ?, ?)";
+    $query = "INSERT INTO Products (Product_Name, Product_Type, Price, Unit) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("issd", $product_id, $product_name, $product_type, $price);
+    $stmt->bind_param("ssds", $product_name, $product_type, $price, $unit);
 
     if ($stmt->execute()) {
         $success_message = "Product added successfully.";
@@ -43,14 +43,15 @@ if (isset($_POST['add_product'])) {
 
 // Handle editing product
 if (isset($_POST['edit_product'])) {
-    $product_id = $_POST['Product_ID'];
     $new_productname = $_POST['New_ProductName'];
     $new_producttype = $_POST['New_ProductType'];
     $new_price = $_POST['New_Price'];
+    $new_unit = $_POST['New_Unit'];
+    $product_id = $_POST['Product_ID'];
 
-    $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ? WHERE Product_ID = ?";
+    $query = "UPDATE Products SET Product_Name = ?, Product_Type = ?, Price = ?, Unit = ? WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("ssdi", $new_productname, $new_producttype, $new_price, $product_id);
+    $stmt->bind_param("ssdsi", $new_productname, $new_producttype, $new_price, $new_unit, $product_id);
 
     if ($stmt->execute()) {
         $success_message = "Product updated successfully.";
@@ -64,6 +65,48 @@ if (isset($_POST['edit_product'])) {
 // Fetch products
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Handle deleting products
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
+    $product_ids = json_decode($_POST['product_ids']);
+
+    foreach ($product_ids as $product_id) {
+        // Delete the product
+        $query = "DELETE FROM Products WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
 
 ?>
 
@@ -112,22 +155,24 @@ $result = $conn->query($query);
 ------------------------------------------------------>
 
 <script>
-    $(document).ready(function () {
+   $(document).ready(function () {
     // Populate edit modal with existing data
     $('#editProductModal').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget); // Button that triggered the modal
-    var productId = button.data('product-id'); // Extract info from data-* attributes
-    var productName = button.data('product-name');
-    var productType = button.data('product-type');
-    var price = button.data('price');
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var productId = button.data('product-id'); // Extract info from data-* attributes
+        var productName = button.data('product-name');
+        var productType = button.data('product-type');
+        var price = button.data('price');
+        var unit = button.data('unit'); // Add this line
 
-    var modal = $(this);
-    modal.find('#edit_product_id').val(productId);
-    modal.find('#edit_product_name').val(productName);
-    modal.find('#edit_product_type').val(productType);
-    modal.find('#edit_price').val(price);
+        var modal = $(this);
+        modal.find('#edit_product_id').val(productId);
+        modal.find('#edit_product_name').val(productName);
+        modal.find('#edit_product_type').val(productType);
+        modal.find('#edit_price').val(price);
+        modal.find('#edit_unit').val(unit); // Add this line
     });
-})
+});
 
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleBtn');
@@ -250,7 +295,10 @@ $result = $conn->query($query);
         $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
         // Add checkboxes to all rows
-        $("#ProductsTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+        $("#ProductsTable tbody tr").prepend(function() {
+            var productId = $(this).data("product-id");
+            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + productId + '"></td>';
+        });
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -323,24 +371,12 @@ $result = $conn->query($query);
 
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            console.log("Deleting items:", selectedItems);
-            // Here you would normally send the selectedItems to the server for deletion
-
-            // Clear selection and close modal
-            $("#deleteConfirmModal").modal("hide");
-
-            // For demo purposes, let's remove the selected rows from the table
-            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
-                $(this).remove();
-            });
-
-            // Reset selection
-            selectionMode = false;
-            $("#toggle-selection-mode").removeClass("active");
-            selectedItems = [];
-            updateSelectedCount();
+            const productIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            console.log("Selected Product IDs: ", productIds); // Debug log to check product IDs
+            $("#product_ids").val(JSON.stringify(productIds));
+            $("#deleteForm").submit();
         });
-        
+
         // Connect delete button in floating dialog to delete modal
         $("#delete-selected-btn").click(function() {
             $("#deleteConfirmModal").modal("show");
@@ -433,10 +469,16 @@ $result = $conn->query($query);
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
         </ul>
@@ -526,6 +568,11 @@ $result = $conn->query($query);
                     <?php endif; ?>
                 </div>
             </div>
+            <!-- Hidden Form for Deletion -->
+<form id="deleteForm" method="POST" action="" style="display:none;">
+    <input type="hidden" name="delete_products" value="1">
+    <input type="hidden" name="product_ids" id="product_ids">
+</form>
             <script>
                 // Connect delete buttons to delete modal
                 $(document).ready(function() {
@@ -543,22 +590,25 @@ $result = $conn->query($query);
                             <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(2)">Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Unit <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (mysqli_num_rows($result) > 0) : ?>
                             <?php while ($row = mysqli_fetch_assoc($result)) : ?>
-                                <tr>
+                                <tr data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>">
                                     <td><?php echo $row['Product_Name']; ?></td>
                                     <td><?php echo $row['Product_Type']; ?></td>
                                     <td><?php echo $row['Price']; ?></td>
+                                    <td><?php echo $row['Unit']; ?></td>
                                     <td class="text-dark text-center">
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                                         data-product-id="<?php echo $row['Product_ID']; ?>" 
                                         data-product-name="<?php echo $row['Product_Name']; ?>" 
                                         data-product-type="<?php echo $row['Product_Type']; ?>" 
-                                        data-price="<?php echo $row['Price']; ?>">
+                                        data-price="<?php echo $row['Price']; ?>"
+                                        data-unit="<?php echo $row['Unit']; ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     </td>
@@ -605,66 +655,73 @@ $result = $conn->query($query);
             </div>
         </div>
 
-        <!-- Add Product Modal -->
-        <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    <div class="mb-3">
+                        <label for="Product_Name" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="Product_Name" name="Product_Name" placeholder="Enter Product Name" required>
                     </div>
-                    <div class="modal-body">
-                        <form method="POST" action="">
-                            <div class="mb-3">
-                                <label for="product_name" class="form-label">Product Name</label>
-                                <input type="text" class="form-control" id="Product_Name" name="Product_Name" placeholder="Enter Product Name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="product_type" class="form-label">Product Type</label>
-                                <input type="text" class="form-control" id="Product_Type" name="Product_Type" placeholder="Enter Product Type" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="price" class="form-label">Price</label>
-                                <input type="number" class="form-control" id="Price" name="Price" placeholder="Enter Price" required>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                                <button type="submit" name="add_product" class="btn custom-btn">Add Product</button>
-                            </div>
-                        </form>
+                    <div class="mb-3">
+                        <label for="Product_Type" class="form-label">Product Type</label>
+                        <input type="text" class="form-control" id="Product_Type" name="Product_Type" placeholder="Enter Product Type" required>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label for="Price" class="form-label">Price</label>
+                        <input type="number" class="form-control" id="Price" name="Price" placeholder="Enter Price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Unit" class="form-label">Unit</label>
+                        <input type="text" class="form-control" id="Unit" name="Unit" placeholder="Enter Unit" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                        <button type="submit" name="add_product" class="btn custom-btn">Add Product</button>
+                    </div>
+                </form>
             </div>
         </div>
-        <!-- Edit Product Modal -->
-        <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>                   
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>                   
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    <input type="hidden" id="edit_product_id" name="Product_ID">
+                    <div class="mb-3">
+                        <label for="edit_product_name" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
                     </div>
-                    <div class="modal-body">
-                        <form method="POST" action="">
-                            <input type="hidden" id="edit_product_id" name="Product_ID">
-                            <div class="mb-3">
-                                <label for="edit_product_name" class="form-label">Product Name</label>
-                                <input type="text" class="form-control" id="edit_product_name" name="New_ProductName">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_product_type" class="form-label">Product Type</label>
-                                <input type="text" class="form-control" id="edit_product_type" name="New_ProductType">
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit_price" class="form-label">Price</label>
-                                <input type="number" class="form-control" id="edit_price" name="New_Price">
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                                <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
-                                <button type="submit" name="edit_product" class="btn custom-btn">Save Changes</button>
-                            </div>
-                        </form>
+                    <div class="mb-3">
+                        <label for="edit_product_type" class="form-label">Product Type</label>
+                        <input type="text" class="form-control" id="edit_product_type" name="New_ProductType">
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label for="edit_price" class="form-label">Price</label>
+                        <input type="number" class="form-control" id="edit_price" name="New_Price">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_unit" class="form-label">Unit</label>
+                        <input type="text" class="form-control" id="edit_unit" name="New_Unit">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                        <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
+                        <button type="submit" name="edit_product" class="btn custom-btn">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

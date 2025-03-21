@@ -21,7 +21,7 @@ if (!$user_id) {
 }
 
 // Fetch notifications that haven't been cleared by this user
-$sql = "SELECT Message, Created_At FROM Notifications WHERE Role = ? AND (Cleared IS NULL OR NOT FIND_IN_SET(?, Cleared)) ORDER BY Created_At DESC LIMIT 10";
+$sql = "SELECT Message FROM Notifications WHERE Role = ? AND (Cleared IS NULL OR NOT FIND_IN_SET(?, Cleared)) ORDER BY Created_At DESC LIMIT 10";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("si", $user_role, $user_id);
 $stmt->execute();
