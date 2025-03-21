@@ -744,8 +744,8 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
-    <i class="fa-solid fa-sign-out-alt"></i>
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 

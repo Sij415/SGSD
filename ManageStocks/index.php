@@ -592,8 +592,8 @@ $(document).ready(function() {
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
-    <i class="fa-solid fa-sign-out-alt"></i>
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 
@@ -671,7 +671,7 @@ $(document).ready(function() {
                 </div>
                 <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
                     <!-- Add Order Button -->
-                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Order</button>
+                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Stock</button>
                 <?php endif; ?>
                 <!-- Delete Confirmation Modal -->
                 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">

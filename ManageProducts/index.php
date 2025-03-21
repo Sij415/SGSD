@@ -456,8 +456,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
-    <i class="fa-solid fa-sign-out-alt"></i>
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 
@@ -575,8 +575,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                         <tr>
                             <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Unit <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Unit <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Price <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                         </tr>
                     </thead>
@@ -586,7 +586,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                                 <tr data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>">
                                     <td><?php echo $row['Product_Name']; ?></td>
                                     <td><?php echo $row['Product_Type']; ?></td>
-                                    <td><?php echo $row['Price']; ?></td>
+                                    <td>₱<?php echo $row['Price']; ?></td>
                                     <td><?php echo $row['Unit']; ?></td>
                                     <td class="text-dark text-center">
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 

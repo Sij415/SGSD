@@ -69,26 +69,6 @@ if (isset($_POST['edit_customer'])) {
     $stmt->close();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
@@ -99,12 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     header("Location: ../Login"); // Redirect to login page
     exit();
 }
-
-
-
-
-
-
 
 // Handle deleting customers
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) {
@@ -122,24 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ?>
 
@@ -553,8 +509,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
-    <i class="fa-solid fa-sign-out-alt"></i>
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 

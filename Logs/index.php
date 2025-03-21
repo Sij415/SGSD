@@ -28,6 +28,14 @@ $query = "SELECT Logs.Log_ID,
           INNER JOIN Users ON Logs.User_ID = Users.User_ID"; 
 
 $result = $conn->query($query);
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -202,10 +210,13 @@ $result = $conn->query($query);
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
+            <a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
                 <i class="fa-solid fa-sign-out-alt"></i>
                 <span>Log out</span>
-                </a>
+            </a>
+            <form id="logoutForm" method="POST" action="">
+                <input type="hidden" name="logout" value="1">
+            </form>
             </li>
         </ul>
     </nav>

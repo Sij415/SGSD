@@ -59,12 +59,12 @@ if ($period === 'daily') {
     $pie_interval_clause = "DATE(t.Date) = CURDATE()";
 }
 
-// Fetch Revenue Data (Including only completed orders)
+// Fetch Revenue Data (Including only Delivered orders)
 $query = "SELECT DATE_FORMAT(t.Date, '$date_format') AS Date, SUM(p.Price) AS revenue 
           FROM Transactions t 
           JOIN Orders o ON t.Order_ID = o.Order_ID 
           JOIN Products p ON o.Product_ID = p.Product_ID 
-          WHERE t.Date >= $interval_clause AND o.Status = 'Completed'
+          WHERE t.Date >= $interval_clause AND o.Status = 'Delivered'
           GROUP BY DATE_FORMAT(t.Date, '$date_format')";
 $result = $conn->query($query);
 $revenue_data = [];
@@ -100,11 +100,11 @@ while ($row = $result->fetch_assoc()) {
 $result->close();
 $transactions_data = fill_missing_dates($transactions_data, $date_format, $interval_clause, $conn, 'transaction_count');
 
-// Fetch Items Sold Data (Including only completed orders and order_type 'Sale')
+// Fetch Items Sold Data (Including only Delivered orders and order_type 'Outbound')
 $query = "SELECT DATE_FORMAT(t.Date, '$date_format') AS Date, COUNT(o.Product_ID) AS items_sold
           FROM Transactions t
           JOIN Orders o ON t.Order_ID = o.Order_ID
-          WHERE t.Date >= $interval_clause AND o.Status = 'Completed' AND o.Order_Type = 'Sale'
+          WHERE t.Date >= $interval_clause AND o.Status = 'Delivered' AND o.Order_Type = 'Outbound'
           GROUP BY DATE_FORMAT(t.Date, '$date_format')";
 $result = $conn->query($query);
 $items_sold_data = [];
@@ -131,7 +131,7 @@ $query = "SELECT p.Product_Name, SUM(o.quantity) AS quantity_sold
           FROM Orders o
           JOIN Products p ON o.Product_ID = p.Product_ID
           JOIN Transactions t ON o.Order_ID = t.Order_ID
-          WHERE o.Status = 'Completed' AND o.Order_Type = 'Sale'
+          WHERE o.Status = 'Delivered' AND o.Order_Type = 'Outbound'
           AND $pie_interval_clause
           GROUP BY p.Product_Name";
 $result = $conn->query($query);
