@@ -837,7 +837,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -905,7 +905,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label for="edit_notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
                         </div>
                     <?php endif; ?>
                 </div>
