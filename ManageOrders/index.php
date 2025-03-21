@@ -1077,12 +1077,12 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-            <td colspan="11" class="text-center">No stocks found.</td>
+            <td colspan="11" class="text-center">No orders found.</td>
         </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
-                <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Stock found.</p>
+                <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No order found.</p>
             </div>
             <!-- Hidden Form -->
         <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">

@@ -205,25 +205,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
         rows.forEach(row => tbody.appendChild(row));
     }
 
-    function searchTables() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('ProductsTable');
-        const tr = table.getElementsByTagName('tr');
+    function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('ProductsTable');
+    const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
-            tr[i].style.display = found ? '' : 'none';
         }
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
+    }
+
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
 
         // Search in Mobile Cards (if applicable)
         const cards = document.querySelectorAll('.card');
@@ -519,7 +525,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                     <div class="search-container">
-                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                             <i class="fa fa-search"></i>
                         </button>
@@ -527,7 +533,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -649,6 +655,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                     <p>No products found.</p>
                 <?php endif; ?>
             </div>
+            <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Product found.</p>
         </div>
 
 <!-- Add Product Modal -->
