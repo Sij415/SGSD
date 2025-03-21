@@ -60,10 +60,9 @@ if ($period === 'daily') {
 }
 
 // Fetch Revenue Data (Including only Delivered orders)
-$query = "SELECT DATE_FORMAT(t.Date, '$date_format') AS Date, SUM(p.Price) AS revenue 
+$query = "SELECT DATE_FORMAT(t.Date, '$date_format') AS Date, SUM(o.Total_Price) AS revenue 
           FROM Transactions t 
           JOIN Orders o ON t.Order_ID = o.Order_ID 
-          JOIN Products p ON o.Product_ID = p.Product_ID 
           WHERE t.Date >= $interval_clause AND o.Status = 'Delivered'
           GROUP BY DATE_FORMAT(t.Date, '$date_format')";
 $result = $conn->query($query);
@@ -101,7 +100,7 @@ $result->close();
 $transactions_data = fill_missing_dates($transactions_data, $date_format, $interval_clause, $conn, 'transaction_count');
 
 // Fetch Items Sold Data (Including only Delivered orders and order_type 'Outbound')
-$query = "SELECT DATE_FORMAT(t.Date, '$date_format') AS Date, COUNT(o.Product_ID) AS items_sold
+$query = "SELECT DATE_FORMAT(t.Date, '$date_format') AS Date, SUM(o.Quantity) AS items_sold
           FROM Transactions t
           JOIN Orders o ON t.Order_ID = o.Order_ID
           WHERE t.Date >= $interval_clause AND o.Status = 'Delivered' AND o.Order_Type = 'Outbound'

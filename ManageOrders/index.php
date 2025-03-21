@@ -841,76 +841,76 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
 
-        <!-- Edit Order Modal -->
-        <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="POST" action="">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
-                        </div>
-                        <div class="modal-body">
-                            <?php if (!empty($edit_error_message)): ?>
-                                <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
-                            <?php endif; ?>
-                            <?php if ($user_role === 'staff') : ?>
-                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
-                            <?php else: ?>
-                                <input type="hidden" id="edit_order_id" name="Order_ID">
-                                <div class="mb-3">
-                                    <label for="editCustomer" class="form-label">Customer Name</label>
-                                    <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
-                                        <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
-                                                <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editProductID">Product</label>
-                                    <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-    <option value="">Select Product</option>
-    <?php foreach ($products as $product): ?>
-        <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
-    <?php endforeach; ?>
-</select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_quantity" class="form-label">Quantity</label>
-                                    <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_order_type" class="form-label">Order Type</label>
-                                    <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
-                                        <option value="Inbound">Inbound</option>
-                                        <option value="Outbound">Outbound</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_status" class="form-label">Status</label>
-                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
-                                        <option value="To Pick Up">To Pick Up</option>
-                                        <option value="In Transit">In Transit</option>
-                                        <option value="Delivered">Delivered</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
-                            <?php if ($user_role !== 'staff') : ?>
-                                <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
-                            <?php endif; ?>
-                        </div>
-                    </form>
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
                 </div>
-            </div>
+                <div class="modal-body">
+                    <?php if (!empty($edit_error_message)): ?>
+                        <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
+                    <?php endif; ?>
+                    <?php if ($user_role === 'staff') : ?>
+                        <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
+                    <?php else: ?>
+                        <input type="hidden" id="edit_order_id" name="Order_ID">
+                        <div class="mb-3">
+                            <label for="editCustomer" class="form-label">Customer Name</label>
+                            <select class="form-control" id="editCustomer" name="Customer_ID" style="height: fit-content;" required>
+                                <?php foreach ($customers as $customer): ?>
+                                    <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                        <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductID">Product</label>
+                            <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
+                                <option value="">Select Product</option>
+                                <?php foreach ($products as $product): ?>
+                                    <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_order_type" class="form-label">Order Type</label>
+                            <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
+                                <option value="Inbound">Inbound</option>
+                                <option value="Outbound">Outbound</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
+                                <option value="To Pick Up">To Pick Up</option>
+                                <option value="In Transit">In Transit</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                    <?php if ($user_role !== 'staff') : ?>
+                        <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                    <?php endif; ?>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
 
         <div class="container mt-4">
             <div class="pb-4">

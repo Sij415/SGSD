@@ -66,13 +66,29 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
-// Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
     exit();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Handle deleting products
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
@@ -274,17 +290,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
         let selectionMode = false;
         let selectedItems = [];
 
-        // Check if there are any products
-        if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
-            // Add checkbox column to table header
-            $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Add checkbox column to table header
+        $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-            // Add checkboxes to all rows
-            $("#ProductsTable tbody tr").prepend(function() {
+        // Add checkboxes to all rows
+        $("#ProductsTable tbody tr").prepend(function() {
             var productId = $(this).data("product-id");
             return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + productId + '"></td>';
-            });
-        }
+        });
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -455,13 +468,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                 </div>
             </li>
             <li>
-<!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+            <a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
     <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
-
-<!-- Hidden Logout Form -->
 <form id="logoutForm" method="POST" action="">
     <input type="hidden" name="logout" value="1">
 </form>
@@ -575,8 +585,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                         <tr>
                             <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Unit <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Unit <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Price <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                         </tr>
                     </thead>
@@ -586,8 +596,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                                 <tr data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>">
                                     <td><?php echo $row['Product_Name']; ?></td>
                                     <td><?php echo $row['Product_Type']; ?></td>
-                                    <td><?php echo $row['Price']; ?></td>
                                     <td><?php echo $row['Unit']; ?></td>
+                                    <td>₱<?php echo $row['Price']; ?></td>
                                     <td class="text-dark text-center">
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                                         data-product-id="<?php echo $row['Product_ID']; ?>" 
@@ -602,7 +612,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                             <?php endwhile; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="5" class="text-center">No products found.</td>
+                                <td colspan="4">No products found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
