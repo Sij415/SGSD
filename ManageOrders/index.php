@@ -1006,8 +1006,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto;">      
+            <div style="max-height: 750px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
+                
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
                         <tr>

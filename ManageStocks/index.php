@@ -228,35 +228,48 @@ function sortTable(columnIndex) {
     rows.forEach(row => tbody.appendChild(row));
 }
 
+
 function searchTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
     const table = document.getElementById('stocksTable');
     const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
     for (let i = 1; i < tr.length; i++) {
         const td = tr[i].getElementsByTagName('td');
         let found = false;
         for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
         }
-        tr[i].style.display = found ? '' : 'none';
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
     }
+
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
+}
 
     // Search in Mobile Cards (if applicable)
     const cards = document.querySelectorAll('.card');
     if (cards.length > 0) {
+        let cardFoundAny = false; // Track if any card is found
         cards.forEach(card => {
             const text = card.textContent.toLowerCase();
-            card.style.display = text.includes(filter) ? '' : 'none';
+            const cardFound = text.includes(filter);
+            card.style.display = cardFound ? '' : 'none';
+            if (cardFound) cardFoundAny = true; // Set to true if at least one card is found
         });
+        foundAny = foundAny || cardFoundAny; // Update foundAny based on card results
     }
-}
+
+
 
 function updateRowColors() {
     document.querySelectorAll("#stocksTable tbody tr").forEach((row) => {
@@ -655,11 +668,12 @@ $(document).ready(function() {
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                 <div class="search-container">
-                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
+
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
@@ -718,6 +732,7 @@ $(document).ready(function() {
                 <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
+                    
                 <thead>
     <tr>
         <th onclick="sortTable(0)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
@@ -729,6 +744,7 @@ $(document).ready(function() {
         <th>Edit</th>
     </tr>
 </thead>
+
                 <tbody>
                 <?php if (mysqli_num_rows($result) > 0): ?>
                     <?php 
@@ -772,6 +788,7 @@ $(document).ready(function() {
         </tr>
     <?php endif; ?>
 </tbody>
+
                 </table>
                 </div>
 
@@ -831,8 +848,10 @@ $(document).ready(function() {
                 <?php else: ?>
                     <p>No Stock found.</p>
                 <?php endif; ?>
+                
                 </div>
             </div>
+            <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Stock found.</p>
   
             <!-- Add Stock Modal -->
 <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
