@@ -371,8 +371,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
         let selectionMode = false;
         let selectedItems = [];
 
-        // Add checkbox column to table header
-        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Check if there are any customers
+        if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
+             // Add checkbox column to table header
+            $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+             // Add checkboxes to all rows
+            $("#customersTable tbody tr").prepend(function() {
+            var customerId = $(this).data("customer-id");
+            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + customerId + '"></td>';
+            });
+        }
 
         // Add checkboxes to all rows
         $("#customersTable tbody tr").prepend(function() {

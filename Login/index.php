@@ -170,6 +170,7 @@ return "The username or password you entered is incorrect. You have 4 attempts r
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <link rel="stylesheet" href="../style/style.css">
+    <link rel="icon"  href="../logo.png">
 </head>
 
 <header class="main-header">

@@ -203,7 +203,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                         ?>
                     </div>
                     <div>
-                        <h1><?php echo htmlspecialchars($user_first_name . ' ' . $user_last_name); ?></h1>
+                        <h1><?php echo htmlspecialchars($user_first_name); ?></h1>
                         <h2><?php echo htmlspecialchars($user_email); ?></h2>
                         <h5 style="font-size: 1em; background-color: #6fa062; color: #F2f2f2; font-weight: 700; padding: 8px; border-radius: 8px; width: fit-content;"><?php echo htmlspecialchars($user_role); ?></h5>
                     </div>
@@ -580,7 +580,7 @@ hr.line {
 
     .table-striped>tbody>tr:nth-child(odd)>td, 
     .table-striped>tbody>tr:nth-child(odd)>th {
-      background-color: #f4f9f8;
+      background-color: #f2f4f0;
     }
 
                 /* Table custom styling */
