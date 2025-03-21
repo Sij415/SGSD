@@ -859,7 +859,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         <input type="hidden" id="edit_order_id" name="Order_ID">
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
-                            <select class="form-control" id="editCustomer" name="Customer_ID" style="height: fit-content;" required>
+                            <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
                                         <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
@@ -869,7 +869,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label for="editProductID">Product</label>
-                            <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
+                            <select class="form-control" id="product_id" name="New_ProductID" style="height: fit-content;" required>
                                 <option value="">Select Product</option>
                                 <?php foreach ($products as $product): ?>
                                     <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
