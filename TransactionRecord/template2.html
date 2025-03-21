@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Template</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .company-info {
+            width: 50%;
+        }
+        .invoice-details {
+            width: 40%;
+            text-align: right;
+        }
+        .invoice-title {
+            color: #6fa062;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .bill-to {
+            margin-bottom: 30px;
+        }
+        .bill-to-title {
+            background-color: #6fa062;
+            color: white;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: #6fa062;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .amount-column {
+            text-align: right;
+        }
+        .totals {
+            width: 40%;
+            margin-left: auto;
+        }
+        .totals table {
+            width: 100%;
+        }
+        .totals td {
+            padding: 5px;
+        }
+        .totals .label {
+            text-align: right;
+            font-weight: bold;
+        }
+        .totals .value {
+            text-align: right;
+        }
+        .comments {
+            margin-bottom: 30px;
+        }
+        .comments-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 80px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-style: italic;
+        }
+        .small-text {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Media Queries */
+        @media screen and (max-width: 768px) {
+            .invoice-container {
+                padding: 15px;
+            }
+            .header {
+                flex-direction: column;
+            }
+            .company-info, .invoice-details {
+                width: 100%;
+                text-align: left;
+                margin-bottom: 15px;
+            }
+            .invoice-details {
+                margin-top: 20px;
+            }
+            .flex-container {
+                flex-direction: column;
+            }
+            .comments, .totals {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            .totals {
+                margin-left: 0;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .invoice-container {
+                padding: 10px;
+                border: none;
+            }
+            .invoice-title {
+                font-size: 24px;
+                text-align: center;
+            }
+            th, td {
+                padding: 8px 5px;
+                font-size: 14px;
+            }
+            .comments-box {
+                min-height: 60px;
+            }
+            .footer, .small-text {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="company-info">
+                <div>[Company Name]</div>
+                <div>[Street Address]</div>
+                <div>[City, ST ZIP]</div>
+                <div>Phone: [000-000-0000]</div>
+                <div>Fax: [000-000-0000]</div>
+                <div>Website:</div>
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-title">INVOICE</div>
+                <table>
+                    <tr>
+                        <td>DATE</td>
+                        <td>3/7/2018</td>
+                    </tr>
+                    <tr>
+                        <td>INVOICE #</td>
+                        <td>[123456]</td>
+                    </tr>
+                    <tr>
+                        <td>CUSTOMER ID</td>
+                        <td>[123]</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="bill-to">
+            <div class="bill-to-title">BILL TO:</div>
+            <div>[Name]</div>
+            <div>[Company Name]</div>
+            <div>[Street Address]</div>
+            <div>[City, ST ZIP]</div>
+            <div>[Phone]</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>DESCRIPTION</th>
+                    <th class="amount-column">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>[Service Fee]</td>
+                    <td class="amount-column">230.00</td>
+                </tr>
+                <tr>
+                    <td>[Labor: 5 hours at $75/hr]</td>
+                    <td class="amount-column">375.00</td>
+                </tr>
+                <tr>
+                    <td height="100"></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="flex-container">
+            <div class="comments">
+                <div class="bill-to-title">COMMENTS</div>
+                <div class="comments-box">
+                    1. Total payment due in 30 days<br>
+                    2. Please include the invoice number on your check
+                </div>
+            </div>
+            <div class="totals">
+                <table>
+                    <tr>
+                        <td class="label">SUBTOTAL</td>
+                        <td class="value">605.00</td>
+                    </tr>
+                    <tr>
+                        <td class="label">TAX RATE</td>
+                        <td class="value">0.000%</td>
+                    </tr>
+                    <tr>
+                        <td class="label">TAX</td>
+                        <td class="value">-</td>
+                    </tr>
+                    <tr>
+                        <td class="label">OTHER</td>
+                        <td class="value">-</td>
+                    </tr>
+                    <tr>
+                        <td class="label">TOTAL</td>
+                        <td class="value">$ 605.00</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 10px; text-align: center;">
+                    Make all checks payable to<br>
+                    [Your Company Name]
+                </div>
+            </div>
+        </div>
+
+        <div style="clear: both; margin-top: 40px; text-align: center;">
+            If you have any questions about this invoice, please contact<br>
+            [Name, Phone #, Email]
+        </div>
+
+        <div class="footer">
+            Thank You For Your Business!
+        </div>
+
+        <div class="small-text">
+            Invoice Template © 2008-2018 Vertex42.com
+        </div>
+    </div>
+</body>
+</html>
