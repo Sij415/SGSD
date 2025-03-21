@@ -153,7 +153,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
-// Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
@@ -589,13 +588,10 @@ $(document).ready(function() {
                 </div>
             </li>
             <li>
-<!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+            <a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
     <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
-
-<!-- Hidden Logout Form -->
 <form id="logoutForm" method="POST" action="">
     <input type="hidden" name="logout" value="1">
 </form>
