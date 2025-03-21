@@ -245,10 +245,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         // Update Order
         $total_price = $price * $quantity;
         $query = "UPDATE Orders 
-                  SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
-                  WHERE Order_ID = ?";
+                SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
+                WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $query = "UPDATE Transactions
+        SET Customer_ID = ?
+        WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $customer_id, $order_id);
         $stmt->execute();
         $stmt->close();
 
