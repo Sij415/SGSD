@@ -45,11 +45,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <link rel="icon"  href="../logo.png">
     <link rel="stylesheet" href="../style/styles.css">
+    <script>
+    var app = angular.module('notificationApp', []);
+    app.controller('NotificationController', function ($scope, $http) {
+        $scope.dropdownVisible = false;
+        $scope.notifications = [];
+
+        // Fetch notifications from the server
+        $scope.getNotifications = function () {
+            $http.get('get_notifications.php')
+                .then(function (response) {
+                    console.log("Response Data:", response.data); // Debugging
+                    $scope.notifications = response.data;
+                })
+                .catch(function (error) {
+                    console.error("Error fetching notifications:", error);
+                });
+        };
+
+        // Toggle dropdown
+        $scope.toggleDropdown = function (event) {
+            event.preventDefault();
+            $scope.dropdownVisible = !$scope.dropdownVisible;
+            if ($scope.dropdownVisible) {
+                $scope.getNotifications();
+            }
+        };
+
+        // Clear all notifications
+        $scope.clearAllNotifications = function () {
+            $http.post('clear_notifications.php')
+                .then(function (response) {
+                    if (response.data.success) {
+                        $scope.notifications = []; // Clear UI notifications
+                    } else {
+                        console.error("Failed to clear notifications:", response.data.message);
+                    }
+                })
+                .catch(function (error) {
+                    console.error("Error clearing notifications:", error);
+                });
+        };
+
+        // Fetch notifications when the page loads
+        $scope.getNotifications();
+    });
+</script>
+
 
 </head>
-<body>
 
 <!-----------------------------------------------------
     DO NOT REMOVE THIS SNIPPET, THIS IS FOR SIDEBAR JS
@@ -84,199 +131,194 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     function closeNav() {
       sidebar.classList.remove('active');
     }
-
-
-        // Doughnut Chart for Top Selling
-        new Chart(document.getElementById('topSellingChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Coca Cola', 'Royal', 'Sprite', 'Pepsi', 'Mountain Dew'],
-                datasets: [{
-                    data: [43, 21, 13, 12, 8],
-                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d']
-                }]
-            },
-            options: { responsive: true }
-        });
         </script>
 
 
 <script>
-$(document).ready(function () {
-    let revenueBarChart, ordersLineChart, customersLineChart, itemsSoldBarChart;
+    $(document).ready(function () {
+        let revenueBarChart, ordersLineChart, transactionsLineChart, itemsSoldBarChart;
 
-    function formatDate(dateString, period) {
-        let options;
-        if (period === 'monthly') {
-            options = { year: 'numeric', month: 'long' };
-        } else if (period === 'yearly') {
-            options = { year: 'numeric' };
-        } else if (period === 'weekly') {
-            const [year, week] = dateString.split('-').map(Number);
-            return `Week ${week}`;
-        } else {
-            options = { year: 'numeric', month: 'long', day: 'numeric' };
+        function formatDate(dateString, period) {
+            let options;
+            if (period === 'monthly') {
+                options = { year: 'numeric', month: 'long' };
+            } else if (period === 'yearly') {
+                options = { year: 'numeric' };
+            } else if (period === 'weekly') {
+                const [year, week] = dateString.split('-').map(Number);
+                return `Week ${week}`;
+            } else {
+                options = { year: 'numeric', month: 'long', day: 'numeric' };
+            }
+            return new Date(dateString).toLocaleDateString(undefined, options);
         }
-        return new Date(dateString).toLocaleDateString(undefined, options);
-    }
 
-    function calculatePercentageChange(current, previous) {
-        if (previous === 0) return '0.00%';
-        return ((current - previous) / previous * 100).toFixed(2) + '%';
-    }
+        function calculatePercentageChange(current, previous) {
+    if (previous === 0) return current === 0 ? '0.00%' : '100.00%';
+    return ((current - previous) / previous * 100).toFixed(2) + '%';
+}
 
-    function updatePercentageSpan(spanId, percentageChange) {
-        const spanElement = document.getElementById(spanId);
-        if (percentageChange === '0.00%') {
-            spanElement.textContent = percentageChange;
-            spanElement.className = 'badge grey';
-        } else if (parseFloat(percentageChange) > 0) {
-            spanElement.textContent = `+${percentageChange}`;
-            spanElement.className = 'badge green';
-        } else {
-            spanElement.textContent = `${percentageChange}`;
-            spanElement.className = 'badge red';
+        function updatePercentageSpan(spanId, percentageChange) {
+            const spanElement = document.getElementById(spanId);
+            if (percentageChange === '0.00%') {
+                spanElement.textContent = percentageChange;
+                spanElement.className = 'badge grey';
+            } else if (parseFloat(percentageChange) > 0) {
+                spanElement.textContent = `+${percentageChange}`;
+                spanElement.className = 'badge green';
+            } else {
+                spanElement.textContent = `${percentageChange}`;
+                spanElement.className = 'badge red';
+            }
         }
-    }
 
-    function fetchData(period) {
-        $.ajax({
-            url: 'fetch_data.php',
-            method: 'GET',
-            data: { period: period },
-            dataType: 'json',
-            success: function (data) {
-                // Update Revenue Chart (Bar)
-                const revenueData = data.revenue_data;
-                if (revenueBarChart) {
-                    revenueBarChart.data.labels = revenueData.map(item => formatDate(item.Date, period));
-                    revenueBarChart.data.datasets[0].data = revenueData.map(item => item.revenue);
-                    revenueBarChart.update();
-                } else {
-                    revenueBarChart = new Chart(document.getElementById('revenueBarChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: revenueData.map(item => formatDate(item.Date, period)),
-                            datasets: [{
-                                data: revenueData.map(item => item.revenue),
-                                backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
-                            }]
-                        },
-                        options: { responsive: true, plugins: { legend: { display: false } } }
-                    });
-                }
-                const revenueChange = revenueData.length > 1 ? calculatePercentageChange(revenueData[revenueData.length - 1].revenue, revenueData[revenueData.length - 2].revenue) : '0.00%';
-                updatePercentageSpan('revenueChangeSpan', revenueChange);
+        function fetchData(period) {
+            $.ajax({
+                url: 'fetch_data.php',
+                method: 'GET',
+                data: { period: period },
+                dataType: 'json',
+                success: function (data) {
+                    // Update Revenue Chart (Bar)
+                    const revenueData = data.revenue_data;
+                    if (revenueBarChart) {
+                        revenueBarChart.data.labels = revenueData.map(item => formatDate(item.Date, period));
+                        revenueBarChart.data.datasets[0].data = revenueData.map(item => item.revenue);
+                        revenueBarChart.update();
+                    } else {
+                        revenueBarChart = new Chart(document.getElementById('revenueBarChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: revenueData.map(item => formatDate(item.Date, period)),
+                                datasets: [{
+                                    data: revenueData.map(item => item.revenue),
+                                    backgroundColor: ['#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8']
+                                }]
+                            },
+                            options: { responsive: true, plugins: { legend: { display: false } } }
+                        });
+                    }
+                    const revenueChange = revenueData.length > 1 ? calculatePercentageChange(revenueData[revenueData.length - 1].revenue, revenueData[revenueData.length - 2].revenue) : '0.00%';
+                    updatePercentageSpan('revenueChangeSpan', revenueChange);
 
-                // Update Orders Chart (Line)
-                const ordersData = data.orders_data;
-                if (ordersLineChart) {
-                    ordersLineChart.data.labels = ordersData.map(item => formatDate(item.Date, period));
-                    ordersLineChart.data.datasets[0].data = ordersData.map(item => item.order_count);
-                    ordersLineChart.update();
-                } else {
-                    ordersLineChart = new Chart(document.getElementById('ordersLineChart'), {
-                        type: 'line',
-                        data: {
-                            labels: ordersData.map(item => formatDate(item.Date, period)),
-                            datasets: [{
-                                data: ordersData.map(item => item.order_count),
-                                borderColor: '#9fb0a1',
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: {
-                                    ticks: {
-                                        callback: function(value) {
-                                            return Number.isInteger(value) ? value : null;
+                    // Update Orders Chart (Line)
+                    const ordersData = data.orders_data;
+                    if (ordersLineChart) {
+                        ordersLineChart.data.labels = ordersData.map(item => formatDate(item.Date, period));
+                        ordersLineChart.data.datasets[0].data = ordersData.map(item => item.order_count);
+                        ordersLineChart.update();
+                    } else {
+                        ordersLineChart = new Chart(document.getElementById('ordersLineChart'), {
+                            type: 'line',
+                            data: {
+                                labels: ordersData.map(item => formatDate(item.Date, period)),
+                                datasets: [{
+                                    data: ordersData.map(item => item.order_count),
+                                    borderColor: '#9fb0a1',
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        ticks: {
+                                            callback: function(value) {
+                                                return Number.isInteger(value) ? value : null;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
-                }
-                const ordersChange = ordersData.length > 1 ? calculatePercentageChange(ordersData[ordersData.length - 1].order_count, ordersData[ordersData.length - 2].order_count) : '0.00%';
-                updatePercentageSpan('ordersChangeSpan', ordersChange);
+                        });
+                    }
+                    const ordersChange = ordersData.length > 1 ? calculatePercentageChange(ordersData[ordersData.length - 1].order_count, ordersData[ordersData.length - 2].order_count) : '0.00%';
+                    updatePercentageSpan('ordersChangeSpan', ordersChange);
 
-                // Update Customers Chart (Line)
-                const customersData = data.customers_data;
-                if (customersLineChart) {
-                    customersLineChart.data.labels = customersData.map(item => formatDate(item.Date, period));
-                    customersLineChart.data.datasets[0].data = customersData.map(item => item.customer_count);
-                    customersLineChart.update();
-                } else {
-                    customersLineChart = new Chart(document.getElementById('customersLineChart'), {
-                        type: 'line',
-                        data: {
-                            labels: customersData.map(item => formatDate(item.Date, period)),
-                            datasets: [{
-                                data: customersData.map(item => item.customer_count),
-                                borderColor: '#9fb0a1',
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: {
-                                    ticks: {
-                                        callback: function(value) {
-                                            return Number.isInteger(value) ? value : null;
+                    // Update Transactions Chart (Line)
+                    const transactionsData = data.transactions_data;
+                    if (transactionsLineChart) {
+                        transactionsLineChart.data.labels = transactionsData.map(item => formatDate(item.Date, period));
+                        transactionsLineChart.data.datasets[0].data = transactionsData.map(item => item.transaction_count);
+                        transactionsLineChart.update();
+                    } else {
+                        transactionsLineChart = new Chart(document.getElementById('transactionsLineChart'), {
+                            type: 'line',
+                            data: {
+                                labels: transactionsData.map(item => formatDate(item.Date, period)),
+                                datasets: [{
+                                    data: transactionsData.map(item => item.transaction_count),
+                                    borderColor: '#9fb0a1',
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        ticks: {
+                                            callback: function(value) {
+                                                return Number.isInteger(value) ? value : null;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
-                }
-                const customersChange = customersData.length > 1 ? calculatePercentageChange(customersData[customersData.length - 1].customer_count, customersData[customersData.length - 2].customer_count) : '0.00%';
-                updatePercentageSpan('customersChangeSpan', customersChange);
+                        });
+                    }
+                    const transactionsChange = transactionsData.length > 1 ? calculatePercentageChange(transactionsData[transactionsData.length - 1].transaction_count, transactionsData[transactionsData.length - 2].transaction_count) : '0.00%';
+                    updatePercentageSpan('transactionsChangeSpan', transactionsChange);
 
-                // Update Items Sold Chart (Bar)
-                const itemsSoldData = data.items_sold_data;
-                if (itemsSoldBarChart) {
-                    itemsSoldBarChart.data.labels = itemsSoldData.map(item => formatDate(item.Date, period));
-                    itemsSoldBarChart.data.datasets[0].data = itemsSoldData.map(item => item.items_sold);
-                    itemsSoldBarChart.update();
-                } else {
-                    itemsSoldBarChart = new Chart(document.getElementById('itemsSoldBarChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: itemsSoldData.map(item => formatDate(item.Date, period)),
-                            datasets: [{
-                                data: itemsSoldData.map(item => item.items_sold),
-                                backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: {
-                                    ticks: {
-                                        callback: function(value) {
-                                            return Number.isInteger(value) ? value : null;
+                    // Update Items Sold Chart (Bar)
+                    const itemsSoldData = data.items_sold_data;
+                    if (itemsSoldBarChart) {
+                        itemsSoldBarChart.data.labels = itemsSoldData.map(item => formatDate(item.Date, period));
+                        itemsSoldBarChart.data.datasets[0].data = itemsSoldData.map(item => item.items_sold);
+                        itemsSoldBarChart.update();
+                    } else {
+                        itemsSoldBarChart = new Chart(document.getElementById('itemsSoldBarChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: itemsSoldData.map(item => formatDate(item.Date, period)),
+                                datasets: [{
+                                    data: itemsSoldData.map(item => item.items_sold),
+                                    backgroundColor: ['#abbaa9', '#dae3d8', '#abbaa9', '#dae3d8', '#abbaa9']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        ticks: {
+                                            callback: function(value) {
+                                                return Number.isInteger(value) ? value : null;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
-                }
-                const itemsSoldChange = itemsSoldData.length > 1 ? calculatePercentageChange(itemsSoldData[itemsSoldData.length - 1].items_sold, itemsSoldData[itemsSoldData.length - 2].items_sold) : '0.00%';
-                updatePercentageSpan('itemsSoldChangeSpan', itemsSoldChange);
-            },
-            error: function (xhr, status, error) {
+                        });
+                    }
+                    const itemsSoldChange = itemsSoldData.length > 1 ? calculatePercentageChange(itemsSoldData[itemsSoldData.length - 1].items_sold, itemsSoldData[itemsSoldData.length - 2].items_sold) : '0.00%';
+                    updatePercentageSpan('itemsSoldChangeSpan', itemsSoldChange);
+
+                    // Display total customers
+                    document.getElementById('totalCustomers').textContent = data.total_customers.total_customers;
+
+                    // Display total products
+                    document.getElementById('totalProducts').textContent = data.total_products.total_products;
+
+                    const filteredProductQuantityData = data.product_quantity_data.filter(item => item.period === period);
+                },
+                    error: function (xhr, status, error) {
                 console.error("Error fetching data:", error);
             }
         });
     }
+
 
     // Event listener for date range buttons
     $('input[name="data_range"]').change(function () {
@@ -290,7 +332,141 @@ $(document).ready(function () {
 </script>
 
 
-  </script>
+<script>
+$(document).ready(function () {
+    let productPieChart;
+
+    function stringToColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = hash % 360;
+        return `hsl(${hue}, 70%, 50%)`;
+    }
+
+    function fetchPieChartData(period) {
+        console.log("Fetching Pie Chart Data for:", period);
+
+        $.ajax({
+            url: 'fetch_data.php',
+            method: 'GET',
+            data: { period: period, chart: 'pie' },
+            dataType: 'json',
+            success: function (data) {
+                console.log("Full API Response:", data);
+
+                if (!data || !data.product_quantity_data || data.product_quantity_data.length === 0) {
+                    console.warn("⚠️ No product quantity data found!");
+                    
+                    if (productPieChart) {
+                        productPieChart.destroy();
+                        productPieChart = null;
+                    }
+
+                    return;
+                }
+
+                // ✅ Filter out products with 0 sales
+                let filteredData = data.product_quantity_data.filter(item => item.quantity_sold > 0);
+                if (filteredData.length === 0) {
+                    console.warn("⚠️ No valid products to display.");
+
+                    if (productPieChart) {
+                        productPieChart.destroy();
+                        productPieChart = null;
+                    }
+
+                    return;
+                }
+
+                let labels = filteredData.map(item => item.Product_Name);
+                let values = filteredData.map(item => item.percentage);
+                let colors = labels.map(label => stringToColor(label));
+
+                let ctx = document.getElementById('productPieChart');
+                if (!ctx) {
+                    console.error("❌ Missing #productPieChart canvas element.");
+                    return;
+                }
+
+                ctx = ctx.getContext('2d');
+
+                if (productPieChart) {
+                    productPieChart.destroy();
+                }
+
+                productPieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: values,
+            backgroundColor: colors
+        }]
+    },
+    options: {
+        responsive: true, // Ensure it scales properly
+        maintainAspectRatio: false, // Prevents it from forcing a square aspect ratio
+        aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
+        plugins: {
+            legend: {
+                position: 'left',
+                labels: {
+                    generateLabels: function (chart) {
+                        let dataset = chart.data.datasets[0]; 
+                        if (!dataset || !dataset.data || dataset.data.length === 0) {
+                            console.warn("⚠️ No product quantity data found in dataset!");
+                            return [];
+                        }
+                        return filteredData.map((product, index) => ({
+                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage.toFixed(2)}%)`,
+                            fillStyle: dataset.backgroundColor[index],
+                            hidden: !chart.getDataVisibility(index),
+                            index: index
+                        }));
+                    }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (tooltipItem) {
+                        let index = tooltipItem.dataIndex;
+                        let dataset = tooltipItem.chart.data.datasets[0];
+
+                        if (!dataset || !dataset.data || !filteredData) {
+                            return "No data available";
+                        }
+
+                        let productData = filteredData[index];
+                        if (!productData) {
+                            return "No data available";
+                        }
+
+                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage.toFixed(2)}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching pie chart data:", error);
+            }
+        });
+    }
+
+    $('input[name="pie_data_range"]').change(function () {
+        const period = $(this).val();
+        console.log("Filter changed to:", period);
+        fetchPieChartData(period);
+    });
+
+    fetchPieChartData('monthly');
+});
+</script>
 
 <div class="wrapper">
     <!-- Sidebar  -->
@@ -386,79 +562,71 @@ $(document).ready(function () {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
-    <!-- This is the basis for the finale dashboard. It is a work in progress and will be updated as we go along. It will be distributed to other pages after the backend integration is implemented in the Notification -->
+    <div id="content" >
+    <div ng-app="notificationApp" ng-controller="NotificationController">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
         <div class="container-fluid">
-            <!-- Left-aligned toggle sidebar button (unchanged) -->
-            <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
+            <!-- Sidebar Toggle -->
+            <button type="button" id="sidebarCollapse" class="btn btn-info ml-1">
                 <i class="fas fa-align-left"></i>
             </button>
-            
             <!-- Right-aligned group for notification and manual buttons -->
             <div class="ml-auto d-flex align-items-center">
                 <!-- Notification system -->
                 <div class="dropdown d-inline-block">
-                    <button class="btn position-relative" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" data-placement="bottom" title="Notifications" style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
+                    <button class="btn position-relative" type="button" id="notificationButton" 
+                            ng-click="toggleDropdown($event)" aria-haspopup="true" aria-expanded="false" 
+                            data-toggle="tooltip" data-placement="bottom" title="Notifications" 
+                            style="background: #6fa062; color: #fff; border: none; border-radius: 24px; width: 40px; height: 40px; transition: transform 0.3s;">
                         <i class="fas fa-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size: 0.6rem; top: -5px; right: -5px; background-color: #dc3545;">
-                            3
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" 
+                              style="font-size: 0.6rem; top: -5px; right: -5px; background-color: #dc3545;"
+                              ng-if="notifications.length > 0">
+                            {{ notifications.length }}
                         </span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right p-0" aria-labelledby="notificationButton" style="width: 300px; max-height: 350px; overflow-y: auto; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
-                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
-                            <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
-                            <a href="#" class="text-muted small" style="color: #6fa062 !important;">Mark all as read</a>
-                        </div>
-                        <div class="notification-item p-2 border-bottom">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <i class="fas fa-box p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">New stock arrival</p>
-                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Coca Cola stock has been updated</p>
-                                    <small class="text-muted" style="font-size: 0.75rem;">2 minutes ago</small>
-                                </div>
+                        <div class="dropdown-menu dropdown-menu-right p-0" ng-class="{'show': dropdownVisible}"
+                             aria-labelledby="notificationButton" 
+                             style="width: 300px; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                            <div class="p-2 border-bottom d-flex justify-content-between align-items-center position-sticky top-0 bg-white" 
+                                 style="border-radius: 12px; z-index: 1030; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
+                                <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;"
+                                   ng-click="clearAllNotifications()">Clear all notifications</a>
                             </div>
-                        </div>
-                        <div class="notification-item p-2 border-bottom">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <i class="fas fa-shopping-cart p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">New order received</p>
-                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Order #12345 is waiting for confirmation</p>
-                                    <small class="text-muted" style="font-size: 0.75rem;">30 minutes ago</small>
-                                </div>
+                        <div class="p-2 h-100" 
+                        style="overflow-y: auto; width: 300px; max-height: 350px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                            <div ng-if="notifications.length === 0" class="notification-item p-3 text-center">
+                                <i class="fas fa-bell-slash mb-2" style="font-size: 1.5rem; color: #adb5bd;"></i>
+                                <p class="mb-0" style="color: #6c757d;">No notifications</p>
                             </div>
+                            <div ng-repeat="notification in notifications" class="notification-item p-2 border-bottom">
+                                <div class="d-flex">
+                                    <div class="mr-3">
+                                        <i class="fas fa-bell p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">
+                                            {{ notification.Title || 'Notification' }}
+                                        </p>
+                                        <p class="text-muted mb-0" style="font-size: 0.8rem;">{{ notification.Message }}</p>
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            {{ notification.Created_At || 'Just now' }}
+                                        </small>
+                                    </div>
                         </div>
-                        <div class="notification-item p-2 border-bottom">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <i class="fas fa-exclamation-triangle p-2 rounded-circle" style="background-color: #e8ecef; color: #6fa062;"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem; letter-spacing: -0.045em;">Low stock alert</p>
-                                    <p class="text-muted mb-0" style="font-size: 0.8rem;">Sprite is running low on inventory</p>
-                                    <small class="text-muted" style="font-size: 0.75rem;">1 hour ago</small>
-                                </div>
+                            </div>  
                             </div>
-                        </div>
-                        <div class="p-2 text-center border-top">
-                            <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;">View all notifications</a>
                         </div>
                     </div>
+                    <!-- Manual button (now next to notification) -->
+                    <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
                 </div>
-                <!-- Manual button (now next to notification) -->
-                <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button>
             </div>
         </div>
-    </nav>
-
+    
         <!-- Dashboard -->
         <div class="p-3" style="max-height: 80vh; overflow-y: auto;">
         <div class="dashboard">
@@ -525,34 +693,34 @@ $(document).ready(function () {
                 <div class=''>
                     <div class='card p-3 text-center'>
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class='mb-2'>Customers</h5>
-                            <span id="customersChangeSpan" class='badge green'></span>
+                            <h5 class='mb-2'>Transactions</h5>
+                            <span id="transactionsChangeSpan" class='badge green'></span> <!-- Corrected span ID -->
                         </div>
-                    <div class='chart-container mt-3'>
-                        <canvas id='customersLineChart'></canvas>
-                    </div>
+                        <div class='chart-container mt-3'>
+                            <canvas id='transactionsLineChart'></canvas> <!-- Corrected canvas ID -->
+                        </div>
                     </div>
                 </div>
-                </div>
-                <div class="div4">
+            </div>
+            <div class="div4">
                 <div class=''>
                     <div class='card p-3 text-center'>
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class='mb-2'>Items Sold</h5>
                             <span id="itemsSoldChangeSpan" class='badge red'></span>
                         </div>
-                    <div class='chart-container mt-3'>
-                        <canvas id='itemsSoldBarChart'></canvas>
-                    </div>
+                        <div class='chart-container mt-3'>
+                            <canvas id='itemsSoldBarChart'></canvas> <!-- Corrected canvas ID -->
+                        </div>
                     </div>
                 </div>
-                </div>
+            </div>
             </div>
             </div>
 
             <div class="dashboard-top">
-            <h1 style="font-size: 40px; font-weight: 800;">Placeholder for two static
-                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Placeholder"></i>
+            <h1 style="font-size: 40px; font-weight: 800;">Core Assets
+                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="This section provides a summary of the core assets of the business, including the total number of customers and products."></i>
                     <script>
                         $(document).ready(function(){
                             $('[data-toggle="tooltip"]').tooltip();   
@@ -560,77 +728,79 @@ $(document).ready(function () {
                     </script>
                 </h1>            
             </div>
-            <h4 class="pb-3 pt-1" style="color: gray; font-size: 18px; font-weight: 300;">A summary of key metrics such as revenue, orders, customers, and items sold.</h4>
+            <h4 class="pb-3 pt-1" style="color: gray; font-size: 18px; font-weight: 300;">A summary of our total customers and products.</h4>
             <div class="dashboard-summary">
             <div class="parent">
-                <div class="div1">
+            <div class="div1">
                 <div class=''>
-                    <div class='card p-3 text-center'>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class='mb-2'>Placeholder</h5>
-                            <span class='badge red'>-0.102%</span>
-                        </div>
-                    <div class='chart-container mt-3'>
-                        <canvas id='revenueBarChart'></canvas>
-                    </div>
-                    </div>
-                </div>
-                </div>
-                <div class="div2">
-                <div class=''>
-                    <div class=''>
-                        <div class='card p-3 text-center'>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class='mb-2'>Placeholder</h5>
-                                <span class='badge green'>+1.2%</span>
-                            </div>
-                            <div class='chart-container mt-3'>
-                                <canvas id='ordersLineChart'></canvas>
-                            </div>
-                        </div>
-                </div>
-                </div>
-            </div>
-            </div>
-
-            <div class="dashboard-top-2">
-            <h1 style="font-size: 40px; font-weight: 800;">Placeholder for Pie Graph
-                    <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Placeholder"></i>
-                    <script>
-                        $(document).ready(function(){
-                            $('[data-toggle="tooltip"]').tooltip();   
-                        });
-                    </script>
-                </h1>                        
-            </div>
-            <h4 class="pb-3 pt-1" style="color: gray; font-size: 18px; font-weight: 300;">A summary of key metrics such as revenue, orders, customers, and items sold.</h4>
-            <div class="date-filter-group-2">
-                <div class="btn-group" role="group" aria-label="Pie Data Range">
-                    <input type="radio" class="date-filter-input" name="pie_data_range" id="daily-pie" autocomplete="off" value="daily">
-                    <label class="date-filter-btn" for="daily-pie">Daily</label>
-
-                    <input type="radio" class="date-filter-input" name="pie_data_range" id="weekly-pie" autocomplete="off" value="weekly">
-                    <label class="date-filter-btn" for="weekly-pie">Weekly</label>
-
-                    <input type="radio" class="date-filter-input" name="pie_data_range" id="monthly-pie" autocomplete="off" value="monthly" checked>
-                    <label class="date-filter-btn" for="monthly-pie">Monthly</label>
-
-                    <input type="radio" class="date-filter-input" name="pie_data_range" id="yearly-pie" autocomplete="off" value="yearly">
-                    <label class="date-filter-btn" for="yearly-pie">Yearly</label>
-                </div>
-            </div>
-            <div class="dashboard-top-grid">
-                <div class="card p-3 text-center">
+                    <div class='card p-4 text-center'>
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class='mb-2'>Top Selling Products</h5>
-                        <span class='badge green'>+2.4%</span>
-                    </div>
-                    <div class='chart-container mt-3'>
-                        <canvas id="topSellingChart"></canvas>
+                    <div class="text-left">
+                    <span id="totalCustomers" class='display-4 ml-4' style='font-weight: 500;'></span>
+                            <h5 class='mb-2 mt-2'>Total Customers</h5>
+                        </div>
+                        <div class='mr-2'>
+                            <i class="fas fa-user-circle" style="font-size: 13rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                                </div>
+                        </div>
                     </div>
                 </div>
-                <hr>
             </div>
+            <div class="div2">
+                <div class=''>
+                <div class='card p-4 text-center'>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-left">
+                                <span id="totalProducts" class='display-4 ml-4' style='font-weight: 500;'></span>
+                                <h5 class='mb-2 mt-2'>Total Products</h5>
+                            </div>
+                            <div class='mr-2'>
+                                <i class="fas fa-cubes" style="font-size: 10rem; color: #6fa062; position: absolute; opacity: 0.125; top: 50%; left: 90%; transform: translate(-50%, -50%);"></i>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            </div>
+            
+<!-- Placeholder for Pie Graph -->
+<div class="dashboard-top-2">
+    <h1 style="font-size: 40px; font-weight: 800;">Top Selling Products
+        <i class="bi bi-info-circle mb-5" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="This is the top selling products pie chart."></i>
+        <script>
+            $(document).ready(function(){
+                $('[data-toggle="tooltip"]').tooltip();   
+            });
+        </script>
+    </h1>                        
+</div>
+<h4 class="pb-3 pt-1" style="color: gray; font-size: 18px; font-weight: 300;">A summary of key metrics such as revenue, orders, customers, and items sold.</h4>
+<div class="date-filter-group-2 mb-3">
+    <div class="btn-group" role="group" aria-label="Pie Data Range">
+        <input type="radio" class="date-filter-input" name="pie_data_range" id="day-pie" autocomplete="off" value="daily">
+        <label class="date-filter-btn" for="day-pie">Day</label>
+
+        <input type="radio" class="date-filter-input" name="pie_data_range" id="week-pie" autocomplete="off" value="weekly">
+        <label class="date-filter-btn" for="week-pie">Week</label>
+
+        <input type="radio" class="date-filter-input" name="pie_data_range" id="month-pie" autocomplete="off" value="monthly" checked>
+        <label class="date-filter-btn" for="month-pie">Month</label>
+
+        <input type="radio" class="date-filter-input" name="pie_data_range" id="year-pie" autocomplete="off" value="yearly">
+        <label class="date-filter-btn" for="year-pie">Year</label>
+    </div>
+</div>
+<div class="dashboard-top-grid">
+    <div class="card p-3 text-center" style="width: 100%; border: none; background: none;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class='mb-2' style="text-align: left;">Top Selling Products</h5>
+        </div>
+        <div class='pie-chart-container mt-3'>
+        <canvas id="productPieChart" width="500" height="500"></canvas>
+        </div>
+    </div>
+    <hr>
+</div>
         </div>
         </div>
 
@@ -819,7 +989,25 @@ hr.line {
 /* ---------------------------------------------------
     CONTENT STYLE
 ----------------------------------------------------- */
+.notification-icon {
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    position: relative;
+}
 
+.notification-icon:hover {
+    color: #007bff;
+}
+
+/* Notification container */
+.notification-container {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 300px;
+    z-index: 1000000; /* Ensures it appears above other elements */
+}
 #content {
     width: 100%;
     padding: 20px;
@@ -1059,6 +1247,7 @@ hr.line {
             }
 
         }
+        
 
         /* Card animations */
         .card {
