@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="../../style/style.css">
     <title>Reset Password</title>
     <link rel="stylesheet" href="../../style/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -26,8 +28,31 @@
     <div class="login-container">
         
         <div class="logo-container">
-            <img src="assets/logo.svg" alt="SGSD Logo" class="logo">
-        </div>
+            <div class="icon-container">
+                        <i class="fa-solid fa-key icon"></i>
+                    </div>
+                    
+                    <style>            
+                        .icon-container {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        }
+                        
+                        .icon {
+                        font-size: 40px;
+                        color: #6fa062;
+                        background-color: #f8f9fa;
+                        border-radius: 50%;
+                        padding: 20px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        width: 90px;  /* Set a fixed width */
+                        height: 90px; /* Set a fixed height */
+                        display: inline-flex;
+                        justify-content: center;
+                        align-items: center;
+                        }
+                    </style>
+                </div>
 
         <h1 class="main-heading">Enter your new password</h1>
         <p class="sub-heading">Your new password must be different from your previous password.</p>
@@ -63,7 +88,13 @@
                         icon: 'error',
                         title: 'Weak Password',
                         text: 'Password must be at least 8 characters long.',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            title: 'text-danger',
+                            popup: 'swal2-popup'
+                        },
+                        buttonsStyling: false
                     });
                     event.preventDefault();
                     return;
@@ -75,7 +106,13 @@
                         icon: 'error',
                         title: 'Weak Password',
                         text: 'Password must contain at least one uppercase letter.',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            title: 'text-danger',
+                            popup: 'swal2-popup'
+                        },
+                        buttonsStyling: false
                     });
                     event.preventDefault();
                     return;
@@ -87,7 +124,13 @@
                         icon: 'error',
                         title: 'Weak Password',
                         text: 'Password must contain at least one lowercase letter.',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            title: 'text-danger',
+                            popup: 'swal2-popup'
+                        },
+                        buttonsStyling: false
                     });
                     event.preventDefault();
                     return;
@@ -99,7 +142,13 @@
                         icon: 'error',
                         title: 'Weak Password',
                         text: 'Password must contain at least one number.',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            title: 'text-danger',
+                            popup: 'swal2-popup'
+                        },
+                        buttonsStyling: false
                     });
                     event.preventDefault();
                     return;
@@ -111,7 +160,13 @@
                         icon: 'error',
                         title: 'Weak Password',
                         text: 'Password must contain at least one special character.',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            title: 'text-danger',
+                            popup: 'swal2-popup'
+                        },
+                        buttonsStyling: false
                     });
                     event.preventDefault();
                     return;
@@ -123,13 +178,28 @@
                         icon: 'error',
                         title: 'Passwords Do Not Match',
                         text: 'Please make sure the password and confirm password fields match.',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            title: 'text-danger',
+                            popup: 'swal2-popup'
+                        },
+                        buttonsStyling: false
                     });
                     event.preventDefault();
                     return;
                 }
             });
         });
+
+        // Add style for SweetAlert popup border-radius
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                .swal2-popup {
+                    border-radius: 12px !important;
+                }
+            </style>
+        `);
     </script>
 </body>
 
@@ -202,6 +272,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE User_ID = ?";
     $update_stmt = $mysqli->prepare($update_sql);
     $update_stmt->bind_param("si", $password_hash, $user["User_ID"]);
+    logActivity($conn, $user['User_ID'], "User has successfully updated their password");
 
     if ($update_stmt->execute()) {
         echo("<script>
@@ -221,5 +292,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
->>>>>>> 51fda992c421cf24f7a2cdd7830c9f5f6e6a0250
