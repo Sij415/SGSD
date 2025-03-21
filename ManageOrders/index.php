@@ -398,35 +398,43 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             rows.forEach(row => tbody.appendChild(row));
         }
 
-        function searchTables() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('OrdersTable');
-        const tr = table.getElementsByTagName('tr');
+        function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('OrdersTable');
+    const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
-            tr[i].style.display = found ? '' : 'none';
         }
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
+    }
 
-        // Search in Mobile Cards (if applicable)
-        const cards = document.querySelectorAll('.card');
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
+
+            // Search in Mobile Cards (if applicable)
+            const cards = document.querySelectorAll('.card');
         if (cards.length > 0) {
             cards.forEach(card => {
                 const text = card.textContent.toLowerCase();
                 card.style.display = text.includes(filter) ? '' : 'none';
             });
         }
-    }
+}
+
+
 
     document.addEventListener("DOMContentLoaded", function () {
     // Get the first name and last name input fields
@@ -559,7 +567,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
         // Attach functions to the window so they can be called from HTML
         window.sortTable = sortTable;
-        window.searchTables = searchTables;
+        window.searchTable = searchTable;
     });
 </script>
 
@@ -945,7 +953,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                 <div class="search-container">
-                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
@@ -953,7 +961,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -1069,11 +1077,12 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="11" class="text-center">No orders found.</td>
-                            </tr>
+            <td colspan="11" class="text-center">No stocks found.</td>
+        </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
+                <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Stock found.</p>
             </div>
             <!-- Hidden Form -->
         <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">
