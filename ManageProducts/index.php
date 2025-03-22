@@ -66,13 +66,29 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
-// Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
     exit();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Handle deleting products
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
@@ -189,25 +205,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
         rows.forEach(row => tbody.appendChild(row));
     }
 
-    function searchTables() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('ProductsTable');
-        const tr = table.getElementsByTagName('tr');
+    function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('ProductsTable');
+    const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
-            tr[i].style.display = found ? '' : 'none';
         }
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
+    }
+
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
 
         // Search in Mobile Cards (if applicable)
         const cards = document.querySelectorAll('.card');
@@ -274,17 +296,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
         let selectionMode = false;
         let selectedItems = [];
 
-        // Check if there are any products
-        if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
-            // Add checkbox column to table header
-            $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Add checkbox column to table header
+        $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-            // Add checkboxes to all rows
-            $("#ProductsTable tbody tr").prepend(function() {
+        // Add checkboxes to all rows
+        $("#ProductsTable tbody tr").prepend(function() {
             var productId = $(this).data("product-id");
             return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + productId + '"></td>';
-            });
-        }
+        });
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -455,13 +474,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                 </div>
             </li>
             <li>
-<!-- Logout Button -->
-<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
-<i class="fa-solid fa-sign-out-alt"></i>
+            <a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
-
-<!-- Hidden Logout Form -->
 <form id="logoutForm" method="POST" action="">
     <input type="hidden" name="logout" value="1">
 </form>
@@ -509,7 +525,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                     <div class="search-container">
-                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                             <i class="fa fa-search"></i>
                         </button>
@@ -517,7 +533,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -586,8 +602,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                                 <tr data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>">
                                     <td><?php echo $row['Product_Name']; ?></td>
                                     <td><?php echo $row['Product_Type']; ?></td>
-                                    <td>₱<?php echo $row['Price']; ?></td>
                                     <td><?php echo $row['Unit']; ?></td>
+                                    <td>₱<?php echo $row['Price']; ?></td>
                                     <td class="text-dark text-center">
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" 
                                         data-product-id="<?php echo $row['Product_ID']; ?>" 
@@ -602,7 +618,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                             <?php endwhile; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="5" class="text-center">No products found.</td>
+                                <td colspan="4">No products found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -639,6 +655,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                     <p>No products found.</p>
                 <?php endif; ?>
             </div>
+            <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Product found.</p>
         </div>
 
 <!-- Add Product Modal -->

@@ -245,10 +245,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         // Update Order
         $total_price = $price * $quantity;
         $query = "UPDATE Orders 
-                  SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
-                  WHERE Order_ID = ?";
+                SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
+                WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $query = "UPDATE Transactions
+        SET Customer_ID = ?
+        WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $customer_id, $order_id);
         $stmt->execute();
         $stmt->close();
 
@@ -390,35 +398,43 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             rows.forEach(row => tbody.appendChild(row));
         }
 
-        function searchTables() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('OrdersTable');
-        const tr = table.getElementsByTagName('tr');
+        function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('OrdersTable');
+    const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
-            tr[i].style.display = found ? '' : 'none';
         }
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
+    }
 
-        // Search in Mobile Cards (if applicable)
-        const cards = document.querySelectorAll('.card');
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
+
+            // Search in Mobile Cards (if applicable)
+            const cards = document.querySelectorAll('.card');
         if (cards.length > 0) {
             cards.forEach(card => {
                 const text = card.textContent.toLowerCase();
                 card.style.display = text.includes(filter) ? '' : 'none';
             });
         }
-    }
+}
+
+
 
     document.addEventListener("DOMContentLoaded", function () {
     // Get the first name and last name input fields
@@ -528,7 +544,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             // Collect data from the clicked link
             const managedBy = $(this).data('managed-by');
             const customerName = $(this).data('customer-name');
-            const productName = $(this).data('product-name');
+            const productName = $(this).data('product');
             const status = $(this).data('status');
             const orderType = $(this).data('order-type');
             const quantity = $(this).data('quantity');
@@ -551,7 +567,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
         // Attach functions to the window so they can be called from HTML
         window.sortTable = sortTable;
-        window.searchTables = searchTables;
+        window.searchTable = searchTable;
     });
 </script>
 
@@ -829,7 +845,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -841,76 +857,76 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
 
-        <!-- Edit Order Modal -->
-        <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="POST" action="">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
-                        </div>
-                        <div class="modal-body">
-                            <?php if (!empty($edit_error_message)): ?>
-                                <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
-                            <?php endif; ?>
-                            <?php if ($user_role === 'staff') : ?>
-                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
-                            <?php else: ?>
-                                <input type="hidden" id="edit_order_id" name="Order_ID">
-                                <div class="mb-3">
-                                    <label for="editCustomer" class="form-label">Customer Name</label>
-                                    <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
-                                        <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
-                                                <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editProductID">Product</label>
-                                    <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-    <option value="">Select Product</option>
-    <?php foreach ($products as $product): ?>
-        <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
-    <?php endforeach; ?>
-</select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_quantity" class="form-label">Quantity</label>
-                                    <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_order_type" class="form-label">Order Type</label>
-                                    <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
-                                        <option value="Inbound">Inbound</option>
-                                        <option value="Outbound">Outbound</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_status" class="form-label">Status</label>
-                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
-                                        <option value="To Pick Up">To Pick Up</option>
-                                        <option value="In Transit">In Transit</option>
-                                        <option value="Delivered">Delivered</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
-                            <?php if ($user_role !== 'staff') : ?>
-                                <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
-                            <?php endif; ?>
-                        </div>
-                    </form>
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
                 </div>
-            </div>
+                <div class="modal-body">
+                    <?php if (!empty($edit_error_message)): ?>
+                        <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
+                    <?php endif; ?>
+                    <?php if ($user_role === 'staff') : ?>
+                        <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
+                    <?php else: ?>
+                        <input type="hidden" id="edit_order_id" name="Order_ID">
+                        <div class="mb-3">
+                            <label for="editCustomer" class="form-label">Customer Name</label>
+                            <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
+                                <?php foreach ($customers as $customer): ?>
+                                    <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                        <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductID">Product</label>
+                            <select class="form-control" id="product_id" name="New_ProductID" style="height: fit-content;" required>
+                                <option value="">Select Product</option>
+                                <?php foreach ($products as $product): ?>
+                                    <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_order_type" class="form-label">Order Type</label>
+                            <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
+                                <option value="Inbound">Inbound</option>
+                                <option value="Outbound">Outbound</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
+                                <option value="To Pick Up">To Pick Up</option>
+                                <option value="In Transit">In Transit</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_notes" class="form-label">Notes</label>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                    <?php if ($user_role !== 'staff') : ?>
+                        <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                    <?php endif; ?>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
 
         <div class="container mt-4">
             <div class="pb-4">
@@ -937,7 +953,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                 <div class="search-container">
-                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
@@ -945,7 +961,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -998,8 +1014,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto;">      
+            <div style="max-height: 750px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
+                
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
                         <tr>
@@ -1060,11 +1077,12 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="11" class="text-center">No orders found.</td>
-                            </tr>
+            <td colspan="11" class="text-center">No orders found.</td>
+        </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
+                <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No order found.</p>
             </div>
             <!-- Hidden Form -->
         <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">

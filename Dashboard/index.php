@@ -554,12 +554,12 @@ $(document).ready(function () {
             </li>
             <li>
             <a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-            </a>
-            <form id="logoutForm" method="POST" action="">
-                <input type="hidden" name="logout" value="1">
-            </form>
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
     </nav>
