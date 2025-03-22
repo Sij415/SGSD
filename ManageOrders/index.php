@@ -55,7 +55,6 @@ $customer_result = $conn->query($customer_query);
 $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 
 // Handle adding a new order
-// Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $customer_id = $_POST['Customer_ID'];
     $product_id = $_POST['Product_ID'];
@@ -614,6 +613,23 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             }
         });
 
+        // Individual card selection
+        $(document).on("click", ".card", function() {
+            const card = $(this)[0];
+
+            if (!selectedItems.includes(card)) {
+            // Add this card element to our selections if not already included
+            selectedItems.push(card);
+            $(this).addClass("selected"); // Optional: Add a class to indicate selection
+            } else {
+            // Remove this card from selections
+            selectedItems = selectedItems.filter(item => item !== card);
+            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
+            }
+
+            updateSelectedCount();
+        });
+
         // Select all checkboxes
         $("#select-all").change(function() {
             let isChecked = $(this).is(":checked");
@@ -655,16 +671,39 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             $("#delete-count").text(count);
             
             // Show/hide floating dialog based on selection
-            if (count > 0) {
+            if (count > 0 && $(window).width() >= 768) {
                 $("#selection-controls").fadeIn(300);
             } else {
                 $("#selection-controls").fadeOut(300);
             }
         }
 
+        // USE THIS FUNC TO REPLACE DELETEION FUNCTION IN MANAGE PRODUCTS AND STOCKS
+
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            const orderIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            // Initialize an array to store all order IDs
+            let orderIds = [];
+            
+            // Go through all selected items
+            selectedItems.forEach(item => {
+                // Check if item is a table row (has checkbox)
+                const checkbox = $(item).find(".row-checkbox");
+                if (checkbox.length > 0) {
+                    orderIds.push(checkbox.val());
+                } 
+                // Check if item is a card
+                else if ($(item).hasClass("card")) {
+                    const cardOrderId = $(item).data("order-id");
+                    if (cardOrderId) {
+                        orderIds.push(cardOrderId);
+                    }
+                }
+            });
+            
+            // Remove any duplicates
+            orderIds = [...new Set(orderIds)];
+            
             console.log("Selected Order IDs: ", orderIds); // Debug log to check order IDs
             $("#order_ids").val(JSON.stringify(orderIds));
             $("#deleteForm").submit();
@@ -1177,8 +1216,6 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     <p>No orders found.</p>
                 <?php endif; ?>
             </div>
-        </div>
-
         </div>
     </div>
 
