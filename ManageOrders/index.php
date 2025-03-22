@@ -1086,7 +1086,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No order found.</p>
             </div>
             <!-- Hidden Form -->
-        <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">
+        <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" target="_blank" style="display:none;">
             <input type="hidden" name="managed_by" id="managed_by">
             <input type="hidden" name="customer_name" id="customer_name">
             <input type="hidden" name="product_name" id="product_name">
