@@ -841,7 +841,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                             <div class="mb-3">
                                 <label for="Quantity" class="form-label">Quantity</label>
-                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
+                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
@@ -849,7 +849,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                             <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
                         </div>
                     </form>
@@ -894,7 +894,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label for="edit_quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
+                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required placeholder="Enter quantity" min="0">
                         </div>
                         <div class="mb-3">
                             <label for="edit_order_type" class="form-label">Order Type</label>
@@ -918,8 +918,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     <?php endif; ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                     <?php if ($user_role !== 'staff') : ?>
+                        <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                         <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
                     <?php endif; ?>
                 </div>

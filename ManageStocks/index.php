@@ -684,8 +684,8 @@ $(document).ready(function() {
                     </div>
                 </div>
                 <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
-                    <!-- Add Order Button -->
-                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Order</button>
+                    <!-- Add Stock Button -->
+                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Stock</button>
                 <?php endif; ?>
                 <!-- Delete Confirmation Modal -->
                 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
@@ -895,15 +895,15 @@ $(document).ready(function() {
                     </div>
                     <div class="mb-3">
                         <label for="old_stock" class="form-label">Old Stock</label>
-                        <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" placeholder="Enter old stock quantity" required>
+                        <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" placeholder="Enter old stock quantity" min="0" required>
                     </div>
                     <div class="mb-3">
                         <label for="new_stock" class="form-label">New Stock</label>
-                        <input type="number" class="form-control" id="New_Stock" name="New_Stock" placeholder="Enter new stock quantity" required>
+                        <input type="number" class="form-control" id="New_Stock" name="New_Stock" placeholder="Enter new stock quantity" min="0" required>
                     </div>
                     <div class="mb-3">
                         <label for="threshold" class="form-label">Threshold</label>
-                        <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" required>
+                        <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" min="0" required>
                     </div>
                     <!-- <div class="mb-3">
                         <label for="notes" class="form-label">Notes</label>
@@ -931,11 +931,11 @@ $(document).ready(function() {
                                 <input type="hidden" id="edit_stock_id" name="Stock_ID">
                                 <div class="mb-3">
                                     <label for="edit_new_stock" class="form-label">New Stock</label>
-                                    <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" required>
+                                    <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_threshold" class="form-label">Threshold</label>
-                                    <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
+                                    <input type="number" class="form-control" id="edit_threshold" name="Threshold" min="0" required>
                                 </div>
                                 <!-- <div class="mb-3">
                                     <label for="notes" class="form-label">Notes</label>
