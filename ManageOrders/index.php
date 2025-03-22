@@ -780,9 +780,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
             <i class="fas fa-align-left"></i>
             </button>
-            <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-            <i class="fas fa-file-alt"></i>
-            </button>
+            <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
+                <i class="fas fa-file-alt"></i>
+            </a>
             <!-- <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
                 Test Edit Modal
             </button> -->
@@ -845,7 +845,18 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
-                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
+                                <script>
+                                function updateCharacterCount() {
+                                    const textarea = document.getElementById('Notes');
+                                    const charCount = document.getElementById('charCount');
+                                    charCount.textContent = `${textarea.value.length}/250`;
+                                }
+                                </script>
+                                <div class="d-flex justify-content-between">
+                                    <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                                    <div id="charCount" class="form-text text-muted" style="font-size: 12.6px;">0/250</div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -913,7 +924,22 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label for="edit_notes" class="form-label">Notes</label>
-                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
+                            <script>
+                                function updateCharacterCountEdit() {
+                                    const textarea = document.getElementById('edit_notes');
+                                    const charCount = document.getElementById('editCharCount');
+                                    charCount.textContent = `${textarea.value.length}/250`;
+                                }
+                                // Initialize character count on modal open
+                                $(document).on('shown.bs.modal', '#editOrderModal', function () {
+                                    updateCharacterCountEdit();
+                                });
+                            </script>
+                            <div class="d-flex justify-content-between">
+                                <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                                <div class="form-text text-muted" style="font-size: 12.6px;" id="editCharCount"><?php echo isset($row['Notes']) ? strlen($row['Notes']) : 0; ?>/250</div>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
