@@ -544,7 +544,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             // Collect data from the clicked link
             const managedBy = $(this).data('managed-by');
             const customerName = $(this).data('customer-name');
-            const productName = $(this).data('product-name');
+            const productName = $(this).data('product');
             const status = $(this).data('status');
             const orderType = $(this).data('order-type');
             const quantity = $(this).data('quantity');
