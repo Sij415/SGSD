@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = $_POST['status'] ?? '';
     $orderType = $_POST['order_type'] ?? '';
     $quantity = $_POST['quantity'] ?? '';
-    $totalPrice = $_POST['total_price'] ?? '';
+    $totalPrice = isset($_POST['total_price']) ? number_format((float)$_POST['total_price'], 2) : '';
 
     // Example of processing the received data (e.g., generating a PDF)
 
