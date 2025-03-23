@@ -185,25 +185,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     }
 
     function sortTable(columnIndex) {
-        const table = document.getElementById('ProductsTable');
-        const rows = Array.from(table.rows).slice(1);
-        const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-        rows.sort((rowA, rowB) => {
-            const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-            const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-            if (isNumeric) {
-                return parseFloat(cellA) - parseFloat(cellB);
-            } else {
-                return cellA.localeCompare(cellB);
-            }
-        });
-
-        // Re-append sorted rows to the table body
-        const tbody = table.getElementsByTagName('tbody')[0];
-        rows.forEach(row => tbody.appendChild(row));
+    var table = document.getElementById("ProductsTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
     }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
+        }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+    });
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
+}
 
     function searchTable() {
     const input = document.getElementById('searchInput');
@@ -504,7 +519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
+    <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
                 <div class="container-fluid">
                     <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -517,7 +532,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
             </nav>
 
 
-        <div class="container mt-4" >
+        <div class="container mt-4">
             <div class="pb-4">
             <i class="fa-solid fa-box-open" style="font-size:56px;"></i>
             </div>
@@ -601,15 +616,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                 });
             </script>
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 550px; overflow-y: auto; overflow-x: hidden;">      
+            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="ProductsTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Unit <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Product Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Unit <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Price <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                         </tr>
                     </thead>

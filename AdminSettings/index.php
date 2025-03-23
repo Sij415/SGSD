@@ -264,7 +264,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                 </li>
             <?php endif; ?>
         </ul>
-        <div class="sidebar-spacer" style="height: 160.27px;"></div>
+        <div class="sidebar-spacer"></div>
         <hr class="line">
         <ul class="list-unstyled CTAs pt-0 mb-0 sidebar-bottom">
             <li class="sidebar-username pb-2">
@@ -298,7 +298,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" style="max-height: 750px; overflow-y: hidden; overflow-x: hidden;">
+    <div id="content">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -329,6 +329,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                             </script>
                             </h1>
                         </div>
+
                             <h3>Customize and control system preferences</h3>
                             <p>Access tools to manage users, configure system settings, and oversee overall platform functionality.</p>
                         </div>
@@ -348,7 +349,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                         </div>
                         <div class="d-flex justify-content-end p-3">
                             <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
-                                <i class="fas fa-clipboard"></i> View Logs
+                                <i class="fas fa-save"></i> View Logs
                             </button>
                         </div>
                     </div>

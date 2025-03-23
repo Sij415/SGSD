@@ -3,7 +3,7 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
-    //Start the session
+// Start the session
 ini_set('display_errors', 1);
 
 // Fetch logged-in user details
@@ -16,13 +16,30 @@ $stmt->bind_result($user_id, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
+// Check all stock entries and move New_Stock to Old_Stock if Old_Stock is 0
+$check_query = "SELECT Stock_ID, Old_Stock, New_Stock FROM Stocks WHERE Old_Stock = 0";
+$check_stmt = $conn->prepare($check_query);
+$check_stmt->execute();
+$check_stmt->store_result();
+$check_stmt->bind_result($stock_id, $old_stock, $new_stock);
+
+while ($check_stmt->fetch()) {
+    if ($old_stock == 0 && $new_stock > 0) {
+        $update_query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Stock_ID = ?";
+        $update_stmt = $conn->prepare($update_query);
+        $update_stmt->bind_param("i", $stock_id);
+        $update_stmt->execute();
+        $update_stmt->close();
+    }
+}
+$check_stmt->close();
+
 // Handle adding stock
 if (isset($_POST['add_stock'])) {
     $user_id = $_POST['User_ID'];
     $product_id = $_POST['Product_ID'];
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
-    $old_stock = $_POST['Old_Stock'];
 
     // Validate user and product existence
     $user_check_query = "SELECT User_ID FROM Users WHERE User_ID = ?";
@@ -51,7 +68,26 @@ if (isset($_POST['add_stock'])) {
     }
     $product_stmt->close();
 
-   
+    // Fetch current stock
+    $stock_check_query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ? ORDER BY Stock_ID DESC LIMIT 1";
+    $stock_stmt = $conn->prepare($stock_check_query);
+    $stock_stmt->bind_param("i", $product_id);
+    $stock_stmt->execute();
+    $stock_stmt->bind_result($old_stock, $current_new_stock);
+    $stock_stmt->fetch();
+    $stock_stmt->close();
+
+    // If no previous stock exists, set old_stock to 0
+    if ($old_stock === null) {
+        $old_stock = 0;
+    }
+
+    // Move New_Stock to Old_Stock if Old_Stock is zero
+    if ($old_stock == 0) {
+        $old_stock = $current_new_stock;
+        $new_stock = 0;
+    }
+
     // Insert into Stocks table
     $insert_query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($insert_query);
@@ -124,6 +160,7 @@ if (isset($_POST['edit_stock'])) {
 
     $stmt->close();
 }
+
 // Fetch stock data for display
 $query = "SELECT Stocks.Stock_ID, 
                  Users.First_Name AS First_Name, 
@@ -137,6 +174,7 @@ $query = "SELECT Stocks.Stock_ID,
           INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID"; 
 
 $result = $conn->query($query);
+
 // Handle deleting stocks
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
     $stock_ids = json_decode($_POST['stock_ids']);
@@ -153,6 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
+
 // Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     session_unset(); // Unset all session variables
@@ -161,7 +200,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -207,25 +245,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
 ------------------------------------------------------>
 
 <script>
-function sortTable(columnIndex) {
-    const table = document.getElementById('stocksTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-    rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-        if (isNumeric) {
-            return parseFloat(cellA) - parseFloat(cellB);
-        } else {
-            return cellA.localeCompare(cellB);
+        function sortTable(columnIndex) {
+    var table = document.getElementById("stocksTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
+    }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
         }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
     });
-
-    // Re-append sorted rows to the table body
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
 }
 
 
@@ -778,12 +831,12 @@ $(document).ready(function() {
                     
                 <thead>
     <tr>
-        <th onclick="sortTable(0)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(1)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(2)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(3)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(4)">New Stock <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(5)">Threshold <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(1)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(2)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(3)">Product Type <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(4)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(5)">New Stock <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(6)">Threshold <i class="bi bi-arrow-down-up"></i></th>
         <th>Edit</th>
     </tr>
 </thead>

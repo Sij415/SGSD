@@ -1,13 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSD | Manage Orders</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon" href="../logo.png">
+    <link rel="stylesheet" href="../style/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+
+
+
+
 <?php
 // Include database connection
 $required_role = 'admin,staff,driver';
 include('../check_session.php');
 include '../dbconnect.php';
 ini_set('display_errors', 1);
-ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -91,10 +116,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $stmt->fetch();
     $stmt->close();
 
-    // Validate stock availability
-    if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
-        $error_message = "Insufficient stock available for this product.";
+    // Check if stock entry exists for the product
+    if ($old_stock === null && $new_stock === null) {
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No stock entry found for the selected product.'
+                });
+            });
+        </script>";
+    } else if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Insufficient stock available for this product.'
+                });
+            });
+        </script>";
     } else {
+        // Move New_Stock to Old_Stock if Old_Stock is 0
+        if ($old_stock == 0) {
+            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $stmt->close();
+            $old_stock = $new_stock;
+            $new_stock = 0;
+        }
+
         // Update stock based on order type and status
         if ($order_type === "Inbound" && $status === "Delivered") {
             // Move New_Stock to Old_Stock and add quantity to New_Stock
@@ -149,6 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     }
 }
 
+
+
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
@@ -195,7 +251,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->fetch();
         $stmt->close();
 
+        // Check if stock entry exists for the product
+        if ($old_stock === null && $new_stock === null) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No stock entry found for the selected product.'
+                    }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
+                });
+            </script>";
+            exit();
+        }
+
+        // Move New_Stock to Old_Stock if Old_Stock is 0
+        if ($old_stock == 0) {
+            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $stmt->close();
+            $old_stock = $new_stock;
+            $new_stock = 0;
+        }
+
+        // Check if the combined stock is sufficient
+        $total_stock = $old_stock + $new_stock;
         $quantity_difference = $quantity - $current_quantity;
+
+        if ($order_type !== "Inbound" && $quantity_difference > $total_stock) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Quantity exceeds available stock.'
+                    }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
+                });
+            </script>";
+            exit();
+        }
 
         if ($quantity_difference != 0) {
             // If quantity is changed, validate and update stock
@@ -264,6 +364,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     }
 }
 
+// Avoid infinite loop by checking the 'reload' parameter
+if (isset($_GET['reload']) && $_GET['reload'] == 'true') {
+    header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
+    exit();
+}
+
+
 // Handle deleting orders
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
     $order_ids = json_decode($_POST['order_ids']);
@@ -326,27 +433,7 @@ $product_result = $conn->query($product_query);
 $products = $product_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGSD | Manage Orders</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-    <link rel="icon" href="../logo.png">
-    <link rel="stylesheet" href="../style/styles.css">
-</head>
+
 <body>
 
 <!-----------------------------------------------------
@@ -377,25 +464,40 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
         // Function to sort table
         function sortTable(columnIndex) {
-            const table = document.getElementById('OrdersTable');
-            const rows = Array.from(table.rows).slice(1);
-            const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-            rows.sort((rowA, rowB) => {
-                const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-                const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-                if (isNumeric) {
-                    return parseFloat(cellA) - parseFloat(cellB);
-                } else {
-                    return cellA.localeCompare(cellB);
-                }
-            });
-
-            // Re-append sorted rows to the table body
-            const tbody = table.getElementsByTagName('tbody')[0];
-            rows.forEach(row => tbody.appendChild(row));
+    var table = document.getElementById("OrdersTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
+    }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
         }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+    });
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
+}
 
         function searchTable() {
     const input = document.getElementById('searchInput');
@@ -813,7 +915,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
+    <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -1080,21 +1182,21 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 550px; overflow-y: auto;">
+            <div style="max-height: 750px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
                 
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Product<i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Status <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(7)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(8)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Managed by <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Product<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Status <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Order Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(8)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(9)">Notes <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
