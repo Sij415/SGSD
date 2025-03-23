@@ -227,25 +227,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
 ------------------------------------------------------>
 
 <script>
-function sortTable(columnIndex) {
-    const table = document.getElementById('stocksTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-    rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-        if (isNumeric) {
-            return parseFloat(cellA) - parseFloat(cellB);
-        } else {
-            return cellA.localeCompare(cellB);
+        function sortTable(columnIndex) {
+    var table = document.getElementById("stocksTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
+    }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
         }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
     });
-
-    // Re-append sorted rows to the table body
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
 }
 
 
@@ -798,12 +813,12 @@ $(document).ready(function() {
                     
                 <thead>
     <tr>
-        <th onclick="sortTable(0)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(1)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(2)">Product Type <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(3)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(4)">New Stock <i class="bi bi-arrow-down-up"></i></th>
-        <th onclick="sortTable(5)">Threshold <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(1)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(2)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(3)">Product Type <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(4)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(5)">New Stock <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(6)">Threshold <i class="bi bi-arrow-down-up"></i></th>
         <th>Edit</th>
     </tr>
 </thead>
