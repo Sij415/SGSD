@@ -3,7 +3,7 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
-    //Start the session
+// Start the session
 ini_set('display_errors', 1);
 
 // Fetch logged-in user details
@@ -22,7 +22,6 @@ if (isset($_POST['add_stock'])) {
     $product_id = $_POST['Product_ID'];
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
-    $old_stock = $_POST['Old_Stock'];
 
     // Validate user and product existence
     $user_check_query = "SELECT User_ID FROM Users WHERE User_ID = ?";
@@ -51,7 +50,26 @@ if (isset($_POST['add_stock'])) {
     }
     $product_stmt->close();
 
-   
+    // Fetch current stock
+    $stock_check_query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ? ORDER BY Stock_ID DESC LIMIT 1";
+    $stock_stmt = $conn->prepare($stock_check_query);
+    $stock_stmt->bind_param("i", $product_id);
+    $stock_stmt->execute();
+    $stock_stmt->bind_result($old_stock, $current_new_stock);
+    $stock_stmt->fetch();
+    $stock_stmt->close();
+
+    // If no previous stock exists, set old_stock to 0
+    if ($old_stock === null) {
+        $old_stock = 0;
+    }
+
+    // Move New_Stock to Old_Stock if Old_Stock is zero
+    if ($old_stock == 0) {
+        $old_stock = $current_new_stock;
+        $new_stock = 0;
+    }
+
     // Insert into Stocks table
     $insert_query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($insert_query);
@@ -124,6 +142,7 @@ if (isset($_POST['edit_stock'])) {
 
     $stmt->close();
 }
+
 // Fetch stock data for display
 $query = "SELECT Stocks.Stock_ID, 
                  Users.First_Name AS First_Name, 
@@ -137,6 +156,7 @@ $query = "SELECT Stocks.Stock_ID,
           INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID"; 
 
 $result = $conn->query($query);
+
 // Handle deleting stocks
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
     $stock_ids = json_decode($_POST['stock_ids']);
@@ -153,6 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
+
 // Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     session_unset(); // Unset all session variables
@@ -161,7 +182,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -490,6 +510,23 @@ $(document).ready(function() {
             updateSelectedCount();
         });
 
+        // Individual card selection
+        $(document).on("click", ".card", function() {
+            const card = $(this)[0];
+
+            if (!selectedItems.includes(card)) {
+            // Add this card element to our selections if not already included
+            selectedItems.push(card);
+            $(this).addClass("selected"); // Optional: Add a class to indicate selection
+            } else {
+            // Remove this card from selections
+            selectedItems = selectedItems.filter(item => item !== card);
+            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
+            }
+
+            updateSelectedCount();
+        });
+
         // Update the selected count display
         function updateSelectedCount() {
             const count = selectedItems.length;
@@ -506,10 +543,36 @@ $(document).ready(function() {
 
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            const stockIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            // Initialize an array to store all stock IDs
+            let stockIds = [];
+            
+            // Go through all selected items
+            selectedItems.forEach(item => {
+            // Check if item is a table row (has checkbox)
+            const checkbox = $(item).find(".row-checkbox");
+            if (checkbox.length > 0) {
+                stockIds.push(checkbox.val());
+            } 
+            // Check if item is a card
+            else if ($(item).hasClass("card")) {
+                const cardStockId = $(item).data("stock-id");
+                if (cardStockId) {
+                stockIds.push(cardStockId);
+                }
+            }
+            });
+            
+            // Remove any duplicates
+            stockIds = [...new Set(stockIds)];
+            
             console.log("Selected Stock IDs: ", stockIds); // Debug log to check stock IDs
             $("#stock_ids").val(JSON.stringify(stockIds));
             $("#deleteForm").submit();
+        });
+
+        // Connect delete button in floating dialog to delete modal
+        $("#delete-selected-btn").click(function() {
+            $("#deleteConfirmModal").modal("show");
         });
 
         // Connect delete button in floating dialog to delete modal
@@ -619,7 +682,7 @@ $(document).ready(function() {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -729,7 +792,7 @@ $(document).ready(function() {
 </form>
 
                 <!-- Table Layout (Visible on larger screens) -->
-                <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+                <div style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">      
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
                     

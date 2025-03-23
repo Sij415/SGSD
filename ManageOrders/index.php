@@ -111,6 +111,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
             });
         </script>";
     } else {
+        // Move New_Stock to Old_Stock if Old_Stock is 0
+        if ($old_stock == 0) {
+            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $stmt->close();
+            $old_stock = $new_stock;
+            $new_stock = 0;
+        }
+
         // Update stock based on order type and status
         if ($order_type === "Inbound" && $status === "Delivered") {
             // Move New_Stock to Old_Stock and add quantity to New_Stock
@@ -211,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-        // Move new stock to old stock if old stock is zero
+        // Move New_Stock to Old_Stock if Old_Stock is 0
         if ($old_stock == 0) {
             $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
@@ -305,7 +316,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         exit();
     }
 }
-
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
