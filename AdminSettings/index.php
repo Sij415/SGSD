@@ -264,7 +264,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                 </li>
             <?php endif; ?>
         </ul>
-        <div class="sidebar-spacer"></div>
+        <div class="sidebar-spacer" style="height: 160.27px;"></div>
         <hr class="line">
         <ul class="list-unstyled CTAs pt-0 mb-0 sidebar-bottom">
             <li class="sidebar-username pb-2">
@@ -298,7 +298,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">

@@ -490,6 +490,23 @@ $(document).ready(function() {
             updateSelectedCount();
         });
 
+        // Individual card selection
+        $(document).on("click", ".card", function() {
+            const card = $(this)[0];
+
+            if (!selectedItems.includes(card)) {
+            // Add this card element to our selections if not already included
+            selectedItems.push(card);
+            $(this).addClass("selected"); // Optional: Add a class to indicate selection
+            } else {
+            // Remove this card from selections
+            selectedItems = selectedItems.filter(item => item !== card);
+            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
+            }
+
+            updateSelectedCount();
+        });
+
         // Update the selected count display
         function updateSelectedCount() {
             const count = selectedItems.length;
@@ -506,10 +523,36 @@ $(document).ready(function() {
 
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            const stockIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            // Initialize an array to store all stock IDs
+            let stockIds = [];
+            
+            // Go through all selected items
+            selectedItems.forEach(item => {
+            // Check if item is a table row (has checkbox)
+            const checkbox = $(item).find(".row-checkbox");
+            if (checkbox.length > 0) {
+                stockIds.push(checkbox.val());
+            } 
+            // Check if item is a card
+            else if ($(item).hasClass("card")) {
+                const cardStockId = $(item).data("stock-id");
+                if (cardStockId) {
+                stockIds.push(cardStockId);
+                }
+            }
+            });
+            
+            // Remove any duplicates
+            stockIds = [...new Set(stockIds)];
+            
             console.log("Selected Stock IDs: ", stockIds); // Debug log to check stock IDs
             $("#stock_ids").val(JSON.stringify(stockIds));
             $("#deleteForm").submit();
+        });
+
+        // Connect delete button in floating dialog to delete modal
+        $("#delete-selected-btn").click(function() {
+            $("#deleteConfirmModal").modal("show");
         });
 
         // Connect delete button in floating dialog to delete modal
@@ -619,7 +662,7 @@ $(document).ready(function() {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -729,7 +772,7 @@ $(document).ready(function() {
 </form>
 
                 <!-- Table Layout (Visible on larger screens) -->
-                <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+                <div style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">      
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
                     

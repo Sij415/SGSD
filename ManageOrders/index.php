@@ -813,7 +813,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -1080,7 +1080,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto;">
+            <div style="max-height: 550px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
                 
                 <table class="table table-striped table-bordered" id="OrdersTable">
