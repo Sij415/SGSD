@@ -509,7 +509,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">

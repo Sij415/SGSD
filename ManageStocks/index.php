@@ -715,7 +715,7 @@ $(document).ready(function() {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">

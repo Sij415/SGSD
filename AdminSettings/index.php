@@ -310,7 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
             </div>
         </nav>
 
-    <div class="container-fluid px-md-4" style="max-height: 800px; overflow-y: auto;">
+    <div class="container-fluid px-md-4" style="max-height: 750px; overflow-y: auto;">
         <div class="row justify-content-center">
             <div class="col-12 col-xl-10">
                 <section class="admin">

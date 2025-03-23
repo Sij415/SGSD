@@ -519,7 +519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
                 <div class="container-fluid">
                     <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -616,7 +616,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                 });
             </script>
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+            <div style="max-height: 550px; overflow-y: auto; overflow-x: hidden;">      
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="ProductsTable">
                     <thead>
