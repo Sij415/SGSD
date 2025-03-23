@@ -623,9 +623,9 @@ $(document).ready(function () {
                         </div>
                     </div>
                     <!-- Manual button (now next to notification) -->
-                    <button class="btn btn-dark ml-2" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
+                    <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
                         <i class="fas fa-file-alt"></i>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -794,7 +794,7 @@ $(document).ready(function () {
     </div>
 </div>
 <div class="dashboard-top-grid">
-    <div class="card p-3 text-center" style="width: 100%; border: none; background: none;">
+    <div class="card p-3 text-center" style="width: 100%; border: none; background: #FFFFFF;">
         <div class="d-flex justify-content-between align-items-center">
             <h5 class='mb-2' style="text-align: left;">Top Selling Products</h5>
         </div>

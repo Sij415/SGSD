@@ -55,7 +55,6 @@ $customer_result = $conn->query($customer_query);
 $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 
 // Handle adding a new order
-// Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $customer_id = $_POST['Customer_ID'];
     $product_id = $_POST['Product_ID'];
@@ -614,6 +613,23 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             }
         });
 
+        // Individual card selection
+        $(document).on("click", ".card", function() {
+            const card = $(this)[0];
+
+            if (!selectedItems.includes(card)) {
+            // Add this card element to our selections if not already included
+            selectedItems.push(card);
+            $(this).addClass("selected"); // Optional: Add a class to indicate selection
+            } else {
+            // Remove this card from selections
+            selectedItems = selectedItems.filter(item => item !== card);
+            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
+            }
+
+            updateSelectedCount();
+        });
+
         // Select all checkboxes
         $("#select-all").change(function() {
             let isChecked = $(this).is(":checked");
@@ -655,16 +671,39 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             $("#delete-count").text(count);
             
             // Show/hide floating dialog based on selection
-            if (count > 0) {
+            if (count > 0 && $(window).width() >= 768) {
                 $("#selection-controls").fadeIn(300);
             } else {
                 $("#selection-controls").fadeOut(300);
             }
         }
 
+        // USE THIS FUNC TO REPLACE DELETEION FUNCTION IN MANAGE PRODUCTS AND STOCKS
+
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            const orderIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            // Initialize an array to store all order IDs
+            let orderIds = [];
+            
+            // Go through all selected items
+            selectedItems.forEach(item => {
+                // Check if item is a table row (has checkbox)
+                const checkbox = $(item).find(".row-checkbox");
+                if (checkbox.length > 0) {
+                    orderIds.push(checkbox.val());
+                } 
+                // Check if item is a card
+                else if ($(item).hasClass("card")) {
+                    const cardOrderId = $(item).data("order-id");
+                    if (cardOrderId) {
+                        orderIds.push(cardOrderId);
+                    }
+                }
+            });
+            
+            // Remove any duplicates
+            orderIds = [...new Set(orderIds)];
+            
             console.log("Selected Order IDs: ", orderIds); // Debug log to check order IDs
             $("#order_ids").val(JSON.stringify(orderIds));
             $("#deleteForm").submit();
@@ -780,9 +819,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
             <i class="fas fa-align-left"></i>
             </button>
-            <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-            <i class="fas fa-file-alt"></i>
-            </button>
+            <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
+                <i class="fas fa-file-alt"></i>
+            </a>
             <!-- <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
                 Test Edit Modal
             </button> -->
@@ -841,15 +880,26 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                             <div class="mb-3">
                                 <label for="Quantity" class="form-label">Quantity</label>
-                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
+                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
-                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
+                                <script>
+                                function updateCharacterCount() {
+                                    const textarea = document.getElementById('Notes');
+                                    const charCount = document.getElementById('charCount');
+                                    charCount.textContent = `${textarea.value.length}/250`;
+                                }
+                                </script>
+                                <div class="d-flex justify-content-between">
+                                    <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                                    <div id="charCount" class="form-text text-muted" style="font-size: 12.6px;">0/250</div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                             <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
                         </div>
                     </form>
@@ -894,7 +944,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label for="edit_quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
+                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required placeholder="Enter quantity" min="0">
                         </div>
                         <div class="mb-3">
                             <label for="edit_order_type" class="form-label">Order Type</label>
@@ -913,13 +963,29 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="mb-3">
                             <label for="edit_notes" class="form-label">Notes</label>
-                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
+                            <script>
+                                function updateCharacterCountEdit() {
+                                    const textarea = document.getElementById('edit_notes');
+                                    const charCount = document.getElementById('editCharCount');
+                                    charCount.textContent = `${textarea.value.length}/250`;
+                                }
+                                // Initialize character count on modal open
+                                $(document).on('shown.bs.modal', '#editOrderModal', function () {
+                                    updateCharacterCountEdit();
+                                });
+                            </script>
+                            <div class="d-flex justify-content-between">
+                                <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                                <div class="form-text text-muted" style="font-size: 12.6px;" id="editCharCount"><?php echo isset($row['Notes']) ? strlen($row['Notes']) : 0; ?>/250</div>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                     <?php if ($user_role !== 'staff') : ?>
+                        <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                         <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
                     <?php endif; ?>
                 </div>
@@ -1085,7 +1151,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No order found.</p>
             </div>
             <!-- Hidden Form -->
-        <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">
+        <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" target="_blank" style="display:none;">
             <input type="hidden" name="managed_by" id="managed_by">
             <input type="hidden" name="customer_name" id="customer_name">
             <input type="hidden" name="product_name" id="product_name">
@@ -1150,8 +1216,6 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     <p>No orders found.</p>
                 <?php endif; ?>
             </div>
-        </div>
-
         </div>
     </div>
 
