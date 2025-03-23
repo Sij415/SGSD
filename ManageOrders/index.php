@@ -681,16 +681,15 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         // Initialize selection mode variables
         let selectionMode = false;
         let selectedItems = [];
-
         // Check if there are any orders
         if ($("#OrdersTable tbody tr").length > 0 && $("#OrdersTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+            $("#OrdersTable thead tr").prepend('<th class="checkbox-column text-center">Select <input type="checkbox" id="select-all"></th>');
 
             // Add checkboxes to all rows
             $("#OrdersTable tbody tr").prepend(function() {
-                var orderId = $(this).data("order-id");
-                return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + orderId + '"></td>';
+            var orderId = $(this).data("order-id");
+            return '<td class="checkbox-column text-center"><input type="checkbox" class="row-checkbox" value="' + orderId + '"></td>';
             });
         }
 

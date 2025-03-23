@@ -73,23 +73,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     exit();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Handle deleting products
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     $product_ids = json_decode($_POST['product_ids']);
@@ -311,14 +294,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
         let selectionMode = false;
         let selectedItems = [];
 
-        // Add checkbox column to table header
-        $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Check if there are any products
+        if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
+            // Add checkbox column to table header
+            $("#ProductsTable thead tr").prepend('<th class="checkbox-column text-center">Select<br><input type="checkbox" id="select-all"></th>');
 
-        // Add checkboxes to all rows
-        $("#ProductsTable tbody tr").prepend(function() {
+            // Add checkboxes to all rows
+            $("#ProductsTable tbody tr").prepend(function() {
             var productId = $(this).data("product-id");
-            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + productId + '"></td>';
-        });
+            return '<td class="checkbox-column text-center"><input type="checkbox" class="row-checkbox" value="' + productId + '"></td>';
+            });
+        }
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {

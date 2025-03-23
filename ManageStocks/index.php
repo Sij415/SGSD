@@ -479,12 +479,12 @@ $(document).ready(function() {
         // Check if there are any stocks
         if ($("#stocksTable tbody tr").length > 0 && $("#stocksTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#stocksTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+            $("#stocksTable thead tr").prepend('<th class="checkbox-column text-center">Select<br><input type="checkbox" id="select-all"></th>');
 
             // Add checkboxes to all rows
             $("#stocksTable tbody tr").prepend(function() {
             var stockId = $(this).data("stock-id");
-            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + stockId + '"></td>';
+            return '<td class="checkbox-column text-center"><input type="checkbox" class="row-checkbox" value="' + stockId + '"></td>';
             });
         }
 

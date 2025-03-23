@@ -47,8 +47,6 @@ if (isset($_POST['add_customer'])) {
 
     $stmt->close();
 }
-
-
 // Handle editing customer
 if (isset($_POST['edit_customer'])) {
     $customer_id = $_POST['Customer_ID'];
@@ -68,27 +66,6 @@ if (isset($_POST['edit_customer'])) {
 
     $stmt->close();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
@@ -99,12 +76,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     header("Location: ../Login"); // Redirect to login page
     exit();
 }
-
-
-
-
-
-
 
 // Handle deleting customers
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) {
@@ -122,25 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -316,12 +268,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
         // Check if there are any customers
         if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+            $("#customersTable thead tr").prepend('<th class="checkbox-column text-center">Select<br><input type="checkbox" id="select-all"></th>');
 
             // Add checkboxes to all rows
             $("#customersTable tbody tr").prepend(function() {
             var customerId = $(this).data("customer-id");
-            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + customerId + '"></td>';
+            return '<td class="checkbox-column text-center"><input type="checkbox" class="row-checkbox" value="' + customerId + '"></td>';
             });
         }
 
