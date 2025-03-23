@@ -349,7 +349,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                         </div>
                         <div class="d-flex justify-content-end p-3">
                             <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
-                                <i class="fas fa-save"></i> View Logs
+                                <i class="fas fa-clipboard"></i> View Logs
                             </button>
                         </div>
                     </div>
