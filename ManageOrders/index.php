@@ -464,25 +464,40 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 
         // Function to sort table
         function sortTable(columnIndex) {
-            const table = document.getElementById('OrdersTable');
-            const rows = Array.from(table.rows).slice(1);
-            const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-            rows.sort((rowA, rowB) => {
-                const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-                const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-                if (isNumeric) {
-                    return parseFloat(cellA) - parseFloat(cellB);
-                } else {
-                    return cellA.localeCompare(cellB);
-                }
-            });
-
-            // Re-append sorted rows to the table body
-            const tbody = table.getElementsByTagName('tbody')[0];
-            rows.forEach(row => tbody.appendChild(row));
+    var table = document.getElementById("OrdersTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
+    }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
         }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+    });
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
+}
 
         function searchTable() {
     const input = document.getElementById('searchInput');
@@ -1173,15 +1188,15 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Product<i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Status <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(7)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(8)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Managed by <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Product<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Status <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Order Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(8)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(9)">Notes <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
