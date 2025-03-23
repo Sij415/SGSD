@@ -16,6 +16,24 @@ $stmt->bind_result($user_id, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
+// Check all stock entries and move New_Stock to Old_Stock if Old_Stock is 0
+$check_query = "SELECT Stock_ID, Old_Stock, New_Stock FROM Stocks WHERE Old_Stock = 0";
+$check_stmt = $conn->prepare($check_query);
+$check_stmt->execute();
+$check_stmt->store_result();
+$check_stmt->bind_result($stock_id, $old_stock, $new_stock);
+
+while ($check_stmt->fetch()) {
+    if ($old_stock == 0 && $new_stock > 0) {
+        $update_query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Stock_ID = ?";
+        $update_stmt = $conn->prepare($update_query);
+        $update_stmt->bind_param("i", $stock_id);
+        $update_stmt->execute();
+        $update_stmt->close();
+    }
+}
+$check_stmt->close();
+
 // Handle adding stock
 if (isset($_POST['add_stock'])) {
     $user_id = $_POST['User_ID'];
