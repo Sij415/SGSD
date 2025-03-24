@@ -69,9 +69,77 @@ if (isset($_POST['edit_customer'])) {
     $stmt->close();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
+
+
+
+
+
+
+
+// Handle deleting customers
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) {
+    $customer_ids = json_decode($_POST['customer_ids']);
+
+    foreach ($customer_ids as $customer_id) {
+        // Delete the customer
+        $query = "DELETE FROM Customers WHERE Customer_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $customer_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ?>
 
@@ -138,19 +206,31 @@ $result = $conn->query($query);
     });
 
         // Function to search table
-        function searchTables() {
-            const input = document.getElementById('searchInput');
-            if (!input) return; // Ensure input exists
-            const filter = input.value.trim().toLowerCase();
+        function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('customersTable');
+    const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
-            // Search in Desktop Table
-            const tableRows = document.querySelectorAll('#customersTable tbody tr');
-            if (tableRows.length > 0) {
-            tableRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
+        }
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
+    }
+
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
 
             // Search in Mobile Cards (if applicable)
             const cards = document.querySelectorAll('.card');
@@ -162,59 +242,42 @@ $result = $conn->query($query);
             }
         }
 
-    function sortTable(n) {
-        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("customersTable");
-        switching = true;
-        // Set the sorting direction to ascending:
+
+        function sortTable(columnIndex) {
+    var table = document.getElementById("customersTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
         dir = "asc";
-        // Make a loop that will continue until no switching has been done:
-        while (switching) {
-            // Start by saying: no switching is done:
-            switching = false;
-            rows = table.rows;
-            // Loop through all table rows (except the table headers):
-            for (i = 1; i < (rows.length - 1); i++) {
-                // Start by saying there should be no switching:
-                shouldSwitch = false;
-                /* Get the two elements you want to compare,
-                one from current row and one from the next: */
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                /* Check if the two rows should switch place,
-                based on the direction, asc or desc: */
-                if (dir == "asc") {
-                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                        // If so, mark as a switch and break the loop:
-                        shouldSwitch = true;
-                        break;
-                    }
-                } else if (dir == "desc") {
-                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                        // If so, mark as a switch and break the loop:
-                        shouldSwitch = true;
-                        break;
-                    }
-                }
-            }
-            if (shouldSwitch) {
-                /* If a switch has been marked, make the switch
-                and mark that a switch has been done: */
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-                // Each time a switch is done, increase this count by 1:
-                switchcount++;
-            } else {
-                /* If no switching has been done AND the direction is "asc",
-                set the direction to "desc" and run the while loop again. */
-                if (switchcount == 0 && dir == "asc") {
-                    dir = "desc";
-                    switching = true;
-                }
-            }
-        }
-        
+        header.setAttribute("data-sort", "asc");
     }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
+        }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+    });
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
+}
 </script>
 
 <!-----------------------------------------------------
@@ -238,59 +301,6 @@ $result = $conn->query($query);
             modal.find('#edit_contact_num').val(contactNumber);
         });
     });
-
-    function sortTable(n) {
-        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("customersTable");
-        switching = true;
-        // Set the sorting direction to ascending:
-        dir = "asc";
-        // Make a loop that will continue until no switching has been done:
-        while (switching) {
-            // Start by saying: no switching is done:
-            switching = false;
-            rows = table.rows;
-            // Loop through all table rows (except the table headers):
-            for (i = 1; i < (rows.length - 1); i++) {
-                // Start by saying there should be no switching:
-                shouldSwitch = false;
-                /* Get the two elements you want to compare,
-                one from current row and one from the next: */
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                /* Check if the two rows should switch place,
-                based on the direction, asc or desc: */
-                if (dir == "asc") {
-                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                        // If so, mark as a switch and break the loop:
-                        shouldSwitch = true;
-                        break;
-                    }
-                } else if (dir == "desc") {
-                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                        // If so, mark as a switch and break the loop:
-                        shouldSwitch = true;
-                        break;
-                    }
-                }
-            }
-            if (shouldSwitch) {
-                /* If a switch has been marked, make the switch
-                and mark that a switch has been done: */
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-                // Each time a switch is done, increase this count by 1:
-                switchcount++;
-            } else {
-                /* If no switching has been done AND the direction is "asc",
-                set the direction to "desc" and run the while loop again. */
-                if (switchcount == 0 && dir == "asc") {
-                    dir = "desc";
-                    switching = true;
-                }
-            }
-        }
-    }
 </script>
 
 <!-----------------------------------------------------
@@ -303,11 +313,17 @@ $result = $conn->query($query);
         let selectionMode = false;
         let selectedItems = [];
 
-        // Add checkbox column to table header
-        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Check if there are any customers
+        if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
+            // Add checkbox column to table header
+            $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-        // Add checkboxes to all rows
-        $("#customersTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+            // Add checkboxes to all rows
+            $("#customersTable tbody tr").prepend(function() {
+            var customerId = $(this).data("customer-id");
+            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + customerId + '"></td>';
+            });
+        }
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -380,24 +396,12 @@ $result = $conn->query($query);
 
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            console.log("Deleting items:", selectedItems);
-            // Here you would normally send the selectedItems to the server for deletion
-
-            // Clear selection and close modal
-            $("#deleteConfirmModal").modal("hide");
-
-            // For demo purposes, let's remove the selected rows from the table
-            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
-                $(this).remove();
-            });
-
-            // Reset selection
-            selectionMode = false;
-            $("#toggle-selection-mode").removeClass("active");
-            selectedItems = [];
-            updateSelectedCount();
+            const customerIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
+            console.log("Selected Customer IDs: ", customerIds); // Debug log to check customer IDs
+            $("#customer_ids").val(JSON.stringify(customerIds));
+            $("#deleteForm").submit();
         });
-        
+
         // Connect delete button in floating dialog to delete modal
         $("#delete-selected-btn").click(function() {
             $("#deleteConfirmModal").modal("show");
@@ -490,10 +494,16 @@ $result = $conn->query($query);
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
     </nav>
@@ -505,9 +515,9 @@ $result = $conn->query($query);
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button>
+                <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                </a>
             </div>
         </nav>
 
@@ -536,7 +546,7 @@ $result = $conn->query($query);
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                     <div class="search-container">
-                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                             <i class="fa fa-search"></i>
                         </button>
@@ -544,7 +554,7 @@ $result = $conn->query($query);
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -581,6 +591,11 @@ $result = $conn->query($query);
                     <?php endif; ?>
                 </div>
             </div>
+            <!-- Hidden Form for Deletion -->
+<form id="deleteForm" method="POST" action="" style="display:none;">
+    <input type="hidden" name="delete_customers" value="1">
+    <input type="hidden" name="customer_ids" id="customer_ids">
+</form>
             <script>
                 // Connect delete buttons to delete modal
                 $(document).ready(function() {
@@ -596,16 +611,16 @@ $result = $conn->query($query);
                 <table class="table table-striped table-bordered" id="customersTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Contact Number <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (mysqli_num_rows($result) > 0): ?>
                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                                <tr>
+                                <tr data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['First_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Last_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Contact_Number']); ?></td>
@@ -622,7 +637,7 @@ $result = $conn->query($query);
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6">No customers found.</td>
+                                <td colspan="6" class="text-center">No customers found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -661,6 +676,7 @@ $result = $conn->query($query);
                 <?php endif; ?>
             </div>
             </div>
+            <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Customer found.</p>
         </div>
 
         <!-- Add Customer Modal -->

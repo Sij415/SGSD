@@ -265,14 +265,14 @@ a.logout:hover {
                 padding-right: 2.5rem;
             }
 
-@media screen and (max-width: 320px) {
-    body {
-        display: none; /* Hide the entire page */
+@media screen and (max-width: 319px), screen and (max-height: 200px) {
+    body > * {
+        display: none; /* Hide all direct children of the body */
     }
 
     /* Show a warning message */
     body::before {
-        content: "This page is not supported on screens smaller than 320px.";
+        content: "This page is not supported on screens smaller than 319px by 200px.";
         display: block;
         text-align: center;
         padding-top: 50%; /* Use padding instead of margin for better centering */
@@ -284,6 +284,7 @@ a.logout:hover {
         top: 0;
         left: 0;
         z-index: 1000; /* Ensure it's on top of other content */
+        height: 100%; /* Ensure the pseudo-element covers the full height */
     }
 }
 
@@ -314,3 +315,4 @@ a.logout:hover {
         display: flex !important;
     }
 }
+

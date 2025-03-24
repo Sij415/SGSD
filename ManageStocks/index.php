@@ -3,7 +3,7 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
-    //Start the session
+// Start the session
 ini_set('display_errors', 1);
 
 // Fetch logged-in user details
@@ -15,6 +15,24 @@ $stmt->execute();
 $stmt->bind_result($user_id, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
+
+// Check all stock entries and move New_Stock to Old_Stock if Old_Stock is 0
+$check_query = "SELECT Stock_ID, Old_Stock, New_Stock FROM Stocks WHERE Old_Stock = 0";
+$check_stmt = $conn->prepare($check_query);
+$check_stmt->execute();
+$check_stmt->store_result();
+$check_stmt->bind_result($stock_id, $old_stock, $new_stock);
+
+while ($check_stmt->fetch()) {
+    if ($old_stock == 0 && $new_stock > 0) {
+        $update_query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Stock_ID = ?";
+        $update_stmt = $conn->prepare($update_query);
+        $update_stmt->bind_param("i", $stock_id);
+        $update_stmt->execute();
+        $update_stmt->close();
+    }
+}
+$check_stmt->close();
 
 // Handle adding stock
 if (isset($_POST['add_stock'])) {
@@ -51,17 +69,23 @@ if (isset($_POST['add_stock'])) {
     $product_stmt->close();
 
     // Fetch current stock
-    $stock_check_query = "SELECT New_Stock FROM Stocks WHERE Product_ID = ? ORDER BY Stock_ID DESC LIMIT 1";
+    $stock_check_query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ? ORDER BY Stock_ID DESC LIMIT 1";
     $stock_stmt = $conn->prepare($stock_check_query);
     $stock_stmt->bind_param("i", $product_id);
     $stock_stmt->execute();
-    $stock_stmt->bind_result($old_stock);
+    $stock_stmt->bind_result($old_stock, $current_new_stock);
     $stock_stmt->fetch();
     $stock_stmt->close();
 
     // If no previous stock exists, set old_stock to 0
     if ($old_stock === null) {
         $old_stock = 0;
+    }
+
+    // Move New_Stock to Old_Stock if Old_Stock is zero
+    if ($old_stock == 0) {
+        $old_stock = $current_new_stock;
+        $new_stock = 0;
     }
 
     // Insert into Stocks table
@@ -103,19 +127,30 @@ if (isset($_POST['edit_stock'])) {
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
-    // Fetch current New_Stock before updating
-    $query = "SELECT New_Stock FROM Stocks WHERE Stock_ID = ?";
+    // Fetch current Old_Stock and New_Stock before updating
+    $query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Stock_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $stock_id);
     $stmt->execute();
-    $stmt->bind_result($current_stock);
+    $stmt->bind_result($old_stock, $current_new_stock);
     $stmt->fetch();
     $stmt->close();
 
-    // Update stock: move New_Stock to Old_Stock, then update New_Stock
-    $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("iiii", $current_stock, $new_stock, $threshold, $stock_id);
+    // Treat null as 0 for old_stock
+    if (is_null($old_stock)) {
+        $old_stock = 0;
+    }
+
+    // Update stock: move New_Stock to Old_Stock only if Old_Stock is zero, then update New_Stock
+    if ($old_stock == 0) {
+        $query = "UPDATE Stocks SET Old_Stock = ?, New_Stock = 0, Threshold = ? WHERE Stock_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iii", $current_new_stock, $threshold, $stock_id);
+    } else {
+        $query = "UPDATE Stocks SET New_Stock = ?, Threshold = ? WHERE Stock_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iii", $new_stock, $threshold, $stock_id);
+    }
 
     if ($stmt->execute()) {
         $success_message = "Stock updated successfully.";
@@ -129,7 +164,8 @@ if (isset($_POST['edit_stock'])) {
 // Fetch stock data for display
 $query = "SELECT Stocks.Stock_ID, 
                  Users.First_Name AS First_Name, 
-                 Products.Product_Name, 
+                 CONCAT(Products.Product_Name, ' (', Products.Unit, ')') AS Product_Name, 
+                 Products.Product_Type,
                  Stocks.Old_Stock, 
                  Stocks.New_Stock, 
                  Stocks.Threshold 
@@ -138,9 +174,32 @@ $query = "SELECT Stocks.Stock_ID,
           INNER JOIN Products ON Stocks.Product_ID = Products.Product_ID"; 
 
 $result = $conn->query($query);
+
+// Handle deleting stocks
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
+    $stock_ids = json_decode($_POST['stock_ids']);
+
+    foreach ($stock_ids as $stock_id) {
+        // Delete the stock
+        $query = "DELETE FROM Stocks WHERE Stock_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $stock_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,56 +245,84 @@ $result = $conn->query($query);
 ------------------------------------------------------>
 
 <script>
-function sortTable(columnIndex) {
-    const table = document.getElementById('stocksTable');
-    const rows = Array.from(table.rows).slice(1);
-    const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-    rows.sort((rowA, rowB) => {
-        const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-        const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-        if (isNumeric) {
-            return parseFloat(cellA) - parseFloat(cellB);
-        } else {
-            return cellA.localeCompare(cellB);
+        function sortTable(columnIndex) {
+    var table = document.getElementById("stocksTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
+    }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
         }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
     });
-
-    // Re-append sorted rows to the table body
-    const tbody = table.getElementsByTagName('tbody')[0];
-    rows.forEach(row => tbody.appendChild(row));
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
 }
+
 
 function searchTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
     const table = document.getElementById('stocksTable');
     const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
     for (let i = 1; i < tr.length; i++) {
         const td = tr[i].getElementsByTagName('td');
         let found = false;
         for (let j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
         }
-        tr[i].style.display = found ? '' : 'none';
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
     }
+
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
+}
 
     // Search in Mobile Cards (if applicable)
     const cards = document.querySelectorAll('.card');
     if (cards.length > 0) {
+        let cardFoundAny = false; // Track if any card is found
         cards.forEach(card => {
             const text = card.textContent.toLowerCase();
-            card.style.display = text.includes(filter) ? '' : 'none';
+            const cardFound = text.includes(filter);
+            card.style.display = cardFound ? '' : 'none';
+            if (cardFound) cardFoundAny = true; // Set to true if at least one card is found
         });
+        foundAny = foundAny || cardFoundAny; // Update foundAny based on card results
     }
-}
+
+
 
 function updateRowColors() {
     document.querySelectorAll("#stocksTable tbody tr").forEach((row) => {
@@ -389,11 +476,17 @@ $(document).ready(function() {
         let selectionMode = false;
         let selectedItems = [];
 
-        // Add checkbox column to table header
-        $("#stocksTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Check if there are any stocks
+        if ($("#stocksTable tbody tr").length > 0 && $("#stocksTable tbody tr td").length > 1) {
+            // Add checkbox column to table header
+            $("#stocksTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-        // Add checkboxes to all rows
-        $("#stocksTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+            // Add checkboxes to all rows
+            $("#stocksTable tbody tr").prepend(function() {
+            var stockId = $(this).data("stock-id");
+            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + stockId + '"></td>';
+            });
+        }
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -450,6 +543,23 @@ $(document).ready(function() {
             updateSelectedCount();
         });
 
+        // Individual card selection
+        $(document).on("click", ".card", function() {
+            const card = $(this)[0];
+
+            if (!selectedItems.includes(card)) {
+            // Add this card element to our selections if not already included
+            selectedItems.push(card);
+            $(this).addClass("selected"); // Optional: Add a class to indicate selection
+            } else {
+            // Remove this card from selections
+            selectedItems = selectedItems.filter(item => item !== card);
+            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
+            }
+
+            updateSelectedCount();
+        });
+
         // Update the selected count display
         function updateSelectedCount() {
             const count = selectedItems.length;
@@ -466,24 +576,38 @@ $(document).ready(function() {
 
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            console.log("Deleting items:", selectedItems);
-            // Here you would normally send the selectedItems to the server for deletion
-
-            // Clear selection and close modal
-            $("#deleteConfirmModal").modal("hide");
-
-            // For demo purposes, let's remove the selected rows from the table
-            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
-                $(this).remove();
+            // Initialize an array to store all stock IDs
+            let stockIds = [];
+            
+            // Go through all selected items
+            selectedItems.forEach(item => {
+            // Check if item is a table row (has checkbox)
+            const checkbox = $(item).find(".row-checkbox");
+            if (checkbox.length > 0) {
+                stockIds.push(checkbox.val());
+            } 
+            // Check if item is a card
+            else if ($(item).hasClass("card")) {
+                const cardStockId = $(item).data("stock-id");
+                if (cardStockId) {
+                stockIds.push(cardStockId);
+                }
+            }
             });
-
-            // Reset selection
-            selectionMode = false;
-            $("#toggle-selection-mode").removeClass("active");
-            selectedItems = [];
-            updateSelectedCount();
+            
+            // Remove any duplicates
+            stockIds = [...new Set(stockIds)];
+            
+            console.log("Selected Stock IDs: ", stockIds); // Debug log to check stock IDs
+            $("#stock_ids").val(JSON.stringify(stockIds));
+            $("#deleteForm").submit();
         });
-        
+
+        // Connect delete button in floating dialog to delete modal
+        $("#delete-selected-btn").click(function() {
+            $("#deleteConfirmModal").modal("show");
+        });
+
         // Connect delete button in floating dialog to delete modal
         $("#delete-selected-btn").click(function() {
             $("#deleteConfirmModal").modal("show");
@@ -576,24 +700,30 @@ $(document).ready(function() {
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button>
+                <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                </a>
             </div>
         </nav>
 
@@ -634,23 +764,24 @@ $(document).ready(function() {
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                 <div class="search-container">
-                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
 
+
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
                 </div>
                 <?php if ($user_role === 'admin' || $user_role === 'staff') : ?>
-                    <!-- Add Order Button -->
-                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Order</button>
+                    <!-- Add Stock Button -->
+                    <button class="add-btn" data-bs-toggle="modal" data-bs-target="#addStockModal" style="width: auto;">Add Stock</button>
                 <?php endif; ?>
                 <!-- Delete Confirmation Modal -->
                 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
@@ -687,22 +818,30 @@ $(document).ready(function() {
                     });
                 });
             </script>
+            <!-- Hidden Form for Deletion -->
+<form id="deleteForm" method="POST" action="" style="display:none;">
+    <input type="hidden" name="delete_stocks" value="1">
+    <input type="hidden" name="stock_ids" id="stock_ids">
+</form>
 
                 <!-- Table Layout (Visible on larger screens) -->
-                <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+                <div style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">      
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
+                    
                 <thead>
-                    <tr>
-                        <th onclick="sortTable(0)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
-                        <th onclick="sortTable(1)">Product Name <i class="bi bi-arrow-down-up"></i></th>
-                        <th onclick="sortTable(2)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
-                        <th onclick="sortTable(3)">New Stock <i class="bi bi-arrow-down-up"></i></th>
-                        <th onclick="sortTable(4)">Threshold <i class="bi bi-arrow-down-up"></i></th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
+    <tr>
+        <th onclick="sortTable(1)">Stocked By <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(2)">Product Name <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(3)">Product Type <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(4)">Old Stock <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(5)">New Stock <i class="bi bi-arrow-down-up"></i></th>
+        <th onclick="sortTable(6)">Threshold <i class="bi bi-arrow-down-up"></i></th>
+        <th>Edit</th>
+    </tr>
+</thead>
+
+                <tbody>
                 <?php if (mysqli_num_rows($result) > 0): ?>
                     <?php 
                         while ($row = mysqli_fetch_assoc($result)): 
@@ -722,29 +861,30 @@ $(document).ready(function() {
 
                         ?>
 
-                            <tr data-new-stock="<?php echo $newStock; ?>" data-threshold="<?php echo $threshold; ?>">
-                                <td><?php echo $row['First_Name']; ?></td>
-                                <td><?php echo $row['Product_Name']; ?></td>
-                                <td class="<?php echo $oldStockClass; ?>"><?php echo $row['Old_Stock']; ?></td>
-                                <td><?php echo $row['New_Stock']; ?></td>
-                                <td class="<?php echo $thresholdClass; ?>"><?php echo $row['Threshold']; ?></td>
-                                <td class="text-dark text-center">
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
-                                        data-stock-id="<?php echo $row['Stock_ID']; ?>" 
-                                        data-new-stock="<?php echo $row['New_Stock']; ?>" 
-                                        data-threshold="<?php echo $row['Threshold']; ?>">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
+<tr data-stock-id="<?php echo $row['Stock_ID']; ?>" data-new-stock="<?php echo $row['New_Stock']; ?>" data-threshold="<?php echo $row['Threshold']; ?>">
+                <td><?php echo $row['First_Name']; ?></td>
+                <td><?php echo $row['Product_Name']; ?></td>
+                <td><?php echo $row['Product_Type']; ?></td>
+                <td class="<?php echo $oldStockClass; ?>"><?php echo $row['Old_Stock']; ?></td>
+                <td><?php echo $row['New_Stock']; ?></td>
+                <td><?php echo $row['Threshold']; ?></td>
+                <td class="text-dark text-center">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#editStockModal" 
+                        data-stock-id="<?php echo $row['Stock_ID']; ?>" 
+                        data-new-stock="<?php echo $row['New_Stock']; ?>" 
+                        data-threshold="<?php echo $row['Threshold']; ?>">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="7" class="text-center">No stocks found.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
 
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6">No stocks found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </>
                 </table>
                 </div>
 
@@ -804,74 +944,76 @@ $(document).ready(function() {
                 <?php else: ?>
                     <p>No Stock found.</p>
                 <?php endif; ?>
+                
                 </div>
             </div>
+            <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Stock found.</p>
   
             <!-- Add Stock Modal -->
-            <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="">
-                                <!-- Stocked By (User Selection) -->
-                                    <div class="mb-3">
-                                    <label for="user_id" class="form-label">Stocked By</label>
-                                    <select class="form-control" id="user_id" name="User_ID" style="height: fit-content;" required>
-                                        <option value="">Select User</option>
-                                        <?php
-                                        // Fetch users from the Users table
-                                        $query = "SELECT User_ID, First_Name FROM Users";
-                                        $result = $conn->query($query);
-                                        while ($row = $result->fetch_assoc()) {
-                                            echo "<option value='" . $row['User_ID'] . "'>" . $row['First_Name'] . "</option>";
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-
-                                <!-- Product Name (Product Selection) -->
-                                <div class="mb-3">
-                                    <label for="product_id" class="form-label">Product Name</label>
-                                    <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-                                        <option value="">Select Product</option>
-                                        <?php
-                                        // Fetch products from the Products table
-                                        $query = "SELECT Product_ID, Product_Name FROM Products";
-                                        $result = $conn->query($query);
-                                        while ($row = $result->fetch_assoc()) {
-                                            echo "<option value='" . $row['Product_ID'] . "'>" . $row['Product_Name'] . "</option>";
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="old_stock" class="form-label">Old Stock</label>
-                                    <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" placeholder="Enter old stock quantity" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="new_stock" class="form-label">New Stock</label>
-                                    <input type="number" class="form-control" id="New_Stock" name="New_Stock" placeholder="Enter new stock quantity" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="threshold" class="form-label">Threshold</label>
-                                    <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                                    <button type="submit" name="add_stock" class="btn custom-btn">Add Stock</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
             </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    <!-- Stocked By (User Selection) -->
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Stocked By</label>
+                        <select class="form-control" id="user_id" name="User_ID" style="height: fit-content;" required>
+                            <option value="">Select User</option>
+                            <?php
+                            // Fetch users from the Users table
+                            $query = "SELECT User_ID, First_Name FROM Users";
+                            $result = $conn->query($query);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['User_ID'] . "'>" . $row['First_Name'] . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+
+                    <!-- Product Name (Product Selection) -->
+                    <div class="mb-3">
+                        <label for="product_id" class="form-label">Product Name</label>
+                        <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
+                            <option value="">Select Product</option>
+                            <?php
+                            // Fetch products from the Products table
+                            $query = "SELECT Product_ID, CONCAT(Product_Name, ' (', Unit, ')') AS Product_Name, Product_Type FROM Products";
+                            $result = $conn->query($query);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['Product_ID'] . "'>" . $row['Product_Name'] . " - " . $row['Product_Type'] . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="old_stock" class="form-label">Old Stock</label>
+                        <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" placeholder="Enter old stock quantity" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_stock" class="form-label">New Stock</label>
+                        <input type="number" class="form-control" id="New_Stock" name="New_Stock" placeholder="Enter new stock quantity" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="threshold" class="form-label">Threshold</label>
+                        <input type="number" class="form-control" id="Threshold" name="Threshold" placeholder="Enter threshold quantity" min="0" required>
+                    </div>
+                    <!-- <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                    </div> -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                        <button type="submit" name="add_stock" class="btn custom-btn">Add Stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- Edit Stock Modal -->
             <div class="modal fade" id="editStockModal" tabindex="-1" aria-labelledby="editStockModalLabel" aria-hidden="true">
@@ -885,16 +1027,16 @@ $(document).ready(function() {
                                 <input type="hidden" id="edit_stock_id" name="Stock_ID">
                                 <div class="mb-3">
                                     <label for="edit_new_stock" class="form-label">New Stock</label>
-                                    <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" required>
+                                    <input type="number" class="form-control" id="edit_new_stock" name="New_Stock" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_threshold" class="form-label">Threshold</label>
-                                    <input type="number" class="form-control" id="edit_threshold" name="Threshold" required>
+                                    <input type="number" class="form-control" id="edit_threshold" name="Threshold" min="0" required>
                                 </div>
-                                <div class="mb-3">
+                                <!-- <div class="mb-3">
                                     <label for="notes" class="form-label">Notes</label>
                                     <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
-                                </div>
+                                </div> -->
                                 <div class="modal-footer">
                                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                     <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>

@@ -24,7 +24,30 @@
     <div class="login-container">
         <!-- Logo -->
         <div class="logo-container">
-            <img src="assets/logo.svg" alt="SGSD Logo" class="logo">
+            <div class="icon-container">
+                <i class="fas fa-user-slash icon"></i>                
+            </div>
+            
+            <style>            
+                .icon-container {
+                text-align: center;
+                margin-bottom: 20px;
+                }
+                
+                .icon {
+                font-size: 40px;
+                color: #6fa062;
+                background-color: #f8f9fa;
+                border-radius: 50%;
+                padding: 20px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                width: 90px;  /* Set a fixed width */
+                height: 90px; /* Set a fixed height */
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                }
+            </style>
         </div>
 
         <!-- Message -->

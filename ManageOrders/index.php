@@ -1,9 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSD | Manage Orders</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon" href="../logo.png">
+    <link rel="stylesheet" href="../style/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+
+
+
+
 <?php
 // Include database connection
 $required_role = 'admin,staff,driver';
 include('../check_session.php');
 include '../dbconnect.php';
 ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -87,53 +116,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $stmt->fetch();
     $stmt->close();
 
-    //Validate stock availability
-    if ($quantity > $old_stock && $quantity > $new_stock) {
-        $error_message = "Insufficient stock available for this product.";
-        
-    if ($order_type === "Inbound") {
-        // Inbound Order: Add to New_Stock
-        $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ii", $quantity, $product_id);
+    // Check if stock entry exists for the product
+    if ($old_stock === null && $new_stock === null) {
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No stock entry found for the selected product.'
+                });
+            });
+        </script>";
+    } else if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Insufficient stock available for this product.'
+                });
+            });
+        </script>";
     } else {
-        // Outbound Order: Deduct from Old_Stock first, then New_Stock if needed
-        if ($quantity <= $old_stock) {
-            $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
+        // Move New_Stock to Old_Stock if Old_Stock is 0
+        if ($old_stock == 0) {
+            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $stmt->close();
+            $old_stock = $new_stock;
+            $new_stock = 0;
+        }
+
+        // Update stock based on order type and status
+        if ($order_type === "Inbound" && $status === "Delivered") {
+            // Move New_Stock to Old_Stock and add quantity to New_Stock
+            $query = "UPDATE Stocks SET Old_Stock = Old_Stock + New_Stock, New_Stock = ? WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $new_stock_after_update = $quantity;
+            $stmt->bind_param("ii", $new_stock_after_update, $product_id);
+        } elseif ($order_type === "Inbound") {
+            // Inbound Order: Add to New_Stock
+            $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ii", $quantity, $product_id);
         } else {
-            $remaining_qty = $quantity - $old_stock;
-            $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("ii", $remaining_qty, $product_id);
+            // Outbound Order: Deduct from Old_Stock first, then New_Stock if needed
+            if ($quantity <= $old_stock) {
+                $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $quantity, $product_id);
+            } else {
+                $remaining_qty = $quantity - $old_stock;
+                $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $remaining_qty, $product_id);
+            }
         }
-    }
-    
-    $stmt->execute();
-    $stmt->close();
+        
+        $stmt->execute();
+        $stmt->close();
 
-    // Insert Order
-    $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("iissidsi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $notes, $transaction_id);
-    $stmt->execute();
-    $order_id = $stmt->insert_id;
-    $stmt->close();
+        // Insert Order
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("iissidsi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $notes, $transaction_id);
+        if (!$stmt->execute()) {
+            error_log("Error inserting order: " . $stmt->error);
+        }
+        $order_id = $stmt->insert_id;
+        $stmt->close();
 
-    // Update Transactions with Order_ID
-    $query = "UPDATE Transactions SET Order_ID = ? WHERE Transaction_ID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("ii", $order_id, $transaction_id);
-    $stmt->execute();
-    $stmt->close();
+        // Update Transactions with Order_ID
+        $query = "UPDATE Transactions SET Order_ID = ? WHERE Transaction_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $order_id, $transaction_id);
+        if (!$stmt->execute()) {
+            error_log("Error updating transaction with order ID: " . $stmt->error);
+        }
+        $stmt->close();
 
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 }
+
+
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
@@ -144,6 +214,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("si", $status, $order_id);
+        $stmt->execute();
+        $stmt->close();
     } else {
         // Fetch updated order details
         $customer_id = $_POST['New_CustomerID'];  // Directly from form
@@ -151,15 +223,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $order_type = $_POST['New_OrderType'];
         $quantity = $_POST['New_Quantity'];
         $notes = $_POST['New_Notes'];
-
-        // Get Customer_ID
-        $query = "SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ss", $customer_fname, $customer_lname);
-        $stmt->execute();
-        $stmt->bind_result($customer_id);
-        $stmt->fetch();
-        $stmt->close();
 
         // Get Product_ID and Price
         $query = "SELECT Price FROM Products WHERE Product_ID = ?";
@@ -188,37 +251,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-        $quantity_difference = $quantity - $current_quantity;
+        // Check if stock entry exists for the product
+        if ($old_stock === null && $new_stock === null) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No stock entry found for the selected product.'
+                    }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
+                });
+            </script>";
+            exit();
+        }
 
-        if ($quantity_difference > 0) {
-            // If new quantity is greater, validate and update stock
-            if ($order_type === "Inbound") {
-                $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $quantity_difference, $product_id);
-            } else {
-                if ($quantity_difference <= $old_stock) {
-                    $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("ii", $quantity_difference, $product_id);
-                } else {
-                    $remaining_qty = $quantity_difference - $old_stock;
-                    $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("ii", $remaining_qty, $product_id);
-                }
-            }
+        // Move New_Stock to Old_Stock if Old_Stock is 0
+        if ($old_stock == 0) {
+            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $product_id);
             $stmt->execute();
             $stmt->close();
+            $old_stock = $new_stock;
+            $new_stock = 0;
+        }
+
+        // Check if the combined stock is sufficient
+        $total_stock = $old_stock + $new_stock;
+        $quantity_difference = $quantity - $current_quantity;
+
+        if ($order_type !== "Inbound" && $quantity_difference > $total_stock) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Quantity exceeds available stock.'
+                    }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
+                });
+            </script>";
+            exit();
+        }
+
+        if ($quantity_difference != 0) {
+            // If quantity is changed, validate and update stock
+            if ($quantity_difference > 0) {
+                // If new quantity is greater, validate and update stock
+                if ($order_type === "Inbound") {
+                    $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param("ii", $quantity_difference, $product_id);
+                    $stmt->execute();
+                    $stmt->close();
+                } else {
+                    if ($quantity_difference <= $old_stock) {
+                        $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
+                        $stmt = $conn->prepare($query);
+                        $stmt->bind_param("ii", $quantity_difference, $product_id);
+                        $stmt->execute();
+                        $stmt->close();
+                    } else {
+                        $remaining_qty = $quantity_difference - $old_stock;
+                        $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
+                        $stmt = $conn->prepare($query);
+                        $stmt->bind_param("ii", $remaining_qty, $product_id);
+                        $stmt->execute();
+                        $stmt->close();
+
+                        // Move remaining New_Stock to Old_Stock if Old_Stock is depleted
+                        $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
+                        $stmt = $conn->prepare($query);
+                        $stmt->bind_param("i", $product_id);
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                }
+            } else {
+                // If new quantity is less, add back to Old_Stock
+                $quantity_difference = abs($quantity_difference);
+                $query = "UPDATE Stocks SET Old_Stock = Old_Stock + ? WHERE Product_ID = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $quantity_difference, $product_id);
+                $stmt->execute();
+                $stmt->close();
+            }
         }
 
         // Update Order
         $total_price = $price * $quantity;
         $query = "UPDATE Orders 
-                  SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
-                  WHERE Order_ID = ?";
+                SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
+                WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $query = "UPDATE Transactions
+        SET Customer_ID = ?
+        WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $customer_id, $order_id);
         $stmt->execute();
         $stmt->close();
 
@@ -227,29 +364,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     }
 }
 
+// Avoid infinite loop by checking the 'reload' parameter
+if (isset($_GET['reload']) && $_GET['reload'] == 'true') {
+    header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
+    exit();
+}
+
+
+// Handle deleting orders
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
+    $order_ids = json_decode($_POST['order_ids']);
+
+    foreach ($order_ids as $order_id) {
+        // Fetch the order details
+        $query = "SELECT Product_ID, Quantity, Order_Type, Transaction_ID FROM Orders WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $stmt->bind_result($product_id, $quantity, $order_type, $transaction_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        // Update stock based on order type
+        if ($order_type === "Inbound") {
+            // Inbound Order: Deduct from New_Stock
+            $query = "UPDATE Stocks SET New_Stock = New_Stock - ? WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $quantity, $product_id);
+        } else {
+            // Outbound Order: Add back to Old_Stock
+            $query = "UPDATE Stocks SET Old_Stock = Old_Stock + ? WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $quantity, $product_id);
+        }
+
+        $stmt->execute();
+        $stmt->close();
+
+        // Delete the order
+        $query = "DELETE FROM Orders WHERE Order_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Delete the transaction
+        $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $transaction_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
+// Fetch Product Names for dropdown
+$product_query = "SELECT Product_ID, CONCAT(Product_Name, ' (', Unit, ') - ', Product_Type) AS Display_Name FROM Products";
+$product_result = $conn->query($product_query);
+$products = $product_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGSD | Manage Orders</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-    <link rel="icon" href="../logo.png">
-    <link rel="stylesheet" href="../style/styles.css">
-</head>
+
 <body>
 
 <!-----------------------------------------------------
@@ -280,55 +464,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
         // Function to sort table
         function sortTable(columnIndex) {
-            const table = document.getElementById('OrdersTable');
-            const rows = Array.from(table.rows).slice(1);
-            const isNumeric = !isNaN(rows[0].cells[columnIndex].innerText);
-
-            rows.sort((rowA, rowB) => {
-                const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
-                const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
-
-                if (isNumeric) {
-                    return parseFloat(cellA) - parseFloat(cellB);
-                } else {
-                    return cellA.localeCompare(cellB);
-                }
-            });
-
-            // Re-append sorted rows to the table body
-            const tbody = table.getElementsByTagName('tbody')[0];
-            rows.forEach(row => tbody.appendChild(row));
+    var table = document.getElementById("OrdersTable");
+    var rows = Array.from(table.rows).slice(1); // Exclude header
+    var switching = true, dir = "asc", switchcount = 0;
+    
+    // Check current sorting direction
+    var header = table.rows[0].cells[columnIndex];
+    if (header.getAttribute("data-sort") === "asc") {
+        dir = "desc";
+        header.setAttribute("data-sort", "desc");
+    } else {
+        dir = "asc";
+        header.setAttribute("data-sort", "asc");
+    }
+    
+    // Sorting function
+    rows.sort(function (rowA, rowB) {
+        var x = rowA.cells[columnIndex].innerText.trim();
+        var y = rowB.cells[columnIndex].innerText.trim();
+        
+        // Convert to numbers if applicable
+        var xNum = parseFloat(x), yNum = parseFloat(y);
+        if (!isNaN(xNum) && !isNaN(yNum)) {
+            return dir === "asc" ? xNum - yNum : yNum - xNum;
         }
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+    });
+    
+    // Append sorted rows back to table
+    rows.forEach(row => table.appendChild(row));
+    
+    // Update sort icons
+    document.querySelectorAll("th i").forEach(icon => icon.className = "bi bi-arrow-down-up");
+    header.querySelector("i").className = dir === "asc" ? "bi bi-arrow-up" : "bi bi-arrow-down";
+}
 
-        function searchTables() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('OrdersTable');
-        const tr = table.getElementsByTagName('tr');
+        function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('OrdersTable');
+    const tr = table.getElementsByTagName('tr');
+    let foundAny = false; // Track if any match is found
 
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < td.length; j++) {
+            if (td[j] && td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                foundAny = true;
+                break;
             }
-            tr[i].style.display = found ? '' : 'none';
         }
+        tr[i].style.display = found ? "" : "none"; // Hide non-matching rows
+    }
 
-        // Search in Mobile Cards (if applicable)
-        const cards = document.querySelectorAll('.card');
+    // Optional: Show a "No results found" message
+    const noResults = document.getElementById('noResultsMessage');
+    if (noResults) {
+        noResults.style.display = foundAny ? "none" : "block";
+    }
+
+            // Search in Mobile Cards (if applicable)
+            const cards = document.querySelectorAll('.card');
         if (cards.length > 0) {
             cards.forEach(card => {
                 const text = card.textContent.toLowerCase();
                 card.style.display = text.includes(filter) ? '' : 'none';
             });
         }
-    }
+}
+
+
 
     document.addEventListener("DOMContentLoaded", function () {
     // Get the first name and last name input fields
@@ -438,7 +645,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             // Collect data from the clicked link
             const managedBy = $(this).data('managed-by');
             const customerName = $(this).data('customer-name');
-            const productName = $(this).data('product-name');
+            const productName = $(this).data('product');
             const status = $(this).data('status');
             const orderType = $(this).data('order-type');
             const quantity = $(this).data('quantity');
@@ -461,7 +668,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
         // Attach functions to the window so they can be called from HTML
         window.sortTable = sortTable;
-        window.searchTables = searchTables;
+        window.searchTable = searchTable;
     });
 </script>
 
@@ -475,11 +682,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         let selectionMode = false;
         let selectedItems = [];
 
-        // Add checkbox column to table header
-        $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        // Check if there are any orders
+        if ($("#OrdersTable tbody tr").length > 0 && $("#OrdersTable tbody tr td").length > 1) {
+            // Add checkbox column to table header
+            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-        // Add checkboxes to all rows
-        $("#OrdersTable tbody tr").prepend('<td class="checkbox-column"><input type="checkbox" class="row-checkbox"></td>');
+            // Add checkboxes to all rows
+            $("#OrdersTable tbody tr").prepend(function() {
+                var orderId = $(this).data("order-id");
+                return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + orderId + '"></td>';
+            });
+        }
 
         // Toggle selection mode
         $("#toggle-selection-mode").click(function() {
@@ -500,6 +713,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     updateSelectedCount();
                 }
             }
+        });
+
+        // Individual card selection
+        $(document).on("click", ".card", function() {
+            const card = $(this)[0];
+
+            if (!selectedItems.includes(card)) {
+            // Add this card element to our selections if not already included
+            selectedItems.push(card);
+            $(this).addClass("selected"); // Optional: Add a class to indicate selection
+            } else {
+            // Remove this card from selections
+            selectedItems = selectedItems.filter(item => item !== card);
+            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
+            }
+
+            updateSelectedCount();
         });
 
         // Select all checkboxes
@@ -543,33 +773,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             $("#delete-count").text(count);
             
             // Show/hide floating dialog based on selection
-            if (count > 0) {
+            if (count > 0 && $(window).width() >= 768) {
                 $("#selection-controls").fadeIn(300);
             } else {
                 $("#selection-controls").fadeOut(300);
             }
         }
 
+        // USE THIS FUNC TO REPLACE DELETEION FUNCTION IN MANAGE PRODUCTS AND STOCKS
+
         // Handle delete confirmation
         $("#delete-confirmed").click(function() {
-            console.log("Deleting items:", selectedItems);
-            // Here you would normally send the selectedItems to the server for deletion
-
-            // Clear selection and close modal
-            $("#deleteConfirmModal").modal("hide");
-
-            // For demo purposes, let's remove the selected rows from the table
-            $(".row-checkbox:checked").closest("tr").fadeOut(400, function() {
-                $(this).remove();
+            // Initialize an array to store all order IDs
+            let orderIds = [];
+            
+            // Go through all selected items
+            selectedItems.forEach(item => {
+                // Check if item is a table row (has checkbox)
+                const checkbox = $(item).find(".row-checkbox");
+                if (checkbox.length > 0) {
+                    orderIds.push(checkbox.val());
+                } 
+                // Check if item is a card
+                else if ($(item).hasClass("card")) {
+                    const cardOrderId = $(item).data("order-id");
+                    if (cardOrderId) {
+                        orderIds.push(cardOrderId);
+                    }
+                }
             });
-
-            // Reset selection
-            selectionMode = false;
-            $("#toggle-selection-mode").removeClass("active");
-            selectedItems = [];
-            updateSelectedCount();
+            
+            // Remove any duplicates
+            orderIds = [...new Set(orderIds)];
+            
+            console.log("Selected Order IDs: ", orderIds); // Debug log to check order IDs
+            $("#order_ids").val(JSON.stringify(orderIds));
+            $("#deleteForm").submit();
         });
-        
+
         // Connect delete button in floating dialog to delete modal
         $("#delete-selected-btn").click(function() {
             $("#deleteConfirmModal").modal("show");
@@ -659,10 +900,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
     </nav>
@@ -674,9 +921,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
             <i class="fas fa-align-left"></i>
             </button>
-            <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-            <i class="fas fa-file-alt"></i>
-            </button>
+            <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
+                <i class="fas fa-file-alt"></i>
+            </a>
             <!-- <button class="btn btn-primary ml-auto" type="button" data-toggle="modal" data-target="#editOrderModal">
                 Test Edit Modal
             </button> -->
@@ -709,14 +956,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="Product" class="form-label">Product</label>
-                                <select class="form-control" id="Product" name="Product_ID" style="height: fit-content;" required>
-                                    <option value="">Select Product</option>
-                                    <?php foreach ($products as $product): ?>
-                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                            <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Product_Type'] . ')') ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
+    <option value="">Select Product</option>
+    <?php foreach ($products as $product): ?>
+        <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
+    <?php endforeach; ?>
+</select>
                             </div>
                             <div class="mb-3">
                                 <label for="Status" class="form-label">Status</label>
@@ -737,15 +982,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="Quantity" class="form-label">Quantity</label>
-                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity">
+                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
                             </div>
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
+                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
+                                <script>
+                                function updateCharacterCount() {
+                                    const textarea = document.getElementById('Notes');
+                                    const charCount = document.getElementById('charCount');
+                                    charCount.textContent = `${textarea.value.length}/250`;
+                                }
+                                </script>
+                                <div class="d-flex justify-content-between">
+                                    <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                                    <div id="charCount" class="form-text text-muted" style="font-size: 12.6px;">0/250</div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                             <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
                         </div>
                     </form>
@@ -753,77 +1009,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </div>
         </div>
 
-        <!-- Edit Order Modal -->
-        <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="POST" action="">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
-                        </div>
-                        <div class="modal-body">
-                            <?php if (!empty($edit_error_message)): ?>
-                                <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
-                            <?php endif; ?>
-                            <?php if ($user_role === 'staff') : ?>
-                                <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
-                            <?php else: ?>
-                                <input type="hidden" id="edit_order_id" name="Order_ID">
-                                <div class="mb-3">
-                                    <label for="editCustomer" class="form-label">Customer Name</label>
-                                    <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
-                                        <?php foreach ($customers as $customer): ?>
-                                            <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
-                                                <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editProductID">Product</label>
-                                    <select class="form-control" id="editProductID" name="New_ProductID" style="height: fit-content;" required>
-                                        <?php foreach ($products as $product) : ?>
-                                            <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                                <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Product_Type'] . ')') ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_quantity" class="form-label">Quantity</label>
-                                    <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_order_type" class="form-label">Order Type</label>
-                                    <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
-                                        <option value="Inbound">Inbound</option>
-                                        <option value="Outbound">Outbound</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_status" class="form-label">Status</label>
-                                    <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
-                                        <option value="To Pick Up">To Pick Up</option>
-                                        <option value="In Transit">In Transit</option>
-                                        <option value="Delivered">Delivered</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="edit_notes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="edit_notes" name="New_Notes" rows="3"></textarea>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal">Close</button>
-                            <?php if ($user_role !== 'staff') : ?>
-                                <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
-                            <?php endif; ?>
-                        </div>
-                    </form>
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
                 </div>
-            </div>
+                <div class="modal-body">
+                    <?php if (!empty($edit_error_message)): ?>
+                        <div class="alert alert-danger text-center"><?php echo $edit_error_message; ?></div>
+                    <?php endif; ?>
+                    <?php if ($user_role === 'staff') : ?>
+                        <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
+                    <?php else: ?>
+                        <input type="hidden" id="edit_order_id" name="Order_ID">
+                        <div class="mb-3">
+                            <label for="editCustomer" class="form-label">Customer Name</label>
+                            <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
+                                <?php foreach ($customers as $customer): ?>
+                                    <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                        <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductID">Product</label>
+                            <select class="form-control" id="product_id" name="New_ProductID" style="height: fit-content;" required>
+                                <option value="">Select Product</option>
+                                <?php foreach ($products as $product): ?>
+                                    <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required placeholder="Enter quantity" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_order_type" class="form-label">Order Type</label>
+                            <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
+                                <option value="Inbound">Inbound</option>
+                                <option value="Outbound">Outbound</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
+                                <option value="To Pick Up">To Pick Up</option>
+                                <option value="In Transit">In Transit</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_notes" class="form-label">Notes</label>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
+                            <script>
+                                function updateCharacterCountEdit() {
+                                    const textarea = document.getElementById('edit_notes');
+                                    const charCount = document.getElementById('editCharCount');
+                                    charCount.textContent = `${textarea.value.length}/250`;
+                                }
+                                // Initialize character count on modal open
+                                $(document).on('shown.bs.modal', '#editOrderModal', function () {
+                                    updateCharacterCountEdit();
+                                });
+                            </script>
+                            <div class="d-flex justify-content-between">
+                                <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                                <div class="form-text text-muted" style="font-size: 12.6px;" id="editCharCount"><?php echo isset($row['Notes']) ? strlen($row['Notes']) : 0; ?>/250</div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                    <?php if ($user_role !== 'staff') : ?>
+                        <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
+                        <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
+                    <?php endif; ?>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
 
         <div class="container mt-4">
             <div class="pb-4">
@@ -850,7 +1121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 <!-- Search Input Group -->
                 <div class="input-group m-0" style="width: 100%;">
                 <div class="search-container">
-                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTables()">
+                    <input type="search" class="form-control search-input-main" placeholder="Search" aria-label="Search" id="searchInput" onkeyup="searchTable()">
                     <button class="btn btn-outline-secondary search-btn-main" type="button" id="search">
                         <i class="fa fa-search"></i>
                     </button>
@@ -858,7 +1129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
                     <!-- Mobile search that will only show below 476px -->
                     <div class="mobile-search-container d-none">
-                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTables()">
+                        <input type="search" class="form-control" placeholder="Search" aria-label="Search" id="mobileSearchInput" onkeyup="searchTable()">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fa fa-search"></i>
                         </button>
@@ -886,6 +1157,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     </div>
                 </div>
             </div>
+<!-- Hidden Form for Deletion -->
+ <!-- Hidden Form for Deletion -->
+<form id="deleteForm" method="POST" action="" style="display:none;">
+    <input type="hidden" name="delete_orders" value="1">
+    <input type="hidden" name="order_ids" id="order_ids">
+</form>
 
             <div id="selection-controls" class="delete-selection-floating" style="display: none;">
                 <div class="floating-dialog">
@@ -905,20 +1182,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto;">      
+            <div style="max-height: 750px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
+                
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(1)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Product<i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Status <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(7)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(8)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Managed by <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Product<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Status <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Order Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(8)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(9)">Notes <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
@@ -926,7 +1204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     <tbody>
                         <?php if (mysqli_num_rows($result) > 0): ?>
                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                                <tr>
+                                <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
@@ -967,14 +1245,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7">No orders found.</td>
-                            </tr>
+            <td colspan="11" class="text-center">No orders found.</td>
+        </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
+                <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No order found.</p>
             </div>
             <!-- Hidden Form -->
-        <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" style="display:none;">
+        <form id="pdfForm" action="../TransactionRecord/generate-pdf.php" method="POST" target="_blank" style="display:none;">
             <input type="hidden" name="managed_by" id="managed_by">
             <input type="hidden" name="customer_name" id="customer_name">
             <input type="hidden" name="product_name" id="product_name">
@@ -1039,8 +1318,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                     <p>No orders found.</p>
                 <?php endif; ?>
             </div>
-        </div>
-
         </div>
     </div>
 

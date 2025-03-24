@@ -92,6 +92,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['remove_ip'])) {
 // Fetch IP cooldown entries
 $query = "SELECT ID, IP_Address, Attempts, Last_Attempt, Locked_Until FROM IP_Cooldown";
 $result = $conn->query($query);
+
+// Handle logout when the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    session_unset(); // Unset all session variables
+    session_destroy(); // Destroy the session
+    header("Location: ../Login"); // Redirect to login page
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -274,10 +282,17 @@ $result = $conn->query($query);
                 </div>
             </li>
             <li>
-                <a href="#" class="logout">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>Log out</span>
-                </a>
+<!-- Logout Button -->
+<!-- Logout Button -->
+<a href="#" class="logout" onclick="document.getElementById('logoutForm').submit();">
+    <i class="fa-solid fa-sign-out-alt"></i>
+    <span>Log out</span>
+</a>
+
+<!-- Hidden Logout Form -->
+<form id="logoutForm" method="POST" action="">
+    <input type="hidden" name="logout" value="1">
+</form>
             </li>
         </ul>
     </nav>
@@ -289,9 +304,9 @@ $result = $conn->query($query);
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <button class="btn btn-dark d-inline-block ml-auto" type="button" id="manualButton" data-toggle="tooltip" data-placement="bottom" title="View Manual">
-                    <i class="fas fa-file-alt"></i>
-                </button>
+                <a href="../Manual/Manual-Placeholder.pdf" class="btn btn-dark ml-2 d-flex justify-content-center align-items-center" id="manualButton" data-toggle="tooltip" data-placement="bottom" target="_blank" title="View Manual">
+                        <i class="fas fa-file-alt"></i>
+                </a>
             </div>
         </nav>
 
@@ -333,7 +348,9 @@ $result = $conn->query($query);
                             </div>
                         </div>
                         <div class="d-flex justify-content-end p-3">
-                            <button class="btn custom-btn" onclick="window.location.href='../Logs'">View Logs</button>
+                            <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
+                                <i class="fas fa-save"></i> View Logs
+                            </button>
                         </div>
                     </div>
 
@@ -373,7 +390,7 @@ $result = $conn->query($query);
                                     </h5>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 5px;">
-                                    <input type="number" id="signup_amount" name="signup_amount" placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-right: 10px;">
+                                    <input type="number" id="signup_amount" name="signup_amount" min=0 placeholder="Set" value="<?php echo htmlspecialchars($settings['MaxSignUps'] ?? ''); ?>" style="width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-right: 10px;">
                                     <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 20px;">
                                         <input type="checkbox" name="sign_up_enabled" value="1" <?php echo ($settings['SignUpEnabled'] == 1) ? 'checked' : ''; ?> style="opacity: 0; width: 0; height: 0;">
                                         <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s; border-radius: 34px;"></span>
@@ -400,7 +417,9 @@ $result = $conn->query($query);
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end p-3">
-                                <button type="submit" name="save_settings" class="btn custom-btn">Save Settings</button>
+                                <button type="submit" name="save_settings" class="btn custom-btn" style="border-radius: 12px;">
+                                    <i class="fas fa-save"></i> Save Settings
+                                </button>
                             </div>
                         </form>
                     </div>
