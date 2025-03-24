@@ -21,10 +21,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-
-
-
-
 <?php
 // Include database connection
 $required_role = 'admin,staff,driver';
@@ -53,6 +49,7 @@ $query = "SELECT
             Customers.Last_Name AS Customer_LName,
             Products.Product_Name, 
             Products.Product_Type, 
+            Products.Unit,
             Orders.Status, 
             Orders.Order_Type,
             Orders.Quantity,
@@ -68,11 +65,6 @@ $stmt = $conn->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
 $stmt->close();
-
-// Fetch Product Names for dropdown
-$product_query = "SELECT Product_ID, Product_Name, Product_Type FROM Products";
-$product_result = $conn->query($product_query);
-$products = $product_result->fetch_all(MYSQLI_ASSOC);
 
 // Fetch customer list for dropdown
 $customer_query = "SELECT Customer_ID, First_Name, Last_Name FROM Customers";
@@ -202,8 +194,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         exit();
     }
 }
-
-
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
@@ -370,50 +360,52 @@ if (isset($_GET['reload']) && $_GET['reload'] == 'true') {
     exit();
 }
 
-
 // Handle deleting orders
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
     $order_ids = json_decode($_POST['order_ids']);
 
     foreach ($order_ids as $order_id) {
-        // Fetch the order details
-        $query = "SELECT Product_ID, Quantity, Order_Type, Transaction_ID FROM Orders WHERE Order_ID = ?";
+        // Fetch the transaction details (Transaction_ID)
+        $query = "SELECT Transaction_ID FROM Transactions WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $order_id);
         $stmt->execute();
-        $stmt->bind_result($product_id, $quantity, $order_type, $transaction_id);
+        $stmt->bind_result($transaction_id);
         $stmt->fetch();
         $stmt->close();
 
-        // Update stock based on order type
-        if ($order_type === "Inbound") {
-            // Inbound Order: Deduct from New_Stock
-            $query = "UPDATE Stocks SET New_Stock = New_Stock - ? WHERE Product_ID = ?";
+        if ($transaction_id) {
+            // Fetch order details from the Orders table before deletion
+            $query = "SELECT Product_ID, Quantity, Order_Type FROM Orders WHERE Order_ID = ?";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param("ii", $quantity, $product_id);
-        } else {
-            // Outbound Order: Add back to Old_Stock
-            $query = "UPDATE Stocks SET Old_Stock = Old_Stock + ? WHERE Product_ID = ?";
+            $stmt->bind_param("i", $order_id);
+            $stmt->execute();
+            $stmt->bind_result($product_id, $quantity, $order_type);
+            $stmt->fetch();
+            $stmt->close();
+
+            // Update stock based on order type
+            if ($order_type === "Inbound") {
+                // Inbound Order: Deduct from New_Stock
+                $query = "UPDATE Stocks SET New_Stock = New_Stock - ? WHERE Product_ID = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $quantity, $product_id);
+            } else {
+                // Outbound Order: Add back to Old_Stock
+                $query = "UPDATE Stocks SET Old_Stock = Old_Stock + ? WHERE Product_ID = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $quantity, $product_id);
+            }
+            $stmt->execute();
+            $stmt->close();
+
+            // Delete transaction (this will cascade and delete the order)
+            $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param("ii", $quantity, $product_id);
+            $stmt->bind_param("i", $transaction_id);
+            $stmt->execute();
+            $stmt->close();
         }
-
-        $stmt->execute();
-        $stmt->close();
-
-        // Delete the order
-        $query = "DELETE FROM Orders WHERE Order_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $order_id);
-        $stmt->execute();
-        $stmt->close();
-
-        // Delete the transaction
-        $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $transaction_id);
-        $stmt->execute();
-        $stmt->close();
     }
 
     header("Location: " . $_SERVER['PHP_SELF']);
@@ -428,14 +420,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     exit();
 }
 // Fetch Product Names for dropdown
-$product_query = "SELECT Product_ID, CONCAT(Product_Name, ' (', Unit, ') - ', Product_Type) AS Display_Name FROM Products";
+$product_query = "SELECT Product_ID, Product_Name, Product_Type, Unit FROM Products";
 $product_result = $conn->query($product_query);
 $products = $product_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
-
 <body>
-
 <!-----------------------------------------------------
     DO NOT REMOVE THIS SNIPPET, THIS IS FOR SIDEBAR JS
 ------------------------------------------------------>
@@ -535,8 +525,6 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         }
 }
 
-
-
     document.addEventListener("DOMContentLoaded", function () {
     // Get the first name and last name input fields
         const firstNameInput = document.getElementById("Customer_FName");
@@ -615,11 +603,16 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         var orderID = $(this).data("order-id");
         var customerFName = $(this).data("customer-first-name");
         var customerLName = $(this).data("customer-last-name");
-        var productNameType = $(this).data("product-name") + " (" + $(this).data("product-type") + ")";
+        var productName = $(this).data("product-name");
+        var productType = $(this).data("product-type");
+        var productUnit = $(this).data("product-unit");
         var quantity = $(this).data("quantity");
         var orderType = $(this).data("order-type");
         var status = $(this).data("status");
         var notes = $(this).data("notes");
+
+        // Construct the exact product text format used in the dropdown
+        var formattedProductText = productName + " (" + productUnit + ") - " + productType;
 
         // Populate the modal fields
         $("#edit_order_id").val(orderID);
@@ -628,9 +621,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         $("#edit_status").val(status);
         $("#edit_notes").val(notes);
 
-        // Match Product Name + Type with the correct Product_ID
-        $("#editProductID option").each(function () {
-            if ($(this).text().trim() === productNameType.trim()) {
+        // Match the formatted text with the correct option in the dropdown
+        $("#editProduct option").each(function () {
+            if ($(this).text().trim() === formattedProductText.trim()) {
                 $(this).prop("selected", true);
                 return false; // Stop looping once a match is found
             }
@@ -681,15 +674,16 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         // Initialize selection mode variables
         let selectionMode = false;
         let selectedItems = [];
+
         // Check if there are any orders
         if ($("#OrdersTable tbody tr").length > 0 && $("#OrdersTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#OrdersTable thead tr").prepend('<th class="checkbox-column text-center">Select <input type="checkbox" id="select-all"></th>');
+            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
             // Add checkboxes to all rows
             $("#OrdersTable tbody tr").prepend(function() {
-            var orderId = $(this).data("order-id");
-            return '<td class="checkbox-column text-center"><input type="checkbox" class="row-checkbox" value="' + orderId + '"></td>';
+                var orderId = $(this).data("order-id");
+                return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + orderId + '"></td>';
             });
         }
 
@@ -914,7 +908,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" style="max-height: 750px; overflow-y: auto;">
+    <div id="content">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -956,11 +950,13 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             <div class="mb-3">
                                 <label for="Product" class="form-label">Product</label>
                                 <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-    <option value="">Select Product</option>
-    <?php foreach ($products as $product): ?>
-        <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
-    <?php endforeach; ?>
-</select>
+                                    <option value="">Select Product</option>
+                                    <?php foreach ($products as $product): ?>
+                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                            <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="Status" class="form-label">Status</label>
@@ -1035,11 +1031,12 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="editProductID">Product</label>
-                            <select class="form-control" id="product_id" name="New_ProductID" style="height: fit-content;" required>
-                                <option value="">Select Product</option>
+                            <label for="editProduct" class="form-label">Product</label>
+                            <select class="form-control" id="editProduct" name="New_ProductID" style="height: fit-content;" required>
                                 <?php foreach ($products as $product): ?>
-                                    <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
+                                    <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                        <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -1181,7 +1178,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 550px; overflow-y: auto;">
+            <div style="max-height: 750px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
                 
                 <table class="table table-striped table-bordered" id="OrdersTable">
@@ -1202,14 +1199,17 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     </thead>
                     <tbody>
                         <?php if (mysqli_num_rows($result) > 0): ?>
-                            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                            <?php while ($row = mysqli_fetch_assoc($result)): 
+                                $orderType = $row['Order_Type']; // Fetch Order Type
+                                $orderClass = ($orderType == 'Outbound') ? 'outbound' : 'inbound';
+                        ?>
                                 <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Product_Type'] . ')'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Unit'] . ') - ' . $row['Product_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Status']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
+                                    <td class="order-type <?php echo $orderClass; ?>"><?php echo $orderType; ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                                     <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
@@ -1220,6 +1220,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                         data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>" 
                                         data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>" 
                                         data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
+                                        data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
                                         data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
                                         data-status="<?php echo htmlspecialchars($row['Status']); ?>" 
                                         data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
@@ -1275,6 +1276,8 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             data-customer-first-name="<?php echo $row['Customer_FName']; ?>" 
                             data-customer-last-name="<?php echo $row['Customer_LName']; ?>"
                             data-product-name="<?php echo $row['Product_Name']; ?>" 
+                            data-product-type="<?php echo $row['Product_Type']; ?>"
+                            data-product-unit="<?php echo $row['Unit']; ?>"
                             data-status="<?php echo $row['Status']; ?>" 
                             data-order-type="<?php echo $row['Order_Type']; ?>"
                             data-quantity="<?php echo $row['Quantity']; ?>"
@@ -1282,7 +1285,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             data-notes="<?php echo $row['Notes']; ?>"
                             >
                                 <div class="card-body">
-                                    <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
+                                    <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Unit'] . ') - ' . $row['Product_Type']); ?></h5>
                                     <div class="row">
                                         <div class="col-6">
                                             <p class="card-text"><strong>Managed by:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
@@ -1570,6 +1573,15 @@ hr.line {
     background-color: #ebecec !important;
 }
 
+.order-type.outbound {
+            background-color: #007bff !important; /* Blue for Outbound Orders */
+            color: white;
+        }
+
+        .order-type.inbound {
+            background-color: #28a745 !important; /* Green for Inbound Orders */
+            color: white;
+        }
         
 /* ---------------------------------------------------
     MANAGE ORDERS STYLES

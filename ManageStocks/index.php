@@ -38,6 +38,7 @@ $check_stmt->close();
 if (isset($_POST['add_stock'])) {
     $user_id = $_POST['User_ID'];
     $product_id = $_POST['Product_ID'];
+    $old_stock = $_POST['Old_Stock'];
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
@@ -77,16 +78,16 @@ if (isset($_POST['add_stock'])) {
     $stock_stmt->fetch();
     $stock_stmt->close();
 
-    // If no previous stock exists, set old_stock to 0
-    if ($old_stock === null) {
-        $old_stock = 0;
-    }
-
-    // Move New_Stock to Old_Stock if Old_Stock is zero
-    if ($old_stock == 0) {
-        $old_stock = $current_new_stock;
-        $new_stock = 0;
-    }
+        // If no previous stock exists, set old_stock to 0
+        if ($old_stock === null) {
+            $old_stock = 0;
+        }
+    
+           // Move New_Stock to Old_Stock if Old_Stock is zero
+           if ($old_stock == 0) {
+            $old_stock = $current_new_stock;
+            $new_stock = 0;
+        }
 
     // Insert into Stocks table
     $insert_query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
@@ -479,12 +480,12 @@ $(document).ready(function() {
         // Check if there are any stocks
         if ($("#stocksTable tbody tr").length > 0 && $("#stocksTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#stocksTable thead tr").prepend('<th class="checkbox-column text-center">Select<br><input type="checkbox" id="select-all"></th>');
+            $("#stocksTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
             // Add checkboxes to all rows
             $("#stocksTable tbody tr").prepend(function() {
             var stockId = $(this).data("stock-id");
-            return '<td class="checkbox-column text-center"><input type="checkbox" class="row-checkbox" value="' + stockId + '"></td>';
+            return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + stockId + '"></td>';
             });
         }
 
@@ -715,7 +716,7 @@ $(document).ready(function() {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" style="max-height: 750px; overflow-y: auto;">
+    <div id="content" style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -819,10 +820,10 @@ $(document).ready(function() {
                 });
             </script>
             <!-- Hidden Form for Deletion -->
-<form id="deleteForm" method="POST" action="" style="display:none;">
-    <input type="hidden" name="delete_stocks" value="1">
-    <input type="hidden" name="stock_ids" id="stock_ids">
-</form>
+            <form id="deleteForm" method="POST" action="" style="display:none;">
+                <input type="hidden" name="delete_stocks" value="1">
+                <input type="hidden" name="stock_ids" id="stock_ids">
+            </form>
 
                 <!-- Table Layout (Visible on larger screens) -->
                 <div style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">      
@@ -861,7 +862,7 @@ $(document).ready(function() {
 
                         ?>
 
-<tr data-stock-id="<?php echo $row['Stock_ID']; ?>" data-new-stock="<?php echo $row['New_Stock']; ?>" data-threshold="<?php echo $row['Threshold']; ?>">
+                <tr data-stock-id="<?php echo $row['Stock_ID']; ?>" data-new-stock="<?php echo $row['New_Stock']; ?>" data-threshold="<?php echo $row['Threshold']; ?>">
                 <td><?php echo $row['First_Name']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Product_Type']; ?></td>
