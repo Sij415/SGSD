@@ -59,7 +59,7 @@
 </body>
 
 <footer class="footer">
-    © STSG 2025
+    © SGSD 2025
 </footer>
 
 </html>

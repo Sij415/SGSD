@@ -182,7 +182,7 @@ return "The username or password you entered is incorrect. You have 4 attempts r
 <body>
     <div class="login-container">
         <h1 class="main-heading">Welcome Back</h1>
-        <p class="sub-heading">Welcome back to STSD! Please enter your details below to login.</p>
+        <p class="sub-heading">Welcome back to SGSD! Please enter your details below to login.</p>
 
         <form action="./" method="POST">
             <div class="form-group">
@@ -256,7 +256,7 @@ return "The username or password you entered is incorrect. You have 4 attempts r
 </body>
 
 <footer class="footer">
-    © STSG 2025
+    © SGSD 2025
 </footer>
 
 </html>

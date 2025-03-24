@@ -204,7 +204,7 @@
 </body>
 
 <footer class="footer">
-    © STSD 2025
+    © SGSD 2025
 </footer>
 
 </html>

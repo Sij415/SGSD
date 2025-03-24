@@ -70,7 +70,7 @@ try {
                             </tr>
                             <tr>
                                 <td style="text-align: center; padding-top: 40px;">
-                                    <p style="font-size: 14px; color: #7c8089; margin: 0;">© STSD 2025. All rights reserved.</p>
+                                    <p style="font-size: 14px; color: #7c8089; margin: 0;">© SGSD 2025. All rights reserved.</p>
                                     <p style="font-size: 14px; margin: 5px 0;">
                                         <a href="#" style="color: #82b370; text-decoration: none;">Privacy Policy</a> | 
                                         <a href="#" style="color: #82b370; text-decoration: none;">Terms of Service</a>
