@@ -222,7 +222,8 @@ $stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
-
+echo "tokenhash".$token_hash."/n";
+echo $user;
 if (!$user) {
     die("<script>
         Swal.fire({
