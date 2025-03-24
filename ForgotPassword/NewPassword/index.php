@@ -14,6 +14,7 @@
 </head>
 
 
+
 <?php
 $token = $_GET["token"];
 $token_hash = hash("sha256", $token);
@@ -109,59 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 <body>
-    <header class="main-header">
-        <nav class="main-nav">
-            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
-        </nav>
-    </header>
-
-    <div class="login-container">
-        <div class="logo-container">
-            <div class="icon-container">
-                <i class="fa-solid fa-key icon"></i>
-            </div>
-            
-            <style>
-                .icon-container {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                
-                .icon {
-                    font-size: 40px;
-                    color: #6fa062;
-                    background-color: #f8f9fa;
-                    border-radius: 50%;
-                    padding: 20px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                    width: 90px;  /* Set a fixed width */
-                    height: 90px; /* Set a fixed height */
-                    display: inline-flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-            </style>
-        </div>
-
-        <h1 class="main-heading">Enter your new password</h1>
-        <p class="sub-heading">Your new password must be different from your previous password.</p>
-
-        <form action="" method="POST">
-            <div class="form-group">
-                <input type="password" name="password" id="password" placeholder="Enter new password" required>
-            </div>
-
-            <div class="form-group">
-                <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm new password" required>
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="request-btn">Reset Password</button>
-            </div>
-        </form>
-    </div>
-
-    <script>
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('password_confirmation');
@@ -290,6 +239,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </style>
         `);
     </script>
+    <header class="main-header">
+        <nav class="main-nav">
+            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
+        </nav>
+    </header>
+
+    <div class="login-container">
+        <div class="logo-container">
+            <div class="icon-container">
+                <i class="fa-solid fa-key icon"></i>
+            </div>
+            
+            <style>
+                .icon-container {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                
+                .icon {
+                    font-size: 40px;
+                    color: #6fa062;
+                    background-color: #f8f9fa;
+                    border-radius: 50%;
+                    padding: 20px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    width: 90px;  /* Set a fixed width */
+                    height: 90px; /* Set a fixed height */
+                    display: inline-flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            </style>
+        </div>
+
+        <h1 class="main-heading">Enter your new password</h1>
+        <p class="sub-heading">Your new password must be different from your previous password.</p>
+
+        <form action="" method="POST">
+            <div class="form-group">
+                <input type="password" name="password" id="password" placeholder="Enter new password" required>
+            </div>
+
+            <div class="form-group">
+                <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm new password" required>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="request-btn">Reset Password</button>
+            </div>
+        </form>
+    </div>
+
+    <
 </body>
 
 <footer class="footer">
