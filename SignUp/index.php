@@ -284,7 +284,7 @@ $conn->close();
     <div class="form-field-signup">
         <div class="terms-container" style="display: flex; align-items: flex-start; margin: 10px 0;">
             <input class="tocpp" type="checkbox" id="terms" name="terms" required style="width: 22px; margin-right: 10px; position: relative; !important;">
-            <label for="terms" class="terms-label m-0">I agree to the <a href="../terms-conditions.php">Terms & Conditions</a> and <a href="../privacy-policy.php">Privacy Policy</a></label>
+            <label for="terms" class="terms-label m-0">I agree to the <a href="../TOCPP/toc.pdf">Terms & Conditions</a> and <a href="../TOCPP/pp.pdf">Privacy Policy</a></label>
         </div> </div>
     <div class="button-group">
         <input class="signup-cont-btn" type="submit" value="Signup">

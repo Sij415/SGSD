@@ -747,6 +747,10 @@ input[type="radio"].btn-check + label:hover {
     margin-bottom: 0.25rem !important;
   }
 
+.terms-label {
+    text-wrap: nowrap;
+}
+
   .terms-label a {
     color: #82b370;
     text-decoration: none;
@@ -755,6 +759,7 @@ input[type="radio"].btn-check + label:hover {
     padding: 2px 4px;
     border-radius: 12px;
     transition: all 0.2s ease;
+    text-wrap: nowrap;
 }
 
 .terms-label a:hover {
