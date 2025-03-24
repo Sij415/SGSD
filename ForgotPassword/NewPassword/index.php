@@ -223,7 +223,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-if (!$user["reset_token_expires_at"]) {
+if (!$user || empty($user["reset_token_expires_at"])) {
     die("<script>
         Swal.fire({
             icon: 'error',
@@ -233,6 +233,7 @@ if (!$user["reset_token_expires_at"]) {
         });
     </script>");
 }
+
 
 
 if (strtotime($user["reset_token_expires_at"]) <= time()) {
