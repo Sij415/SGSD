@@ -908,7 +908,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <!-- PLEASE PULL THIS INLINE, THIS IS THE THIRD TIME THAT THIS IS IMPLEMENTED -->
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
+    
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -1112,6 +1114,14 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <i class="bi bi-info-circle mr-1"></i>
                 Tap card to edit order details.
             </div>
+            <ul class="pl-0">
+                    <li style="font-size: 1em; background-color: #5dade2; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #3498db;">
+                        <i class="fas fa-arrow-right"></i> <span>Blue</span> = Outbound
+                    </li>
+                    <li style="font-size: 1em; background-color: #58d68d; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #2ecc71;">
+                        <i class="fas fa-arrow-left"></i> <span>Green</span> = Inbound
+                    </li>
+                </ul>
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
@@ -1178,7 +1188,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto;">
+            <div style="max-height: 450px; overflow-y: auto;">
             <div class="table-responsive d-none d-md-block">
                 
                 <table class="table table-striped table-bordered" id="OrdersTable">
@@ -1573,16 +1583,72 @@ hr.line {
     background-color: #ebecec !important;
 }
 
-.order-type.outbound {
-            background-color: #007bff !important; /* Blue for Outbound Orders */
-            color: white;
-        }
+/* Order Type Styling */
+td.order-type {
+    padding: 2px 4px !important; /* Decreased padding */
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    display: block !important;
+    align-items: center !important;
+    justify-content: center !important; /* Center content horizontally */
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    text-align: center !important;
+    letter-spacing: -0.02em !important;
+    margin: 0 auto !important; /* Center the element itself */
+}
 
-        .order-type.inbound {
-            background-color: #28a745 !important; /* Green for Inbound Orders */
-            color: white;
-        }
-        
+.order-type.outbound {
+    background-color: #3498db !important;
+    color: white !important;
+    border-left: 3px solid #2980b9 !important;
+}
+
+.order-type.outbound::before {
+    content: "\f061" !important; /* Arrow right icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+.order-type.inbound {
+    background-color: #2ecc71 !important;
+    color: white !important;
+    border-left: 3px solid #27ae60 !important;
+}
+
+.order-type.inbound::before {
+    content: "\f060" !important; /* Arrow left icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+.order-type:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15) !important;
+}
+/* Style for status badges */
+td:nth-child(5) {
+    font-weight: 500;
+    text-align: center; /* Center the text */
+}
+
+td:nth-child(5):contains("To Pick Up") {
+    color: #f39c12;
+}
+
+td:nth-child(5):contains("In Transit") {
+    color: #3498db;
+}
+
+td:nth-child(5):contains("Delivered") {
+    color: #2ecc71;
+}
+
 /* ---------------------------------------------------
     MANAGE ORDERS STYLES
 ----------------------------------------------------- */
