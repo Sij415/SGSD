@@ -38,6 +38,7 @@ $check_stmt->close();
 if (isset($_POST['add_stock'])) {
     $user_id = $_POST['User_ID'];
     $product_id = $_POST['Product_ID'];
+    $old_stock = $_POST['Old_Stock'];
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
@@ -77,16 +78,16 @@ if (isset($_POST['add_stock'])) {
     $stock_stmt->fetch();
     $stock_stmt->close();
 
-    // If no previous stock exists, set old_stock to 0
-    if ($old_stock === null) {
-        $old_stock = 0;
-    }
-
-    // Move New_Stock to Old_Stock if Old_Stock is zero
-    if ($old_stock == 0) {
-        $old_stock = $current_new_stock;
-        $new_stock = 0;
-    }
+        // If no previous stock exists, set old_stock to 0
+        if ($old_stock === null) {
+            $old_stock = 0;
+        }
+    
+           // Move New_Stock to Old_Stock if Old_Stock is zero
+           if ($old_stock == 0) {
+            $old_stock = $current_new_stock;
+            $new_stock = 0;
+        }
 
     // Insert into Stocks table
     $insert_query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
@@ -749,14 +750,14 @@ $(document).ready(function() {
                 </div>
                 <!-- Legend for Stock Colors -->
                 <ul class="pl-0">
-                    <li style="font-size: 1.2em; background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #f5c6cb;">
-                        <span>Red</span> = Stock is in threshold/below threshold
+                    <li style="font-size: 1em; background-color: #f8d7da; color: #721c24; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #f5c6cb;">
+                        <i class="fas fa-exclamation-circle"></i> <span>Red</span> = Stock is in threshold/below threshold
                     </li>
-                    <li style="font-size: 1.2em; background-color: #ffe0b2; color: #8a6d3b; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #ffcc80;">
-                        <span>Orange</span> = Stock is +10 of the threshold
+                    <li style="font-size: 1em; background-color: #ffe0b2; color: #8a6d3b; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #ffcc80;">
+                        <i class="fas fa-exclamation-triangle"></i> <span>Orange</span> = Stock is +10 of the threshold
                     </li>
-                    <li style="font-size: 1.2em; background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #ffeeba;">
-                        <span>Yellow</span> = Stock is +30 of the threshold
+                    <li style="font-size: 1em; background-color: #fff3cd; color: #856404; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #ffeeba;">
+                        <i class="fas fa-chart-line"></i> <span>Yellow</span> = Stock is +30 of the threshold
                     </li>
                 </ul>
             <!-- Search Box -->
@@ -819,13 +820,13 @@ $(document).ready(function() {
                 });
             </script>
             <!-- Hidden Form for Deletion -->
-<form id="deleteForm" method="POST" action="" style="display:none;">
-    <input type="hidden" name="delete_stocks" value="1">
-    <input type="hidden" name="stock_ids" id="stock_ids">
-</form>
+            <form id="deleteForm" method="POST" action="" style="display:none;">
+                <input type="hidden" name="delete_stocks" value="1">
+                <input type="hidden" name="stock_ids" id="stock_ids">
+            </form>
 
                 <!-- Table Layout (Visible on larger screens) -->
-                <div style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">      
+                <div style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">      
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
                     
@@ -861,7 +862,7 @@ $(document).ready(function() {
 
                         ?>
 
-<tr data-stock-id="<?php echo $row['Stock_ID']; ?>" data-new-stock="<?php echo $row['New_Stock']; ?>" data-threshold="<?php echo $row['Threshold']; ?>">
+                <tr data-stock-id="<?php echo $row['Stock_ID']; ?>" data-new-stock="<?php echo $row['New_Stock']; ?>" data-threshold="<?php echo $row['Threshold']; ?>">
                 <td><?php echo $row['First_Name']; ?></td>
                 <td><?php echo $row['Product_Name']; ?></td>
                 <td><?php echo $row['Product_Type']; ?></td>
@@ -1465,35 +1466,75 @@ hr.line {
     MOBILE STYLES
 ----------------------------------------------------- */
 
-/* Custom color styles */
-.bg-orange {
+/* Enhanced Stock Status Styling */
+.bg-orange, .table-orange {
     background-color: #ffe0b2 !important; /* Light Orange */
     color: #8a6d3b !important; /* Dark Orange Text */
     font-weight: 600;
+    padding: 4px 8px !important;
+    text-align: center !important;
+    border-left: 3px solid #f39c12 !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.02em !important;
 }
 
-.bg-danger {
+.bg-danger, .table-danger {
     background-color: #f8d7da !important; /* Light Red */
     color: #721c24 !important; /* Dark Red Text */
+    font-weight: 600;
+    padding: 4px 8px !important;
+    text-align: center !important;
+    border-left: 3px solid #dc3545 !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.02em !important;
 }
 
-.bg-warning {
+.bg-warning, .table-warning {
     background-color: #fff3cd !important; /* Light Yellow */
     color: #856404 !important; /* Dark Yellow Text */
+    font-weight: 600;
+    padding: 4px 8px !important;
+    text-align: center !important;
+    border-left: 3px solid #ffc107 !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* Hover effects */
+.bg-orange:hover, .table-orange:hover,
+.bg-danger:hover, .table-danger:hover,
+.bg-warning:hover, .table-warning:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15) !important;
+}
+
+/* Icons for status indicators */
+.table-danger::before {
+    content: "\f06a"; /* Exclamation icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+td.bg-orange::before {
+    content: "\f071"; /* Warning icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+.table-warning::before {
+    content: "\f201"; /* Lightning icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
 }
 
 p.card-text {
     color:rgb(59, 59, 59) !important;
-}
-
-.table-danger {
-    color: #721c24 !important;
-    font-weight: 600;
-}
-
-.table-warning {
-    color: #856404 !important;
-    font-weight: 600;
 }
 
 

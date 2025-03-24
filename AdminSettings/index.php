@@ -310,7 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
             </div>
         </nav>
 
-    <div class="container-fluid px-md-4" style="max-height: 800px; overflow-y: auto;">
+    <div class="container-fluid px-md-4" style="max-height: 750px; overflow-y: auto;">
         <div class="row justify-content-center">
             <div class="col-12 col-xl-10">
                 <section class="admin">
@@ -349,7 +349,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                         </div>
                         <div class="d-flex justify-content-end p-3">
                             <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
-                                <i class="fas fa-save"></i> View Logs
+                                <i class="fas fa-clipboard"></i> View Logs
                             </button>
                         </div>
                     </div>
