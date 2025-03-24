@@ -11,7 +11,7 @@ try {
     $token = bin2hex(random_bytes(16));
     $token_hash = hash("sha256", $token);
     $expiry = (new DateTime())->modify('+30 minutes')->format('Y-m-d H:i:s');
-    echo $expiry;
+
 
     // Include database connection
     $mysqli = require "../dbconnect.php";
@@ -95,7 +95,7 @@ try {
             echo "Message could not be sent. Mailer error: {$mail->ErrorInfo}";
         }
     } else {
-        // header ("Location: ./NoUserFound"); 
+        header ("Location: ./NoUserFound"); 
     }
 
     $stmt->close();
