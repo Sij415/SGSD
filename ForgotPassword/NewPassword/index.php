@@ -11,124 +11,183 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <link rel="icon"  href="../../logo.png">
-</head><script>
+</head>
+
+<body>
+    <header class="main-header">
+        <nav class="main-nav">
+            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
+        </nav>
+    </header>
+
+    <div class="login-container">
+        <div class="logo-container">
+            <div class="icon-container">
+                <i class="fa-solid fa-key icon"></i>
+            </div>
+            
+            <style>
+                .icon-container {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                
+                .icon {
+                    font-size: 40px;
+                    color: #6fa062;
+                    background-color: #f8f9fa;
+                    border-radius: 50%;
+                    padding: 20px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    width: 90px;  /* Set a fixed width */
+                    height: 90px; /* Set a fixed height */
+                    display: inline-flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            </style>
+        </div>
+
+        <h1 class="main-heading">Enter your new password</h1>
+        <p class="sub-heading">Your new password must be different from your previous password.</p>
+
+        <form action="" method="POST">
+            <div class="form-group">
+                <input type="password" name="password" id="password" placeholder="Enter new password" required>
+            </div>
+
+            <div class="form-group">
+                <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm new password" required>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="request-btn">Reset Password</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('password_confirmation');
             const form = document.querySelector('form');
 
-            form.addEventListener('submit', function(event) {
-                const password = passwordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
+            if (form && passwordInput && confirmPasswordInput) {
+                form.addEventListener('submit', function(event) {
+                    const password = passwordInput.value;
+                    const confirmPassword = confirmPasswordInput.value;
 
-                // Check password length
-                if (password.length < 8) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Weak Password',
-                        text: 'Password must be at least 8 characters long.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-success',
-                            title: 'text-danger',
-                            popup: 'swal2-popup'
-                        },
-                        buttonsStyling: false
-                    });
-                    event.preventDefault();
-                    return;
-                }
+                    // Check password length
+                    if (password.length < 8) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Weak Password',
+                            text: 'Password must be at least 8 characters long.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-success',
+                                title: 'text-danger',
+                                popup: 'swal2-popup'
+                            },
+                            buttonsStyling: false
+                        });
+                        event.preventDefault();
+                        return;
+                    }
 
-                // Check for uppercase letter
-                if (!/[A-Z]/.test(password)) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Weak Password',
-                        text: 'Password must contain at least one uppercase letter.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-success',
-                            title: 'text-danger',
-                            popup: 'swal2-popup'
-                        },
-                        buttonsStyling: false
-                    });
-                    event.preventDefault();
-                    return;
-                }
+                    // Check for uppercase letter
+                    if (!/[A-Z]/.test(password)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Weak Password',
+                            text: 'Password must contain at least one uppercase letter.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-success',
+                                title: 'text-danger',
+                                popup: 'swal2-popup'
+                            },
+                            buttonsStyling: false
+                        });
+                        event.preventDefault();
+                        return;
+                    }
 
-                // Check for lowercase letter
-                if (!/[a-z]/.test(password)) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Weak Password',
-                        text: 'Password must contain at least one lowercase letter.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-success',
-                            title: 'text-danger',
-                            popup: 'swal2-popup'
-                        },
-                        buttonsStyling: false
-                    });
-                    event.preventDefault();
-                    return;
-                }
+                    // Check for lowercase letter
+                    if (!/[a-z]/.test(password)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Weak Password',
+                            text: 'Password must contain at least one lowercase letter.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-success',
+                                title: 'text-danger',
+                                popup: 'swal2-popup'
+                            },
+                            buttonsStyling: false
+                        });
+                        event.preventDefault();
+                        return;
+                    }
 
-                // Check for number
-                if (!/[0-9]/.test(password)) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Weak Password',
-                        text: 'Password must contain at least one number.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-success',
-                            title: 'text-danger',
-                            popup: 'swal2-popup'
-                        },
-                        buttonsStyling: false
-                    });
-                    event.preventDefault();
-                    return;
-                }
+                    // Check for number
+                    if (!/[0-9]/.test(password)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Weak Password',
+                            text: 'Password must contain at least one number.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-success',
+                                title: 'text-danger',
+                                popup: 'swal2-popup'
+                            },
+                            buttonsStyling: false
+                        });
+                        event.preventDefault();
+                        return;
+                    }
 
-                // Check for special character
-                if (!/[\W_]/.test(password)) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Weak Password',
-                        text: 'Password must contain at least one special character.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-success',
-                            title: 'text-danger',
-                            popup: 'swal2-popup'
-                        },
-                        buttonsStyling: false
-                    });
-                    event.preventDefault();
-                    return;
-                }
+                    // Check for special character
+                    if (!/[\W_]/.test(password)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Weak Password',
+                            text: 'Password must contain at least one special character.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-success',
+                                title: 'text-danger',
+                                popup: 'swal2-popup'
+                            },
+                            buttonsStyling: false
+                        });
+                        event.preventDefault();
+                        return;
+                    }
 
-                // Check if passwords match
-                if (password !== confirmPassword) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Passwords Do Not Match',
-                        text: 'Please make sure the password and confirm password fields match.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-success',
-                            title: 'text-danger',
-                            popup: 'swal2-popup'
-                        },
-                        buttonsStyling: false
-                    });
-                    event.preventDefault();
-                    return;
-                }
-            });
+                    // Check if passwords match
+                    if (password !== confirmPassword) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Passwords Do Not Match',
+                            text: 'Please make sure the password and confirm password fields match.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-success',
+                                title: 'text-danger',
+                                popup: 'swal2-popup'
+                            },
+                            buttonsStyling: false
+                        });
+                        event.preventDefault();
+                        return;
+                    }
+                });
+            } else {
+                console.error('Form or input fields not found.');
+            }
         });
 
         // Add style for SweetAlert popup border-radius
@@ -140,8 +199,12 @@
             </style>
         `);
     </script>
+</body>
 
-
+<footer class="footer">
+    © SGSD 2025
+</footer>
+</html>
 
 <?php
 $token = $_GET["token"];
@@ -223,79 +286,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<body>
-
-    <header class="main-header">
-        <nav class="main-nav">
-            <a href="../../" class="sgsd-redirect">San Gabriel Softdrinks Delivery</a>
-        </nav>
-    </header>
-
-    <div class="login-container">
-        <div class="logo-container">
-            <div class="icon-container">
-                <i class="fa-solid fa-key icon"></i>
-            </div>
-            
-            <style>
-                .icon-container {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                
-                .icon {
-                    font-size: 40px;
-                    color: #6fa062;
-                    background-color: #f8f9fa;
-                    border-radius: 50%;
-                    padding: 20px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                    width: 90px;  /* Set a fixed width */
-                    height: 90px; /* Set a fixed height */
-                    display: inline-flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-            </style>
-        </div>
-
-        <h1 class="main-heading">Enter your new password</h1>
-        <p class="sub-heading">Your new password must be different from your previous password.</p>
-
-        <form action="" method="POST">
-            <div class="form-group">
-                <input type="password" name="password" id="password" placeholder="Enter new password" required>
-            </div>
-
-            <div class="form-group">
-                <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm new password" required>
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="request-btn">Reset Password</button>
-            </div>
-        </form>
-    </div>
-
-    <
-</body>
-
-<footer class="footer">
-    © SGSD 2025
-</footer>
-</html>
-
