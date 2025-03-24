@@ -213,7 +213,7 @@
 <?php
 
 $token = $_GET["token"];
-
+echo $token;
 $token_hash = hash("sha256", $token);
 
 $mysqli = require "../../dbconnect.php";
