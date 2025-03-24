@@ -270,8 +270,7 @@ $(document).ready(function() {
     // Check if there are any customers
     if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
         // Add checkbox column to table header
-        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"> Select</th>');
-
+        $("#customersTable thead tr").prepend("<th class='checkbox-column' style='width: 10%;'><button type='button' class='btn btn-sm custom-btn' id='select-all-btn' onclick='document.getElementById(\"select-all\").click()'>Select All <input type='checkbox' id='select-all' style='visibility:hidden; position:absolute;'></button></th>");
         // Add checkboxes to all rows
         $("#customersTable tbody tr").prepend(function() {
             var customerId = $(this).data("customer-id");

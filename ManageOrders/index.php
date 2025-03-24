@@ -678,7 +678,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         // Check if there are any orders
         if ($("#OrdersTable tbody tr").length > 0 && $("#OrdersTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><button type="button" class="btn btn-sm btn-secondary" id="select-all-btn" onclick="document.getElementById(\'select-all\').click()">Select All <input type="checkbox" id="select-all" style="visibility:hidden; position:absolute;"></button></th>');
+            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><button type="button" class="btn btn-sm custom-btn" id="select-all-btn" onclick="document.getElementById(\'select-all\').click()">Select All <input type="checkbox" id="select-all" style="visibility:hidden; position:absolute;"></button></th>');
 
             // Add checkboxes to all rows
             $("#OrdersTable tbody tr").prepend(function() {
@@ -1585,6 +1585,9 @@ hr.line {
 
 /* Order Type Styling */
 td.order-type {
+    margin-top: 32px !important;
+    margin-left: 8px !important;
+    margin-right: 8px !important;
     padding: 2px 4px !important; /* Decreased padding */
     border-radius: 6px !important;
     font-size: 0.85rem !important;
@@ -1596,7 +1599,6 @@ td.order-type {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
     text-align: center !important;
     letter-spacing: -0.02em !important;
-    margin: 0 auto !important; /* Center the element itself */
 }
 
 .order-type.outbound {

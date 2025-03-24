@@ -205,6 +205,90 @@ a.logout:hover {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+
+/*------------------------------------
+    Delete Checkbox
+
+------------------------------------*/
+
+/*------------------------------------
+    Delete Checkbox
+------------------------------------*/
+
+.row-checkbox {
+    /* Hide the default checkbox */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    /* Custom styling */
+    width: 22px;
+    height: 22px;
+    border: 2px solid #e6e6e6;
+    border-radius: 5px;
+    margin-right: 10px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    outline: none;
+    vertical-align: middle;
+}
+
+/* Hover state */
+.row-checkbox:hover {
+    border-color: #6fa062;
+    box-shadow: 0 0 5px rgba(111, 160, 98, 0.5);
+}
+
+/* Focus state for accessibility */
+.row-checkbox:focus {
+    border-color: #6fa062;
+    box-shadow: 0 0 5px rgba(111, 160, 98, 0.5);
+}
+
+/* Checked state */
+.row-checkbox:checked {
+    background-color: #6fa062;
+    border-color: #6fa062;
+}
+
+/* Create the checkmark using pseudo-element */
+.row-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    display: block;
+}
+
+/* Label styling (if you add a label) */
+label[for="terms"] {
+    font-family: 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+/* Animation for checkbox */
+@keyframes check-wave {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.row-checkbox:checked {
+    animation: check-wave 0.3s ease;
+}
 /* ==========================================================================
             Modal Styles
             ========================================================================== */

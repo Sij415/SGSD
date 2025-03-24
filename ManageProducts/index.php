@@ -294,7 +294,7 @@ $(document).ready(function() {
     // Check if there are any products
     if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
         // Add checkbox column to table header
-        $("#ProductsTable thead tr").prepend('<th class="checkbox-column" onclick="$(\'#select-all\').click();"> <input type="checkbox" id="select-all" style="display:none;"> Select</th>');
+        $("#ProductsTable thead tr").prepend("<th class='checkbox-column' style='width: 10%;'><button type='button' class='btn btn-sm custom-btn' id='select-all-btn' onclick='document.getElementById(\"select-all\").click()'>Select All <input type='checkbox' id='select-all' style='visibility:hidden; position:absolute;'></button></th>");
 
         // Add checkboxes to all rows
         $("#ProductsTable tbody tr").prepend(function() {
