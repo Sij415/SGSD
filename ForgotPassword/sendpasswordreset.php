@@ -95,7 +95,7 @@ try {
             echo "Message could not be sent. Mailer error: {$mail->ErrorInfo}";
         }
     } else {
-        header ("Location: ./NoUserFound"); 
+        // header ("Location: ./NoUserFound"); 
     }
 
     $stmt->close();
