@@ -255,7 +255,7 @@ if (strtotime($user["reset_token_expires_at"]) <= time()) {
         });
     </script>");
 }
-?>
+
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
