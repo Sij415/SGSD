@@ -950,11 +950,13 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             <div class="mb-3">
                                 <label for="Product" class="form-label">Product</label>
                                 <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-    <option value="">Select Product</option>
-    <?php foreach ($products as $product): ?>
-        <option value="<?php echo $product['Product_ID']; ?>"><?php echo htmlspecialchars($product['Display_Name']); ?></option>
-    <?php endforeach; ?>
-</select>
+                                    <option value="">Select Product</option>
+                                    <?php foreach ($products as $product): ?>
+                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                            <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="Status" class="form-label">Status</label>
@@ -1197,14 +1199,17 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     </thead>
                     <tbody>
                         <?php if (mysqli_num_rows($result) > 0): ?>
-                            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                            <?php while ($row = mysqli_fetch_assoc($result)): 
+                                $orderType = $row['Order_Type']; // Fetch Order Type
+                                $orderClass = ($orderType == 'Outbound') ? 'outbound' : 'inbound';
+                        ?>
                                 <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Unit'] . ') - ' . $row['Product_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Status']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
+                                    <td class="order-type <?php echo $orderClass; ?>"><?php echo $orderType; ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                                     <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
@@ -1568,6 +1573,15 @@ hr.line {
     background-color: #ebecec !important;
 }
 
+.order-type.outbound {
+            background-color: #007bff !important; /* Blue for Outbound Orders */
+            color: white;
+        }
+
+        .order-type.inbound {
+            background-color: #28a745 !important; /* Green for Inbound Orders */
+            color: white;
+        }
         
 /* ---------------------------------------------------
     MANAGE ORDERS STYLES
