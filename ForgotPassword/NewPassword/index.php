@@ -211,36 +211,29 @@
 
 
 <?php
-
 $token = $_GET["token"];
-echo $token;
 $token_hash = hash("sha256", $token);
-echo $token_hash;
+
 $mysqli = require "../../dbconnect.php";
 
 $sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
-
 $stmt = $mysqli->prepare($sql);
-
 $stmt->bind_param("s", $token_hash);
-
 $stmt->execute();
-
 $result = $stmt->get_result();
-
 $user = $result->fetch_assoc();
 
-if ($user === null) {
+if (!$user) {
     die("<script>
         Swal.fire({
             icon: 'error',
             title: 'Invalid Token',
-            showConfirmButton: false
-       
-            
+            text: 'The provided reset token is invalid or has already been used.',
+            showConfirmButton: true
         });
     </script>");
 }
+
 
 if (strtotime($user["reset_token_expires_at"]) <= time()) {
     die("<script>
