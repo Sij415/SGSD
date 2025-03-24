@@ -207,6 +207,7 @@
 </html>
 
 <?php
+include('../log_functions.php');
 $token = $_GET["token"];
 $token_hash = hash("sha256", $token);
 
@@ -215,18 +216,18 @@ $mysqli = require "../../dbconnect.php";
 $sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
 $stmt = $mysqli->prepare($sql);
 
-if (!$stmt) {
-    die("<script>console.error('SQL Prepare Error: " . $mysqli->error . "');</script>");
-}
+// if (!$stmt) {
+//     die("<script>console.error('SQL Prepare Error: " . $mysqli->error . "');</script>");
+// }
 
 $stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-// Debugging
-echo "<script>console.log('Token Hash: " . $token_hash . "');</script>";
-echo "<script>console.log('Query Result: " . json_encode($user) . "');</script>";
+// // Debugging
+// echo "<script>console.log('Token Hash: " . $token_hash . "');</script>";
+// echo "<script>console.log('Query Result: " . json_encode($user) . "');</script>";
 
 if (!$user || empty($user)) {
     die("<script>
@@ -236,6 +237,9 @@ if (!$user || empty($user)) {
             title: 'Invalid Token',
             text: 'The provided reset token is invalid or has already been used.',
             showConfirmButton: true
+            if (result.isConfirmed) {
+                    window.location.href = '../../'; // Replace with your target page
+                }
         });
     </script>");
 }
@@ -262,7 +266,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Hash the new password
-    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     // Update the user's password in the database
     $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE reset_token_hash = ?";
