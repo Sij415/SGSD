@@ -118,7 +118,7 @@ $result->close();
 $items_sold_data = fill_missing_dates($items_sold_data, $date_format, $interval_clause, $conn, 'items_sold');
 
 // Fetch total customers
-$query = "SELECT COUNT(Customer_ID) as total_customers FROM customers";
+$query = "SELECT COUNT(Customer_ID) as total_customers FROM Customers";
 $result = $conn->query($query);
 $total_customers = $result->fetch_assoc();
 $result->close();
