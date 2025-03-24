@@ -231,17 +231,6 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 
-if ($user === null) {
-    die("<script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Token',
-            showConfirmButton: false
-       
-            
-        });
-    </script>");
-}
 
 if (strtotime($user["reset_token_expires_at"]) <= time()) {
     die("<script>

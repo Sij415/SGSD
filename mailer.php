@@ -15,7 +15,7 @@ $dotenv->load();
 $mail = new PHPMailer(true);
 
 // Server settings
-$mail->SMTPDebug = SMTP::DEBUG_SERVER;
+$mail->SMTPDebug = SMTP::DEBUG_OFF;
 $mail->isSMTP();
 $mail->Host = $_ENV['SMTP_HOST']; // Use the SMTP host from the .env file
 $mail->SMTPAuth = true;
