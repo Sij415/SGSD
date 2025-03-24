@@ -124,7 +124,7 @@ $total_customers = $result->fetch_assoc();
 $result->close();
 
 // Fetch total products
-$query = "SELECT COUNT(Product_ID) as total_products FROM products";
+$query = "SELECT COUNT(Product_ID) as total_products FROM Products";
 $result = $conn->query($query);
 $total_products = $result->fetch_assoc();
 $result->close();
