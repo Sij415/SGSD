@@ -216,13 +216,14 @@ $token_hash = hash("sha256", $token);
 
 $mysqli = require "../../dbconnect.php";
 
-$sql = "SELECT reset_token_hash FROM Users WHERE reset_token_hash = ?";
+$sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
-if (!$user) {
+
+if (!$user["reset_token_expires_at"]) {
     die("<script>
         Swal.fire({
             icon: 'error',
@@ -266,17 +267,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $update_stmt->bind_param("ss", $password_hash, $token_hash);
     // Fetch user details from session
     
-$user_email = $_SESSION['email'];
 
-$query = "SELECT First_Name, Last_Name, User_ID, Role FROM Users WHERE Email = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_email);
-$stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name, $user_id, $user_role);
-$stmt->fetch();
-$stmt->close();
-
-    logActivity($conn, $user_id, "User has successfully updated their password");
+    logActivity($conn, $user["User_ID"], "User has successfully updated their password");
 
     if ($update_stmt->execute()) {
         echo("<script>
