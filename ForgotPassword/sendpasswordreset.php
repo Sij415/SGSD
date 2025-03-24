@@ -2,6 +2,7 @@
 // Enable error reporting for debugging
  error_reporting(E_ALL);
  ini_set('display_errors', 1);
+ date_default_timezone_set('Asia/Manila'); 
 
 $email = $_POST["email"];
 
@@ -9,7 +10,8 @@ try {
     // Generate reset token and its hash
     $token = bin2hex(random_bytes(16));
     $token_hash = hash("sha256", $token);
-    $expiry = date("Y-m-d H:i:s", time() + 60 * 30);
+    $expiry = (new DateTime())->modify('+30 minutes')->format('Y-m-d H:i:s');
+    echo $expiry;
 
     // Include database connection
     $mysqli = require "../dbconnect.php";
