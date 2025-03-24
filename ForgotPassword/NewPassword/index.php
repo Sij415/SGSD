@@ -216,14 +216,12 @@ $token_hash = hash("sha256", $token);
 
 $mysqli = require "../../dbconnect.php";
 
-$sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
+$sql = "SELECT reset_token_hash FROM Users WHERE reset_token_hash = ?";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
-echo "tokenhash".$token_hash."/n";
-echo $user;
 if (!$user) {
     die("<script>
         Swal.fire({
@@ -262,10 +260,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password_hash = password_hash($password, PASSWORD_BCRYPT);
 
     // Update the user's password in the database
-    $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE User_ID = ?";
+
+    $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE reset_token_hash = ?";
     $update_stmt = $mysqli->prepare($update_sql);
-    $update_stmt->bind_param("si", $password_hash, $user["User_ID"]);
-    logActivity($conn, $user['User_ID'], "User has successfully updated their password");
+    $update_stmt->bind_param("ss", $password_hash, $token_hash);
+    // Fetch user details from session
+    
+$user_email = $_SESSION['email'];
+
+$query = "SELECT First_Name, Last_Name, User_ID, Role FROM Users WHERE Email = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $user_email);
+$stmt->execute();
+$stmt->bind_result($user_first_name, $user_last_name, $user_id, $user_role);
+$stmt->fetch();
+$stmt->close();
+
+    logActivity($conn, $user_id, "User has successfully updated their password");
 
     if ($update_stmt->execute()) {
         echo("<script>
