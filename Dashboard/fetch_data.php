@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include '../dbconnect.php';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'monthly'; // Default to monthly
@@ -114,13 +118,13 @@ $result->close();
 $items_sold_data = fill_missing_dates($items_sold_data, $date_format, $interval_clause, $conn, 'items_sold');
 
 // Fetch total customers
-$query = "SELECT COUNT(Customer_ID) as total_customers FROM customers";
+$query = "SELECT COUNT(Customer_ID) as total_customers FROM Customers";
 $result = $conn->query($query);
 $total_customers = $result->fetch_assoc();
 $result->close();
 
 // Fetch total products
-$query = "SELECT COUNT(Product_ID) as total_products FROM products";
+$query = "SELECT COUNT(Product_ID) as total_products FROM Products";
 $result = $conn->query($query);
 $total_products = $result->fetch_assoc();
 $result->close();
