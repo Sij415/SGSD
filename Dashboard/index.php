@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGSD | Dashboard</title>
+    <title>STSD | Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -568,7 +568,7 @@ $(document).ready(function () {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" >
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
     <div ng-app="notificationApp" ng-controller="NotificationController">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
         <div class="container-fluid">

@@ -7,7 +7,6 @@ include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
 
-
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
@@ -72,23 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     header("Location: ../Login"); // Redirect to login page
     exit();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Handle deleting products
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
@@ -304,13 +286,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
 <!-----------------------------------------------------
     DO NOT REMOVE THIS SNIPPET, THIS IS FOR DELETE ENTRY FUNCTION JS
 ------------------------------------------------------>
-
 <script>
-    $(document).ready(function() {
-        // Initialize selection mode variables
-        let selectionMode = false;
-        let selectedItems = [];
+$(document).ready(function() {
+    let selectionMode = false;
+    let selectedItems = [];
 
+    // Check if there are any products
+    if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
         // Add checkbox column to table header
         $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
@@ -319,106 +301,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
             var productId = $(this).data("product-id");
             return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + productId + '"></td>';
         });
+    }
 
-        // Toggle selection mode
-        $("#toggle-selection-mode").click(function() {
-            if (selectedItems.length > 0) {
-                // If items are selected, open delete modal directly
-                $("#deleteConfirmModal").modal("show");
+    // **Toggle Selection Mode for Mobile**
+    $("#toggle-selection-mode").click(function() {
+        if (selectedItems.length > 0) {
+            $("#deleteConfirmModal").modal("show");
+        } else {
+            selectionMode = !selectionMode;
+            if (selectionMode) {
+                $(this).addClass("active");
             } else {
-                // Toggle selection mode as before
-                selectionMode = !selectionMode;
-                if (selectionMode) {
-                    $(this).addClass("active");
-                } else {
-                    $(this).removeClass("active");
-                    // Clear all checkboxes
-                    $(".row-checkbox").prop("checked", false);
-                    $("#select-all").prop("checked", false);
-                    selectedItems = [];
-                    updateSelectedCount();
-                }
-            }
-        });
-
-        // Individual card selection
-        $(document).on("click", ".card", function() {
-            const card = $(this)[0];
-
-            if (!selectedItems.includes(card)) {
-            // Add this card element to our selections if not already included
-            selectedItems.push(card);
-            $(this).addClass("selected"); // Optional: Add a class to indicate selection
-            } else {
-            // Remove this card from selections
-            selectedItems = selectedItems.filter(item => item !== card);
-            $(this).removeClass("selected"); // Optional: Remove the class indicating selection
-            }
-
-            updateSelectedCount();
-        });
-
-        // Select all checkboxes
-        $("#select-all").change(function() {
-            let isChecked = $(this).is(":checked");
-            $(".row-checkbox").prop("checked", isChecked);
-
-            // Update selected items
-            selectedItems = [];
-            if (isChecked) {
-                // Simply gather all row elements that have checkboxes
-                $(".row-checkbox").each(function() {
-                    selectedItems.push($(this).closest("tr")[0]);
-                });
-            }
-            updateSelectedCount();
-        });
-
-        // Individual checkbox selection
-        $(document).on("change", ".row-checkbox", function() {
-            const row = $(this).closest("tr")[0];
-
-            if ($(this).is(":checked")) {
-                // Add this row element to our selections if not already included
-                if (!selectedItems.includes(row)) {
-                    selectedItems.push(row);
-                }
-            } else {
-                // Remove this row from selections
-                selectedItems = selectedItems.filter(item => item !== row);
+                $(this).removeClass("active");
+                $(".row-checkbox").prop("checked", false);
                 $("#select-all").prop("checked", false);
-            }
-
-            updateSelectedCount();
-        });
-
-        // Update the selected count display
-        function updateSelectedCount() {
-            const count = selectedItems.length;
-            $("#selected-count").text(count + " selected");
-            $("#delete-count").text(count);
-            
-            // Show/hide floating dialog based on selection
-            if (count > 0 && $(window).width() >= 768) {
-                $("#selection-controls").fadeIn(300);
-            } else {
-                $("#selection-controls").fadeOut(300);
+                selectedItems = [];
+                updateSelectedCount();
             }
         }
-
-        // Handle delete confirmation
-        $("#delete-confirmed").click(function() {
-            const productIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
-            console.log("Selected Product IDs: ", productIds); // Debug log to check product IDs
-            $("#product_ids").val(JSON.stringify(productIds));
-            $("#deleteForm").submit();
-        });
-
-        // Connect delete button in floating dialog to delete modal
-        $("#delete-selected-btn").click(function() {
-            $("#deleteConfirmModal").modal("show");
-        });
     });
+
+    // **Mobile: Tap a Product Card to Select for Deletion**
+    $(document).on("click", ".card", function(event) {
+        let productId = $(this).find(".card-body").data("product-id");
+
+        if (!productId) {
+            console.error("Error: Missing product ID in card");
+            return;
+        }
+
+        // Prevent modal from opening when selecting for deletion
+        if ($(this).hasClass("selected")) {
+            selectedItems = selectedItems.filter(id => id !== productId);
+            $(this).removeClass("selected");
+        } else {
+            selectedItems.push(productId);
+            $(this).addClass("selected");
+        }
+
+        updateSelectedCount();
+        event.stopPropagation();
+    });
+
+    // **Desktop: Select All Checkboxes**
+    $("#select-all").change(function() {
+        let isChecked = $(this).is(":checked");
+        $(".row-checkbox").prop("checked", isChecked);
+        selectedItems = isChecked ? $(".row-checkbox").map(function() { return $(this).val(); }).get() : [];
+        updateSelectedCount();
+    });
+
+    // **Desktop: Select Individual Checkbox**
+    $(document).on("change", ".row-checkbox", function() {
+        let productId = $(this).val();
+        if ($(this).is(":checked")) {
+            if (!selectedItems.includes(productId)) selectedItems.push(productId);
+        } else {
+            selectedItems = selectedItems.filter(id => id !== productId);
+            $("#select-all").prop("checked", false);
+        }
+        updateSelectedCount();
+    });
+
+    // **Update Selected Count Display**
+    function updateSelectedCount() {
+        let count = selectedItems.length;
+        $("#selected-count").text(count + " selected");
+        $("#delete-count").text(count);
+
+        if (count > 0) {
+            $("#selection-controls").fadeIn(300);
+        } else {
+            $("#selection-controls").fadeOut(300);
+        }
+    }
+
+    // **Delete Button Click Event**
+    $("#delete-selected-btn").click(function() {
+        if (selectedItems.length > 0) {
+            $("#deleteConfirmModal").modal("show");
+        } else {
+            alert("Please select at least one product.");
+        }
+    });
+
+    // **Confirm Deletion**
+    $("#delete-confirmed").click(function() {
+        if (selectedItems.length === 0) {
+            alert("No products selected.");
+            return;
+        }
+
+        let productIds = JSON.stringify(selectedItems);
+        console.log("Selected Product IDs for Deletion:", productIds);
+
+        $("#product_ids").val(productIds);
+        $("#deleteForm").submit();
+    });
+});
 </script>
 
 <div class="wrapper">
@@ -669,11 +649,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
                                 data-product-id="<?php echo $row['Product_ID']; ?>" 
                                 data-product-name="<?php echo $row['Product_Name']; ?>" 
                                 data-product-type="<?php echo $row['Product_Type']; ?>" 
+                                data-unit="<?php echo $row['Unit']; ?>"
                                 data-price="<?php echo $row['Price']; ?>" style="cursor: pointer;">
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['Product_Name']); ?></h5>
                                     <div class="row">
                                         <div class="col-6">
                                             <p class="card-text"><strong>Product Type:</strong> <?php echo htmlspecialchars($row['Product_Type']); ?></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="card-text"><strong>Unit:</strong> <?php echo htmlspecialchars($row['Unit']); ?></p>
                                         </div>
                                         <div class="col-6">
                                             <p class="card-text"><strong>Price:</strong> <?php echo htmlspecialchars($row['Price']); ?></p>

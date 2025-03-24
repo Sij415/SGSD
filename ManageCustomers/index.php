@@ -69,26 +69,6 @@ if (isset($_POST['edit_customer'])) {
     $stmt->close();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Fetch customers
 $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
@@ -99,12 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     header("Location: ../Login"); // Redirect to login page
     exit();
 }
-
-
-
-
-
-
 
 // Handle deleting customers
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) {
@@ -122,24 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ?>
 
@@ -306,107 +262,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
 <!-----------------------------------------------------
     DO NOT REMOVE THIS SNIPPET, THIS IS FOR DELETE ENTRY FUNCTION JS
 ------------------------------------------------------>
-
 <script>
-    $(document).ready(function() {
-        // Initialize selection mode variables
-        let selectionMode = false;
-        let selectedItems = [];
+$(document).ready(function() {
+    let selectionMode = false;
+    let selectedItems = [];
 
-        // Check if there are any customers
-        if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
-            // Add checkbox column to table header
-            $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+    // Check if there are any customers
+    if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
+        // Add checkbox column to table header
+        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
 
-            // Add checkboxes to all rows
-            $("#customersTable tbody tr").prepend(function() {
+        // Add checkboxes to all rows
+        $("#customersTable tbody tr").prepend(function() {
             var customerId = $(this).data("customer-id");
             return '<td class="checkbox-column"><input type="checkbox" class="row-checkbox" value="' + customerId + '"></td>';
-            });
-        }
-
-        // Toggle selection mode
-        $("#toggle-selection-mode").click(function() {
-            if (selectedItems.length > 0) {
-                // If items are selected, open delete modal directly
-                $("#deleteConfirmModal").modal("show");
-            } else {
-                // Toggle selection mode as before
-                selectionMode = !selectionMode;
-                if (selectionMode) {
-                    $(this).addClass("active");
-                } else {
-                    $(this).removeClass("active");
-                    // Clear all checkboxes
-                    $(".row-checkbox").prop("checked", false);
-                    $("#select-all").prop("checked", false);
-                    selectedItems = [];
-                    updateSelectedCount();
-                }
-            }
         });
+    }
 
-        // Select all checkboxes
-        $("#select-all").change(function() {
-            let isChecked = $(this).is(":checked");
-            $(".row-checkbox").prop("checked", isChecked);
-
-            // Update selected items
-            selectedItems = [];
-            if (isChecked) {
-                // Simply gather all row elements that have checkboxes
-                $(".row-checkbox").each(function() {
-                    selectedItems.push($(this).closest("tr")[0]);
-                });
-            }
-            updateSelectedCount();
-        });
-
-        // Individual checkbox selection
-        $(document).on("change", ".row-checkbox", function() {
-            const row = $(this).closest("tr")[0];
-
-            if ($(this).is(":checked")) {
-                // Add this row element to our selections if not already included
-                if (!selectedItems.includes(row)) {
-                    selectedItems.push(row);
-                }
-            } else {
-                // Remove this row from selections
-                selectedItems = selectedItems.filter(item => item !== row);
-                $("#select-all").prop("checked", false);
-            }
-
-            updateSelectedCount();
-        });
-
-        // Update the selected count display
-        function updateSelectedCount() {
-            const count = selectedItems.length;
-            $("#selected-count").text(count + " selected");
-            $("#delete-count").text(count);
-            
-            // Show/hide floating dialog based on selection
-            if (count > 0) {
-                $("#selection-controls").fadeIn(300);
-            } else {
-                $("#selection-controls").fadeOut(300);
-            }
-        }
-
-        // Handle delete confirmation
-        $("#delete-confirmed").click(function() {
-            const customerIds = selectedItems.map(row => $(row).find(".row-checkbox").val());
-            console.log("Selected Customer IDs: ", customerIds); // Debug log to check customer IDs
-            $("#customer_ids").val(JSON.stringify(customerIds));
-            $("#deleteForm").submit();
-        });
-
-        // Connect delete button in floating dialog to delete modal
-        $("#delete-selected-btn").click(function() {
+    // **Toggle Selection Mode for Mobile**
+    $("#toggle-selection-mode").click(function() {
+        if (selectedItems.length > 0) {
             $("#deleteConfirmModal").modal("show");
-        });
+        } else {
+            selectionMode = !selectionMode;
+            if (selectionMode) {
+                $(this).addClass("active");
+            } else {
+                $(this).removeClass("active");
+                $(".row-checkbox").prop("checked", false);
+                $("#select-all").prop("checked", false);
+                selectedItems = [];
+                updateSelectedCount();
+            }
+        }
     });
+
+    // **Mobile: Tap a Customer Card to Select for Deletion**
+    $(document).on("click", ".card", function(event) {
+        let customerId = $(this).data("customer-id");
+
+        if (!customerId) {
+            console.error("Error: Missing customer ID in card");
+            return;
+        }
+
+        // Prevent modal from opening when selecting for deletion
+        if ($(this).hasClass("selected")) {
+            selectedItems = selectedItems.filter(id => id !== customerId);
+            $(this).removeClass("selected");
+        } else {
+            selectedItems.push(customerId);
+            $(this).addClass("selected");
+        }
+
+        updateSelectedCount();
+        event.stopPropagation();
+    });
+
+    // **Desktop: Select All Checkboxes**
+    $("#select-all").change(function() {
+        let isChecked = $(this).is(":checked");
+        $(".row-checkbox").prop("checked", isChecked);
+        selectedItems = isChecked ? $(".row-checkbox").map(function() { return $(this).val(); }).get() : [];
+        updateSelectedCount();
+    });
+
+    // **Desktop: Select Individual Checkbox**
+    $(document).on("change", ".row-checkbox", function() {
+        let customerId = $(this).val();
+        if ($(this).is(":checked")) {
+            if (!selectedItems.includes(customerId)) selectedItems.push(customerId);
+        } else {
+            selectedItems = selectedItems.filter(id => id !== customerId);
+            $("#select-all").prop("checked", false);
+        }
+        updateSelectedCount();
+    });
+
+    // **Update Selected Count Display**
+    function updateSelectedCount() {
+        let count = selectedItems.length;
+        $("#selected-count").text(count + " selected");
+        $("#delete-count").text(count);
+
+        if (count > 0) {
+            $("#selection-controls").fadeIn(300);
+        } else {
+            $("#selection-controls").fadeOut(300);
+        }
+    }
+
+    // **Delete Button Click Event**
+    $("#delete-selected-btn").click(function() {
+        if (selectedItems.length > 0) {
+            $("#deleteConfirmModal").modal("show");
+        } else {
+            alert("Please select at least one customer.");
+        }
+    });
+
+    // **Confirm Deletion**
+    $("#delete-confirmed").click(function() {
+        if (selectedItems.length === 0) {
+            alert("No customers selected.");
+            return;
+        }
+
+        let customerIds = JSON.stringify(selectedItems);
+        console.log("Selected Customer IDs for Deletion:", customerIds);
+
+        $("#customer_ids").val(customerIds);
+        $("#deleteForm").submit();
+    });
+});
 </script>
 
 <div class="wrapper">
@@ -646,35 +614,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
             </div>
 
             <!-- Responsive Card Layout (Visible on smaller screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
-            <div class="row d-block d-md-none">
-                <?php
-                $result->data_seek(0); // Reset pointer to the beginning
-                if (mysqli_num_rows($result) > 0): ?>
-                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                        <div class="col-12 mb-3">
-                            <div class="card shadow-sm" 
-                                 data-bs-toggle="modal" 
-                                 data-bs-target="#editCustomerModal" 
-                                 data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>" 
-                                 data-first-name="<?php echo htmlspecialchars($row['First_Name']); ?>" 
-                                 data-last-name="<?php echo htmlspecialchars($row['Last_Name']); ?>"
-                                 data-contact-number="<?php echo htmlspecialchars($row['Contact_Number']); ?>"
-                                 style="cursor: pointer;">
-                                <div class="card-body">
+            <div class="row d-block d-md-none rounded">
+            <?php
+                $result->data_seek(0);
+                if (mysqli_num_rows($result) > 0) : ?>
+                    <?php while ($row = mysqli_fetch_assoc($result)) : ?>
+                        <div class="col-12 col-md-6 mb-3">
+                            <div class="card shadow-sm customer-card" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editCustomerModal" 
+                                data-customer-id="<?php echo $row['Customer_ID']; ?>" 
+                                data-first-name="<?php echo $row['First_Name']; ?>" 
+                                data-last-name="<?php echo $row['Last_Name']; ?>" 
+                                data-contact-number="<?php echo $row['Contact_Number']; ?>"
+                                style="cursor: pointer;">
+                                <div class="card-body rounded">
                                     <h5 class="card-title"><?php echo htmlspecialchars($row['First_Name'] . ' ' . $row['Last_Name']); ?></h5>
-                                    <p class="card-text">
-                                        <strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?><br>
-                                        <strong>Contact:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?>
-                                    </p>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p class="card-text"><strong>Customer ID:</strong> <?php echo htmlspecialchars($row['Customer_ID']); ?></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="card-text"><strong>Contact:</strong> <?php echo htmlspecialchars($row['Contact_Number']); ?></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     <?php endwhile; ?>
-                <?php else: ?>
+                <?php else : ?>
                     <p>No customers found.</p>
                 <?php endif; ?>
-            </div>
             </div>
             <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Customer found.</p>
         </div>
