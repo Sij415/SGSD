@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h1 class="main-heading">Enter your new password</h1>
         <p class="sub-heading">Your new password must be different from your previous password.</p>
 
-        <form action="" method="POST">
+        <form action="./" method="POST">
             <div class="form-group">
                 <input type="password" name="password" id="password" placeholder="Enter new password" required>
             </div>
