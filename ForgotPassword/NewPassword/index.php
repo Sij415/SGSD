@@ -223,16 +223,16 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-if (!$user || empty($user["reset_token_expires_at"])) {
-    die("<script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Token',
-            text: 'The provided reset token is invalid or has already been used.',
-            showConfirmButton: true
-        });
-    </script>");
-}
+// if (!$user || empty($user["reset_token_expires_at"])) {
+//     die("<script>
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Invalid Token',
+//             text: 'The provided reset token is invalid or has already been used.',
+//             showConfirmButton: true
+//         });
+//     </script>");
+// }
 
 
 
