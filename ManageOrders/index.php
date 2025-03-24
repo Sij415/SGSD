@@ -678,7 +678,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         // Check if there are any orders
         if ($("#OrdersTable tbody tr").length > 0 && $("#OrdersTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><button type="button" class="btn btn-sm btn-secondary" id="select-all-btn" onclick="document.getElementById(\'select-all\').click()">Select All <input type="checkbox" id="select-all" style="visibility:hidden; position:absolute;"></button></th>');
 
             // Add checkboxes to all rows
             $("#OrdersTable tbody tr").prepend(function() {
@@ -1186,9 +1186,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     });
                 });
             </script>
-
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 450px; overflow-y: auto;">
+            <div class="table-container" style="max-height: 450px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
             <div class="table-responsive d-none d-md-block">
                 
                 <table class="table table-striped table-bordered" id="OrdersTable">

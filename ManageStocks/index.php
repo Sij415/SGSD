@@ -702,16 +702,15 @@ $(document).ready(function() {
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<a href="../Login" class="logout" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
     <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 
 <!-- Hidden Logout Form -->
-<form id="logoutForm" method="POST" action="">
+<form id="logoutForm" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
     <input type="hidden" name="logout" value="1">
-</form>
-            </li>
+</form>    </li>
         </ul>
     </nav>
 
@@ -826,7 +825,8 @@ $(document).ready(function() {
             </form>
 
                 <!-- Table Layout (Visible on larger screens) -->
-                <div style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">      
+                <div class="table-container" style="max-height: 400px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;" onscroll="document.querySelector('.scroll-indicator').style.opacity = this.scrollTop > 20 ? '1' : '0';">
+                    <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
                     

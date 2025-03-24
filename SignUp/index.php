@@ -16,29 +16,7 @@
 
 </head>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <?php
-
 include('../dbconnect.php');
 // Fetch the status of Sign-Up, Admin Sign-Up, and Max Sign-Ups from the database
 $sign_up_enabled_query = "SELECT Value FROM Settings WHERE Setting_Key = 'SignUpEnabled'";
@@ -59,17 +37,6 @@ if ($max_signups <= 0 & 0 != $sign_up_enabled) {
     header("Location: ../"); // Adjust this URL to match your actual login page
     exit();
 }
-
-
-
-
-
-
-
-
-
-
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get and sanitize the input values from the form
@@ -271,15 +238,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 $conn->close();
 ?>
-
-
-
-
-
-
-
-
-
 <body>
 <header class="main-header">
     <nav class="main-nav">
@@ -323,17 +281,16 @@ $conn->close();
             <?php endif; ?>
         </select>
     </div>
+    <div class="form-field-signup">
+        <div class="terms-container" style="display: flex; align-items: flex-start; margin: 10px 0;">
+            <input class="tocpp" type="checkbox" id="terms" name="terms" required style="width: 22px; margin-right: 10px; position: relative; !important;">
+            <label for="terms" class="terms-label m-0">I agree to the <a href="../terms-conditions.php">Terms & Conditions</a> and <a href="../privacy-policy.php">Privacy Policy</a></label>
+        </div> </div>
     <div class="button-group">
         <input class="signup-cont-btn" type="submit" value="Signup">
     </div>
 </form>
-
-
 </div>
-
-
-
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const passwordInput = document.getElementById('password');

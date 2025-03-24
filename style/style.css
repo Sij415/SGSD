@@ -652,6 +652,118 @@ input[type="radio"].btn-check + label:hover {
 
 }
 
+.tocpp {
+    /* Hide the default checkbox */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    /* Custom styling */
+    width: 22px;
+    height: 22px;
+    border: 2px solid #e6e6e6;
+    border-radius: 5px;
+    margin-right: 10px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    outline: none;
+    vertical-align: middle;
+  }
+  
+  /* Hover state */
+  .tocpp:hover {
+    border-color: #6fa062;
+    box-shadow: 0 0 5px rgba(111, 160, 98, 0.5);
+  }
+  
+  /* Focus state for accessibility */
+  .tocpp:focus {
+    border-color: #6fa062;
+    box-shadow: 0 0 5px rgba(111, 160, 98, 0.5);
+  }
+  
+  /* Checked state */
+  .tocpp:checked {
+    background-color: #6fa062;
+    border-color: #6fa062;
+  }
+  
+  /* Create the checkmark using pseudo-element */
+  .tocpp:checked::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    display: block;
+  }
+  
+  /* Required indicator */
+  input[required].tocpp:not(:checked) {
+    border-color: #e74c3c;
+  }
+  
+  input[required].tocpp:not(:checked)::before {
+    content: '*';
+    color: #e74c3c;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  /* Label styling (if you add a label) */
+  label[for="terms"] {
+    font-family: 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    margin: 8px 0;
+  }
+  
+  /* Animation for checkbox */
+  @keyframes check-wave {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  
+  .tocpp:checked {
+    animation: check-wave 0.3s ease;
+  }
+  
+  /* Make sure mb-1 class works as expected (assuming bootstrap-like margin) */
+  .mb-1 {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .terms-label a {
+    color: #82b370;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.1em;
+    padding: 2px 4px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.terms-label a:hover {
+    color: #6b9d61;
+    background-color: rgba(130, 179, 112, 0.1);
+    transform: scale(1.05);
+    text-decoration: none;
+    border-radius: 12px;
+}
 .btn-group {
     display: flex;
     justify-content: space-between;

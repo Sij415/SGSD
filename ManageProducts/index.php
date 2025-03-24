@@ -294,7 +294,7 @@ $(document).ready(function() {
     // Check if there are any products
     if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
         // Add checkbox column to table header
-        $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        $("#ProductsTable thead tr").prepend('<th class="checkbox-column" onclick="$(\'#select-all\').click();"> <input type="checkbox" id="select-all" style="display:none;"> Select</th>');
 
         // Add checkboxes to all rows
         $("#ProductsTable tbody tr").prepend(function() {
@@ -596,7 +596,8 @@ $(document).ready(function() {
                 });
             </script>
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+            <div class="table-container" style="max-height: 550px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0.7; pointer-events: none;"></div>
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="ProductsTable">
                     <thead>

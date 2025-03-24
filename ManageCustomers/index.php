@@ -270,7 +270,7 @@ $(document).ready(function() {
     // Check if there are any customers
     if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
         // Add checkbox column to table header
-        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"> Select</th>');
 
         // Add checkboxes to all rows
         $("#customersTable tbody tr").prepend(function() {
@@ -463,13 +463,13 @@ $(document).ready(function() {
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<a href="../Login" class="logout" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
     <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 
 <!-- Hidden Logout Form -->
-<form id="logoutForm" method="POST" action="">
+<form id="logoutForm" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
     <input type="hidden" name="logout" value="1">
 </form>
             </li>
@@ -574,7 +574,8 @@ $(document).ready(function() {
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->    
-            <div style="max-height: 500px; overflow-y: auto;">      
+            <div class="table-container" style="max-height: 550px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;" onscroll="document.querySelector('.scroll-indicator').style.opacity = this.scrollTop > 20 ? '1' : '0';">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="customersTable">
                     <thead>
@@ -671,7 +672,7 @@ $(document).ready(function() {
                             </div>
                             <div class="mb-3">
                                 <label for="contact_number" class="form-label">Contact Number</label>
-                                <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" required>
+                                <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" min="0" required>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
@@ -703,7 +704,7 @@ $(document).ready(function() {
                             </div>
                             <div class="mb-3">
                                 <label for="edit_contact_num" class="form-label">Contact Number</label>
-                                <input type="number" class="form-control" id="edit_contact_num" name="New_ContactNum" placeholder="e.g., 09913323242" required>
+                                <input type="number" class="form-control" id="edit_contact_num" name="New_ContactNum" placeholder="e.g., 09913323242" min="0" required>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
