@@ -13,6 +13,101 @@
     <link rel="icon"  href="../../logo.png">
 </head>
 
+
+<?php
+$token = $_GET["token"];
+$token_hash = hash("sha256", $token);
+
+$mysqli = require "../../dbconnect.php";
+
+$sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
+$stmt = $mysqli->prepare($sql);
+
+if (!$stmt) {
+    die("<script>console.error('SQL Prepare Error: " . $mysqli->error . "');</script>");
+}
+
+$stmt->bind_param("s", $token_hash);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+
+// Debugging
+echo "<script>console.log('Token Hash: " . $token_hash . "');</script>";
+echo "<script>console.log('Query Result: " . json_encode($user) . "');</script>";
+
+if (!$user || empty($user)) {
+    die("<script>
+        console.error('User not found or empty array.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Token',
+            text: 'The provided reset token is invalid or has already been used.',
+            showConfirmButton: true
+        });
+    </script>");
+}
+
+if (strtotime($user["reset_token_expires_at"]) <= time()) {
+    die("<script>
+        console.error('Token expired.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Expired Token',
+            showConfirmButton: false
+        });
+    </script>");
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Handle password reset
+    $password = $_POST["password"];
+    $password_confirmation = $_POST["password_confirmation"];
+
+    // Check if both passwords match
+    if ($password !== $password_confirmation) {
+        die("Passwords do not match.");
+    }
+
+    // Hash the new password
+    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+
+    // Update the user's password in the database
+    $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE reset_token_hash = ?";
+    $update_stmt = $mysqli->prepare($update_sql);
+    $update_stmt->bind_param("ss", $password_hash, $token_hash);
+
+    if ($update_stmt->execute()) {
+        echo("<script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Password has been changed successfully'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '../../'; // Replace with your target page
+                }
+            });
+        </script>");
+    } else {
+        die("Failed to reset password.");
+    }
+}
+?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <body>
     <header class="main-header">
         <nav class="main-nav">
@@ -202,83 +297,3 @@
 </footer>
 </html>
 
-<?php
-$token = $_GET["token"];
-$token_hash = hash("sha256", $token);
-
-$mysqli = require "../../dbconnect.php";
-
-$sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
-$stmt = $mysqli->prepare($sql);
-
-if (!$stmt) {
-    die("<script>console.error('SQL Prepare Error: " . $mysqli->error . "');</script>");
-}
-
-$stmt->bind_param("s", $token_hash);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-// Debugging
-echo "<script>console.log('Token Hash: " . $token_hash . "');</script>";
-echo "<script>console.log('Query Result: " . json_encode($user) . "');</script>";
-
-if (!$user || empty($user)) {
-    die("<script>
-        console.error('User not found or empty array.');
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Token',
-            text: 'The provided reset token is invalid or has already been used.',
-            showConfirmButton: true
-        });
-    </script>");
-}
-
-if (strtotime($user["reset_token_expires_at"]) <= time()) {
-    die("<script>
-        console.error('Token expired.');
-        Swal.fire({
-            icon: 'error',
-            title: 'Expired Token',
-            showConfirmButton: false
-        });
-    </script>");
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Handle password reset
-    $password = $_POST["password"];
-    $password_confirmation = $_POST["password_confirmation"];
-
-    // Check if both passwords match
-    if ($password !== $password_confirmation) {
-        die("Passwords do not match.");
-    }
-
-    // Hash the new password
-    $password_hash = password_hash($password, PASSWORD_BCRYPT);
-
-    // Update the user's password in the database
-    $update_sql = "UPDATE Users SET Password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE reset_token_hash = ?";
-    $update_stmt = $mysqli->prepare($update_sql);
-    $update_stmt->bind_param("ss", $password_hash, $token_hash);
-
-    if ($update_stmt->execute()) {
-        echo("<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Password has been changed successfully'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '../../'; // Replace with your target page
-                }
-            });
-        </script>");
-    } else {
-        die("Failed to reset password.");
-    }
-}
-?>
