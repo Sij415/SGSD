@@ -215,7 +215,7 @@
 $token = $_GET["token"];
 echo $token;
 $token_hash = hash("sha256", $token);
-
+echo $token_hash;
 $mysqli = require "../../dbconnect.php";
 
 $sql = "SELECT * FROM Users WHERE reset_token_hash = ?";
