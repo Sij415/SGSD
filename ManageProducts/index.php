@@ -321,6 +321,22 @@ $(document).ready(function() {
         }
     });
 
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Handle modal close via escape key or clicking outside
+        $('#editProductModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
     // **Mobile: Tap a Product Card to Select for Deletion**
     $(document).on("click", ".card", function(event) {
         let productId = $(this).find(".card-body").data("product-id");
@@ -369,11 +385,12 @@ $(document).ready(function() {
         $("#selected-count").text(count + " selected");
         $("#delete-count").text(count);
 
-        if (count > 0) {
-            $("#selection-controls").fadeIn(300);
-        } else {
-            $("#selection-controls").fadeOut(300);
-        }
+            // Show/hide floating dialog based on selection
+            if (count > 0 && window.innerWidth >= 768) { // Only show on larger screens
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
     }
 
     // **Delete Button Click Event**
@@ -738,7 +755,7 @@ $(document).ready(function() {
                         <input type="text" class="form-control" id="edit_unit" name="New_Unit">
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                         <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                         <button type="submit" name="edit_product" class="btn custom-btn">Save Changes</button>
                     </div>

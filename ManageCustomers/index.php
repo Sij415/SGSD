@@ -296,6 +296,22 @@ $(document).ready(function() {
         }
     });
 
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Handle modal close via escape key or clicking outside
+        $('#editCustomerModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
     // **Mobile: Tap a Customer Card to Select for Deletion**
     $(document).on("click", ".card", function(event) {
         let customerId = $(this).data("customer-id");
@@ -344,11 +360,12 @@ $(document).ready(function() {
         $("#selected-count").text(count + " selected");
         $("#delete-count").text(count);
 
-        if (count > 0) {
-            $("#selection-controls").fadeIn(300);
-        } else {
-            $("#selection-controls").fadeOut(300);
-        }
+            // Show/hide floating dialog based on selection
+            if (count > 0 && window.innerWidth >= 768) { // Only show on larger screens
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
     }
 
     // **Delete Button Click Event**
@@ -529,6 +546,7 @@ $(document).ready(function() {
                 </div>
                 <?php if ($user_role === 'admin') : ?>
                     <!-- Add Customer Button -->
+                    <!-- <button class="btn custom-btn m-0" id="select-all" style="width: 10%;">All</button> -->
                     <button class="btn custom-btn m-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal" style="width: auto;">Add Customer</button>
                 <?php endif; ?>
                 <!-- Delete Confirmation Modal -->
@@ -673,7 +691,7 @@ $(document).ready(function() {
                                 <label for="contact_number" class="form-label">Contact Number</label>
                                 <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" min="0" required>
                             </div>
-                            <div class="modal-footer">
+                            <div class="modal-footer d-flex justify-content-end">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                 <button type="submit" name="add_customer" class="btn custom-btn">Add Customer</button>
                             </div>
@@ -706,7 +724,7 @@ $(document).ready(function() {
                                 <input type="number" class="form-control" id="edit_contact_num" name="New_ContactNum" placeholder="e.g., 09913323242" min="0" required>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                                 <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                                 <button type="submit" name="edit_customer" class="btn custom-btn">Save Changes</button>
                             </div>
@@ -1190,7 +1208,7 @@ hr.line {
         /* ---------------------------------------------------
             RESPONSIVE ADJUSTMENTS
         ----------------------------------------------------- */
-
+/* 
         @media (max-width: 767px) {
             .container {
                 padding: 0.75rem;
@@ -1217,7 +1235,7 @@ hr.line {
             .card {
                 margin-bottom: 15px;
             }
-        }
+        } */
 
         /* ---------------------------------------------------
             UTILITY CLASSES

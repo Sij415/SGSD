@@ -510,6 +510,22 @@ $(document).ready(function() {
             }
         });
 
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Handle modal close via escape key or clicking outside
+        $('#editStockModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+
         // Select all checkboxes
         $("#select-all").change(function() {
             let isChecked = $(this).is(":checked");
@@ -568,7 +584,7 @@ $(document).ready(function() {
             $("#delete-count").text(count);
             
             // Show/hide floating dialog based on selection
-            if (count > 0) {
+            if (count > 0 && window.innerWidth >= 768) { // Only show on larger screens
                 $("#selection-controls").fadeIn(300);
             } else {
                 $("#selection-controls").fadeOut(300);
@@ -609,10 +625,6 @@ $(document).ready(function() {
             $("#deleteConfirmModal").modal("show");
         });
 
-        // Connect delete button in floating dialog to delete modal
-        $("#delete-selected-btn").click(function() {
-            $("#deleteConfirmModal").modal("show");
-        });
     });
 </script>
 
@@ -1039,7 +1051,7 @@ $(document).ready(function() {
                                     <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                                 </div> -->
                                 <div class="modal-footer">
-                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                                     <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                                     <button type="submit" name="edit_stock" class="btn custom-btn">Save Changes</button>
                                 </div>
@@ -1472,7 +1484,6 @@ hr.line {
     color: #8a6d3b !important; /* Dark Orange Text */
     font-weight: 600;
     padding: 4px 8px !important;
-    text-align: center !important;
     border-left: 3px solid #f39c12 !important;
     transition: all 0.2s ease !important;
     letter-spacing: -0.02em !important;
@@ -1483,7 +1494,6 @@ hr.line {
     color: #721c24 !important; /* Dark Red Text */
     font-weight: 600;
     padding: 4px 8px !important;
-    text-align: center !important;
     border-left: 3px solid #dc3545 !important;
     transition: all 0.2s ease !important;
     letter-spacing: -0.02em !important;
@@ -1494,18 +1504,9 @@ hr.line {
     color: #856404 !important; /* Dark Yellow Text */
     font-weight: 600;
     padding: 4px 8px !important;
-    text-align: center !important;
     border-left: 3px solid #ffc107 !important;
     transition: all 0.2s ease !important;
     letter-spacing: -0.02em !important;
-}
-
-/* Hover effects */
-.bg-orange:hover, .table-orange:hover,
-.bg-danger:hover, .table-danger:hover,
-.bg-warning:hover, .table-warning:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.15) !important;
 }
 
 /* Icons for status indicators */

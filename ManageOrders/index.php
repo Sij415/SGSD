@@ -708,6 +708,22 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             }
         });
 
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+
+        // Handle modal close via escape key or clicking outside
+        $('#editOrderModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+
         // Individual card selection
         $(document).on("click", ".card", function() {
             const card = $(this)[0];
@@ -1083,7 +1099,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     <?php endif; ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                     <?php if ($user_role !== 'staff') : ?>
                         <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                         <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
