@@ -286,7 +286,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
 <!-----------------------------------------------------
     DO NOT REMOVE THIS SNIPPET, THIS IS FOR DELETE ENTRY FUNCTION JS
 ------------------------------------------------------>
-
 <script>
 $(document).ready(function() {
     let selectionMode = false;
@@ -656,6 +655,9 @@ $(document).ready(function() {
                                     <div class="row">
                                         <div class="col-6">
                                             <p class="card-text"><strong>Product Type:</strong> <?php echo htmlspecialchars($row['Product_Type']); ?></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="card-text"><strong>Unit:</strong> <?php echo htmlspecialchars($row['Unit']); ?></p>
                                         </div>
                                         <div class="col-6">
                                             <p class="card-text"><strong>Price:</strong> <?php echo htmlspecialchars($row['Price']); ?></p>
