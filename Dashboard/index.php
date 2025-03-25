@@ -400,59 +400,65 @@ $(document).ready(function () {
                 }
 
                 productPieChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: labels,
-        datasets: [{
-            data: values,
-            backgroundColor: colors
-        }]
-    },
-    options: {
-        responsive: true, // Ensure it scales properly
-        maintainAspectRatio: false, // Prevents it from forcing a square aspect ratio
-        aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
-        plugins: {
-            legend: {
-                position: 'left',
-                labels: {
-                    generateLabels: function (chart) {
-                        let dataset = chart.data.datasets[0]; 
-                        if (!dataset || !dataset.data || dataset.data.length === 0) {
-                            console.warn("⚠️ No product quantity data found in dataset!");
-                            return [];
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: colors
+                        }]
+                    },
+                    options: {
+                        responsive: true, // Ensure it scales properly
+                        maintainAspectRatio: false, // Prevents it from forcing a square aspect ratio
+                        aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
+                        plugins: {
+                            legend: {
+                                position: 'left',
+                                labels: {
+                                    generateLabels: function (chart) {
+                                        let dataset = chart.data.datasets[0]; 
+                                        if (!dataset || !dataset.data || dataset.data.length === 0) {
+                                            console.warn("⚠️ No product quantity data found in dataset!");
+                                            return [];
+                                        }
+                                        return filteredData.map((product, index) => ({
+                                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage.toFixed(2)}%)`,
+                                            fillStyle: dataset.backgroundColor[index],
+                                            hidden: !chart.getDataVisibility(index),
+                                            index: index
+                                        }));
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (tooltipItem) {
+                                        let index = tooltipItem.dataIndex;
+                                        let dataset = tooltipItem.chart.data.datasets[0];
+
+                                        if (!dataset || !dataset.data || !filteredData) {
+                                            return "No data available";
+                                        }
+
+                                        let productData = filteredData[index];
+                                        if (!productData) {
+                                            return "No data available";
+                                        }
+
+                                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage.toFixed(2)}%)`;
+                                    }
+                                }
+                            }
                         }
-                        return filteredData.map((product, index) => ({
-                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage.toFixed(2)}%)`,
-                            fillStyle: dataset.backgroundColor[index],
-                            hidden: !chart.getDataVisibility(index),
-                            index: index
-                        }));
                     }
+                });
+
+                // Add this block of code to move the legend below the pie chart for mobile devices
+                if (window.innerWidth <= 768) {
+                    productPieChart.options.plugins.legend.position = 'bottom';
+                    productPieChart.update();
                 }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (tooltipItem) {
-                        let index = tooltipItem.dataIndex;
-                        let dataset = tooltipItem.chart.data.datasets[0];
-
-                        if (!dataset || !dataset.data || !filteredData) {
-                            return "No data available";
-                        }
-
-                        let productData = filteredData[index];
-                        if (!productData) {
-                            return "No data available";
-                        }
-
-                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage.toFixed(2)}%)`;
-                    }
-                }
-            }
-        }
-    }
-});
 
             },
             error: function (xhr, status, error) {
