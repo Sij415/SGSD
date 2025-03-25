@@ -84,6 +84,14 @@ h1, h5 {
 @media (max-width: 768px) {
     .pie-chart-container {
         height: 150px; /* Adjust height for smaller screens */
+        flex-direction: column; /* Stack legend and chart vertically */
+    }
+
+    .pie-chart-container .chartjs-legend {
+        position: static; /* Remove absolute positioning */
+        margin-top: 10px; /* Add margin to separate legend from chart */
+        max-width: none; /* Allow legend to take full width */
+        white-space: normal; /* Allow legend text to wrap */
     }
 }
 

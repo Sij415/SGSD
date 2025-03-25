@@ -399,6 +399,10 @@ $(document).ready(function () {
                     productPieChart.destroy();
                 }
 
+                // Mobile-specific options
+                const isMobile = window.innerWidth <= 768;
+                const legendPosition = isMobile ? 'bottom' : 'left'; // Position legend at the bottom for mobile
+
                 productPieChart = new Chart(ctx, {
                     type: 'pie',
                     data: {
@@ -414,7 +418,7 @@ $(document).ready(function () {
                         aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
                         plugins: {
                             legend: {
-                                position: 'left',
+                                position: legendPosition, // Use dynamic legend position
                                 labels: {
                                     generateLabels: function (chart) {
                                         let dataset = chart.data.datasets[0]; 
@@ -453,12 +457,6 @@ $(document).ready(function () {
                         }
                     }
                 });
-
-                // Add this block of code to move the legend below the pie chart for mobile devices
-                if (window.innerWidth <= 768) {
-                    productPieChart.options.plugins.legend.position = 'bottom';
-                    productPieChart.update();
-                }
 
             },
             error: function (xhr, status, error) {
