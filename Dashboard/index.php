@@ -443,7 +443,7 @@ $(document).ready(function () {
                             const segmentRatio = value / 100;
                             
                             // Reduced radiusRatio to bring percentages closer to center
-                            const radiusRatio = 0.01 + (segmentRatio * 0.1); // between 25% and 35% of radius
+                            const radiusRatio = -0.001 + (segmentRatio * 0.1); // between 25% and 35% of radius
                             const radius = Math.min(chart.chartArea.width, chart.chartArea.height) / 2 * radiusRatio;
                             
                             // Position text
