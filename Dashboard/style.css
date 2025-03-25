@@ -68,30 +68,28 @@ h1, h5 {
 
 /* Add these styles to your CSS file */
 
-.pie-chart-container {
-    height: 250px; /* Adjust height to make the chart smaller */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
-#productPieChart {
-    max-width: 100%;
-    max-height: 100%;
-}
-
 @media (max-width: 768px) {
     .pie-chart-container {
         height: 150px; /* Adjust height for smaller screens */
-        flex-direction: column; /* Stack legend and chart vertically */
     }
 
+    /* Position the legend at the bottom for mobile screens */
     .pie-chart-container .chartjs-legend {
-        position: static; /* Remove absolute positioning */
-        margin-top: 10px; /* Add margin to separate legend from chart */
-        max-width: none; /* Allow legend to take full width */
-        white-space: normal; /* Allow legend text to wrap */
+        position: static;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-top: 10px;
+    }
+
+    /* Ensure the legend items are displayed properly */
+    .pie-chart-container .chartjs-legend li {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0 5px;
+        max-width: 100px; /* Adjust max-width as needed */
     }
 }
 
