@@ -627,7 +627,7 @@ $(document).ready(function () {
             </li>
 
             
-            ?>
+
                 <li>
                     <a href="../ManageOrders">
                         <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
