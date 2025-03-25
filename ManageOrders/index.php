@@ -198,6 +198,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->bind_result($product_name);
         $stmt->fetch();
         $stmt->close();
+
+
+
+
+
+
+
+      // Insert Notification Logic for New Order
+      if ($order_type === "Inbound") {
+        $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
+
+        // Notify Driver
+        $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
+        $stmt = $conn->prepare($notif_query);
+        $stmt->bind_param("s", $notification_message);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+
+
+
+
+
+
+
     
         logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
     
@@ -389,6 +415,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->bind_result($product_name);
         $stmt->fetch();
         $stmt->close();
+
+
+
+        if ($status === "Delivered") {
+            $notification_message = "Order Delivered: $product_name, Quantity: $quantity.";
+
+            // Notify Admin
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('admin', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+
+            // Notify Staff
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('staff', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+
+            // Notify Driver
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+
+
+
+
+
+
+
+
+
+
     
         logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
     
