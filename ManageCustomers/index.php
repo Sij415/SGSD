@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
 
 
 
-        $query = "DELETE FROM  Customers WHERE Customer_ID = ?";
+        $query = "DELETE FROM Customers WHERE Customer_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $customer_id);
         $stmt->execute();
