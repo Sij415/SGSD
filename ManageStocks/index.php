@@ -1,10 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSD | Manage Stocks</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="icon"  href="../logo.png">
+    <link rel="stylesheet" href="../style/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
 <?php
-// Include database connection
+// Include database connection and session check
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
 include '../log_functions.php';
-// Start the session
 ini_set('display_errors', 1);
 
 // Fetch logged-in user details
@@ -17,12 +40,48 @@ $stmt->bind_result($user_id, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
-// Check all stock entries and move New_Stock to Old_Stock if Old_Stock is 0
-$check_query = "SELECT Stock_ID, Old_Stock, New_Stock FROM Stocks WHERE Old_Stock = 0";
+// Function to check stock levels and send notifications
+function checkStockNotifications($conn, $product_id, $old_stock, $threshold) {
+    // Fetch product name
+    $product_name = "";
+    $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $stmt->bind_result($product_name);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (empty($product_name)) return;
+
+    // Critical stock: Notify both admin and staff
+    if ($old_stock < $threshold) {
+        $message = "⚠️ Stock for $product_name is critically low (Current: $old_stock, Threshold: $threshold). Reorder soon!";
+        foreach (['admin', 'staff'] as $role) {
+            $insert_query = "INSERT INTO notifications (Role, Message, Created_At, cleared) VALUES (?, ?, NOW(), 0)";
+            $stmt = $conn->prepare($insert_query);
+            $stmt->bind_param("ss", $role, $message);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+    // Stock update notification for staff
+    elseif ($old_stock == $threshold || $old_stock == $threshold + 10 || $old_stock == $threshold + 30) {
+        $message = "ℹ️ Stock for $product_name has reached $old_stock.";
+        $insert_query = "INSERT INTO notifications (Role, Message, Created_At, cleared) VALUES ('staff', ?, NOW(), 0)";
+        $stmt = $conn->prepare($insert_query);
+        $stmt->bind_param("s", $message);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
+// Check all stock entries and move New_Stock to Old_Stock if needed
+$check_query = "SELECT Stock_ID, Product_ID, Old_Stock, New_Stock, Threshold FROM Stocks";
 $check_stmt = $conn->prepare($check_query);
 $check_stmt->execute();
 $check_stmt->store_result();
-$check_stmt->bind_result($stock_id, $old_stock, $new_stock);
+$check_stmt->bind_result($stock_id, $product_id, $old_stock, $new_stock, $threshold);
 
 while ($check_stmt->fetch()) {
     if ($old_stock == 0 && $new_stock > 0) {
@@ -31,7 +90,10 @@ while ($check_stmt->fetch()) {
         $update_stmt->bind_param("i", $stock_id);
         $update_stmt->execute();
         $update_stmt->close();
+        $old_stock = $new_stock;
+        $new_stock = 0;
     }
+    if (!empty($product_id)) checkStockNotifications($conn, $product_id, $old_stock, $threshold);
 }
 $check_stmt->close();
 
@@ -43,52 +105,22 @@ if (isset($_POST['add_stock'])) {
     $new_stock = $_POST['New_Stock'];
     $threshold = $_POST['Threshold'];
 
-    // Validate user and product existence
-    $user_check_query = "SELECT User_ID FROM Users WHERE User_ID = ?";
-    $user_stmt = $conn->prepare($user_check_query);
-    $user_stmt->bind_param("i", $user_id);
-    $user_stmt->execute();
-    $user_result = $user_stmt->get_result();
-    
-    if ($user_result->num_rows === 0) {
-        $error_message = "Error: Selected user does not exist.";
-        $user_stmt->close();
-        return;
+    // Prevent duplicate product stock entry
+    $query = "SELECT COUNT(*) FROM Stocks WHERE Product_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($count > 0) {
+        echo "<script>
+                Swal.fire({ icon: 'error', title: 'Duplicate Product', text: 'This product already exists in stock!' })
+                .then(() => window.history.back());
+              </script>";
+        exit;
     }
-    $user_stmt->close();
-
-    $product_check_query = "SELECT Product_ID FROM Products WHERE Product_ID = ?";
-    $product_stmt = $conn->prepare($product_check_query);
-    $product_stmt->bind_param("i", $product_id);
-    $product_stmt->execute();
-    $product_result = $product_stmt->get_result();
-    
-    if ($product_result->num_rows === 0) {
-        $error_message = "Error: Selected product does not exist.";
-        $product_stmt->close();
-        return;
-    }
-    $product_stmt->close();
-
-    // Fetch current stock
-    $stock_check_query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ? ORDER BY Stock_ID DESC LIMIT 1";
-    $stock_stmt = $conn->prepare($stock_check_query);
-    $stock_stmt->bind_param("i", $product_id);
-    $stock_stmt->execute();
-    $stock_stmt->bind_result($old_stock, $current_new_stock);
-    $stock_stmt->fetch();
-    $stock_stmt->close();
-
-        // If no previous stock exists, set old_stock to 0
-        if ($old_stock === null) {
-            $old_stock = 0;
-        }
-    
-           // Move New_Stock to Old_Stock if Old_Stock is zero
-           if ($old_stock == 0) {
-            $old_stock = $current_new_stock;
-            $new_stock = 0;
-        }
 
     // Insert into Stocks table
     $insert_query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, ?, ?, ?)";
@@ -97,38 +129,16 @@ if (isset($_POST['add_stock'])) {
 
     if ($stmt->execute()) {
         $success_message = "Stock added successfully.";
+        logActivity($conn, $user_id, "Created a new Stock entry for Product_ID: $product_id");
     } else {
         $error_message = "Error adding stock: " . $stmt->error;
     }
     $stmt->close();
-
-    $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $product_id);
-    $stmt->execute();
-    $stmt->bind_result($product_name);
-    $stmt->fetch();
-    $stmt->close();
-
-
-
-    logActivity($conn, $user_id, "Created a new Stock $product_name");
-    
-
-
-
-
-
-
-
-
 }
 
-// Check if stock_id is passed via AJAX
-if(isset($_POST['fetch_stock']) && isset($_POST['stock_id'])) {
+// Fetch stock details via AJAX
+if (isset($_POST['fetch_stock']) && isset($_POST['stock_id'])) {
     $stock_id = $_POST['stock_id'];
-    
-    // Prepare and execute query to get stock details
     $fetch_query = "SELECT Stock_ID, New_Stock, Threshold FROM Stocks WHERE Stock_ID = ?";
     $stmt = $conn->prepare($fetch_query);
     $stmt->bind_param("i", $stock_id);
@@ -136,12 +146,9 @@ if(isset($_POST['fetch_stock']) && isset($_POST['stock_id'])) {
     $stmt->bind_result($stock_id, $new_stock, $threshold);
     $stmt->fetch();
     $stmt->close();
-    
-    // Output JSON for AJAX response
-    if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-        echo json_encode(['stock_id' => $stock_id, 'new_stock' => $new_stock, 'threshold' => $threshold]);
-        exit;
-    }
+
+    echo json_encode(['stock_id' => $stock_id, 'new_stock' => $new_stock, 'threshold' => $threshold]);
+    exit;
 }
 
 // Handle editing stock
@@ -189,18 +196,6 @@ if (isset($_POST['edit_stock'])) {
 
 
     logActivity($conn, $user_id, "Edited a Stock");
-    
-
-
-
-
-
-
-
-
-
-
-
 
 }
 
@@ -245,30 +240,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     exit();
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGSD | Manage Stocks</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-    <link rel="icon"  href="../logo.png">
-    <link rel="stylesheet" href="../style/styles.css">
-
-</head>
-<body>
-
 <!-----------------------------------------------------
     DO NOT REMOVE THIS SNIPPET, THIS IS FOR SIDEBAR JS
 ------------------------------------------------------>
@@ -1005,32 +976,31 @@ $(document).ready(function() {
                 </div>
             </div>
             <p id="noResultsMessage" style="display: none; text-align: center; font-weight:bold; margin-top: 10px;">No Stock found.</p>
-  
-            <!-- Add Stock Modal -->
-<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="">
-                    <!-- Stocked By (User Selection) -->
-                    <div class="mb-3">
-                        <label for="user_id" class="form-label">Stocked By</label>
-                        <select class="form-control" id="user_id" name="User_ID" style="height: fit-content;" required>
-                            <option value="">Select User</option>
-                            <?php
-                            // Fetch users from the Users table
-                            $query = "SELECT User_ID, First_Name FROM Users";
-                            $result = $conn->query($query);
-                            while ($row = $result->fetch_assoc()) {
-                                echo "<option value='" . $row['User_ID'] . "'>" . $row['First_Name'] . "</option>";
-                            }
-                            ?>
-                        </select>
-                    </div>
 
+            <!-- Add Stock Modal -->
+            <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                        </div>
+                <div class="modal-body">
+                    <form method="POST" action="">
+                        <!-- Stocked By (User Selection) -->
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">Stocked By</label>
+                            <select class="form-control" id="user_id" name="User_ID" style="height: fit-content;" required>
+                                <option value="">Select User</option>
+                                <?php
+                                // Fetch users from the Users table
+                                $query = "SELECT User_ID, First_Name FROM Users";
+                                $result = $conn->query($query);
+                                while ($row = $result->fetch_assoc()) {
+                                    echo "<option value='" . $row['User_ID'] . "'>" . $row['First_Name'] . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
                     <!-- Product Name (Product Selection) -->
                     <div class="mb-3">
                         <label for="product_id" class="form-label">Product Name</label>

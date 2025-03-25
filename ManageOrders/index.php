@@ -198,32 +198,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->bind_result($product_name);
         $stmt->fetch();
         $stmt->close();
-    
-        logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
-    
-    
 
+        // Insert Notification Logic for New Order
+        if ($order_type === "Inbound") {
+            $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
+
+            // Notify Driver
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
     
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-
-
-
-
-
-
-
-
         
     }
-
-
-
-    
-
-
-
-
 
 }
 
@@ -381,7 +374,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->execute();
         $stmt->close();
         
-
         $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
@@ -389,29 +381,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->bind_result($product_name);
         $stmt->fetch();
         $stmt->close();
-    
+
+        // Insert Notification Logic for Status Change
+        if ($status === "Delivered") {
+            $notification_message = "Order Delivered: $product_name, Quantity: $quantity.";
+
+            // Notify Admin
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('admin', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+
+            // Notify Staff
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('staff', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+
+            // Notify Driver
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
+        }
+
         logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
@@ -463,8 +460,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             $stmt->execute();
             $stmt->close();
 
-
-
             $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("i", $product_id);
@@ -475,9 +470,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
         
             logActivity($conn, $user_id, "Deleted a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type");
         
-
-            
-
             // Delete transaction (this will cascade and delete the order)
             $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
             $stmt = $conn->prepare($query);
@@ -487,18 +479,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
         }
         
     }
-
-
-
-    
-
-
-
-
-
-
-
-
 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
@@ -1115,7 +1095,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 </div>
             </div>
         </div>
-
+        
 <!-- Edit Order Modal -->
 <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -1132,6 +1112,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
                     <?php else: ?>
                         <input type="hidden" id="edit_order_id" name="Order_ID">
+                        <?php if ($user_role === 'admin'): ?>
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
                             <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
@@ -1163,6 +1144,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                 <option value="Outbound">Outbound</option>
                             </select>
                         </div>
+                        <?php endif; ?>
                         <div class="mb-3">
                             <label for="edit_status" class="form-label">Status</label>
                             <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
@@ -1171,6 +1153,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                 <option value="Delivered">Delivered</option>
                             </select>
                         </div>
+                        <?php if ($user_role === 'admin'): ?>
                         <div class="mb-3">
                             <label for="edit_notes" class="form-label">Notes</label>
                             <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
@@ -1191,11 +1174,15 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <?php endif; ?>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                     <?php if ($user_role !== 'staff') : ?>
+                        <?php if ($user_role === 'admin'): ?>
                         <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
+                        <?php endif; ?>
                         <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
                     <?php endif; ?>
                 </div>
@@ -1304,15 +1291,16 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <table class="table table-striped table-bordered" id="OrdersTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(1)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(2)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Product<i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Status <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(8)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(9)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(1)">Order ID <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(2)">Managed by <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Product<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Status <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(7)">Order Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(8)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(9)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(10)">Notes <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
@@ -1324,6 +1312,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                 $orderClass = ($orderType == 'Outbound') ? 'outbound' : 'inbound';
                         ?>
                                 <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
+                                    <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
