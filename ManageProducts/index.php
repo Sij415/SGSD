@@ -673,7 +673,7 @@ $(document).ready(function() {
                             <?php endwhile; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="5" class="text-center">No products found.</td>
+                                <td colspan="4">No products found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
