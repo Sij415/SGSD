@@ -626,7 +626,7 @@ $(document).ready(function () {
                 </a>
             </li>
 
-            <?php if ($user_role !== 'driver') : // Exclude for drivers 
+            
             ?>
                 <li>
                     <a href="../ManageOrders">
@@ -634,7 +634,7 @@ $(document).ready(function () {
                         <span>&nbsp;Manage Orders</span>
                     </a>
                 </li>
-            <?php endif; ?>
+
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
             ?>
