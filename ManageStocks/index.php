@@ -68,7 +68,7 @@ function checkStockNotifications($conn, $product_id, $old_stock, $threshold) {
     // Stock update notification for staff
     elseif ($old_stock == $threshold || $old_stock == $threshold + 10 || $old_stock == $threshold + 30) {
         $message = "ℹ️ Stock for $product_name has reached $old_stock.";
-        $insert_query = "INSERT INTO notifications (Role, Message, Created_At, cleared) VALUES ('staff', ?, NOW(), 0)";
+        $insert_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('staff', ?, NOW(), 0)";
         $stmt = $conn->prepare($insert_query);
         $stmt->bind_param("s", $message);
         $stmt->execute();
