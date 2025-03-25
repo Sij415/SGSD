@@ -5,6 +5,9 @@ include('../log_functions.php');
 include '../dbconnect.php';
  // Start the session
 ini_set('display_errors', 1);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
@@ -565,7 +568,7 @@ $(document).ready(function () {
     </nav>
 
     <!-- Page Content  -->
-    <div id="content" >
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
     <div ng-app="notificationApp" ng-controller="NotificationController">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
         <div class="container-fluid">

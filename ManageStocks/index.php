@@ -3,6 +3,7 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
 // Start the session
 ini_set('display_errors', 1);
 
@@ -100,6 +101,27 @@ if (isset($_POST['add_stock'])) {
         $error_message = "Error adding stock: " . $stmt->error;
     }
     $stmt->close();
+
+    $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $stmt->bind_result($product_name);
+    $stmt->fetch();
+    $stmt->close();
+
+
+
+    logActivity($conn, $user_id, "Created a new Stock $product_name");
+    
+
+
+
+
+
+
+
+
 }
 
 // Check if stock_id is passed via AJAX
@@ -160,6 +182,26 @@ if (isset($_POST['edit_stock'])) {
     }
 
     $stmt->close();
+
+
+
+//WALA KUKUHAHAN NG ID PARA PROD NAME
+
+
+    logActivity($conn, $user_id, "Edited a Stock");
+    
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // Fetch stock data for display
@@ -187,6 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
         $stmt->bind_param("i", $stock_id);
         $stmt->execute();
         $stmt->close();
+        logActivity($conn, $user_id, "Deleted a Stock $stock_id");
     }
 
     header("Location: " . $_SERVER['PHP_SELF']);
@@ -195,6 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
 
 // Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $user_id, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
@@ -480,7 +524,7 @@ $(document).ready(function() {
         // Check if there are any stocks
         if ($("#stocksTable tbody tr").length > 0 && $("#stocksTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#stocksTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+            $("#stocksTable thead tr").prepend("<th class='checkbox-column' style='width: 10%;'><button type='button' class='btn btn-sm custom-btn' id='select-all-btn' onclick='document.getElementById(\"select-all\").click()'>Select All <input type='checkbox' id='select-all' style='visibility:hidden; position:absolute;'></button></th>");
 
             // Add checkboxes to all rows
             $("#stocksTable tbody tr").prepend(function() {
@@ -508,6 +552,22 @@ $(document).ready(function() {
                     updateSelectedCount();
                 }
             }
+        });
+
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Handle modal close via escape key or clicking outside
+        $('#editStockModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
         });
 
         // Select all checkboxes
@@ -568,7 +628,7 @@ $(document).ready(function() {
             $("#delete-count").text(count);
             
             // Show/hide floating dialog based on selection
-            if (count > 0) {
+            if (count > 0 && window.innerWidth >= 768) { // Only show on larger screens
                 $("#selection-controls").fadeIn(300);
             } else {
                 $("#selection-controls").fadeOut(300);
@@ -609,10 +669,6 @@ $(document).ready(function() {
             $("#deleteConfirmModal").modal("show");
         });
 
-        // Connect delete button in floating dialog to delete modal
-        $("#delete-selected-btn").click(function() {
-            $("#deleteConfirmModal").modal("show");
-        });
     });
 </script>
 
@@ -702,16 +758,15 @@ $(document).ready(function() {
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<a href="../Login" class="logout" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
     <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 
 <!-- Hidden Logout Form -->
-<form id="logoutForm" method="POST" action="">
+<form id="logoutForm" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
     <input type="hidden" name="logout" value="1">
-</form>
-            </li>
+</form>    </li>
         </ul>
     </nav>
 
@@ -750,14 +805,14 @@ $(document).ready(function() {
                 </div>
                 <!-- Legend for Stock Colors -->
                 <ul class="pl-0">
-                    <li style="font-size: 1.2em; background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #f5c6cb;">
-                        <span>Red</span> = Stock is in threshold/below threshold
+                    <li style="font-size: 1em; background-color: #f8d7da; color: #721c24; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #f5c6cb;">
+                        <i class="fas fa-exclamation-circle"></i> <span>Red</span> = Stock is in threshold/below threshold
                     </li>
-                    <li style="font-size: 1.2em; background-color: #ffe0b2; color: #8a6d3b; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #ffcc80;">
-                        <span>Orange</span> = Stock is +10 of the threshold
+                    <li style="font-size: 1em; background-color: #ffe0b2; color: #8a6d3b; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #ffcc80;">
+                        <i class="fas fa-exclamation-triangle"></i> <span>Orange</span> = Stock is +10 of the threshold
                     </li>
-                    <li style="font-size: 1.2em; background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; list-style-type: none; margin-bottom: 10px; border: 2px solid #ffeeba;">
-                        <span>Yellow</span> = Stock is +30 of the threshold
+                    <li style="font-size: 1em; background-color: #fff3cd; color: #856404; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #ffeeba;">
+                        <i class="fas fa-chart-line"></i> <span>Yellow</span> = Stock is +30 of the threshold
                     </li>
                 </ul>
             <!-- Search Box -->
@@ -826,7 +881,8 @@ $(document).ready(function() {
             </form>
 
                 <!-- Table Layout (Visible on larger screens) -->
-                <div style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">      
+                <div class="table-container" style="max-height: 400px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;" onscroll="document.querySelector('.scroll-indicator').style.opacity = this.scrollTop > 20 ? '1' : '0';">
+                    <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
                 <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="stocksTable">
                     
@@ -1039,7 +1095,7 @@ $(document).ready(function() {
                                     <textarea class="form-control" id="notes" name="Notes" rows="3" placeholder="Enter notes"></textarea>
                                 </div> -->
                                 <div class="modal-footer">
-                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                                     <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                                     <button type="submit" name="edit_stock" class="btn custom-btn">Save Changes</button>
                                 </div>
@@ -1466,35 +1522,64 @@ hr.line {
     MOBILE STYLES
 ----------------------------------------------------- */
 
-/* Custom color styles */
-.bg-orange {
+/* Enhanced Stock Status Styling */
+.bg-orange, .table-orange {
     background-color: #ffe0b2 !important; /* Light Orange */
     color: #8a6d3b !important; /* Dark Orange Text */
     font-weight: 600;
+    padding: 4px 8px !important;
+    border-left: 3px solid #f39c12 !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.02em !important;
 }
 
-.bg-danger {
+.bg-danger, .table-danger {
     background-color: #f8d7da !important; /* Light Red */
     color: #721c24 !important; /* Dark Red Text */
+    font-weight: 600;
+    padding: 4px 8px !important;
+    border-left: 3px solid #dc3545 !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.02em !important;
 }
 
-.bg-warning {
+.bg-warning, .table-warning {
     background-color: #fff3cd !important; /* Light Yellow */
     color: #856404 !important; /* Dark Yellow Text */
+    font-weight: 600;
+    padding: 4px 8px !important;
+    border-left: 3px solid #ffc107 !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* Icons for status indicators */
+.table-danger::before {
+    content: "\f06a"; /* Exclamation icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+td.bg-orange::before {
+    content: "\f071"; /* Warning icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+.table-warning::before {
+    content: "\f201"; /* Lightning icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
 }
 
 p.card-text {
     color:rgb(59, 59, 59) !important;
-}
-
-.table-danger {
-    color: #721c24 !important;
-    font-weight: 600;
-}
-
-.table-warning {
-    color: #856404 !important;
-    font-weight: 600;
 }
 
 

@@ -211,7 +211,7 @@ $result = $conn->query($query);
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
     <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
                 <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -248,8 +248,9 @@ $result = $conn->query($query);
             </div>
             </div>
 
-            <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+            <!-- Table Layout (Visible on larger screens) -->    
+            <div class="table-container" style="max-height: 550px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;" onscroll="document.querySelector('.scroll-indicator').style.opacity = this.scrollTop > 20 ? '1' : '0';">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
             <div class="table-responsive d-none d-md-block">
             <table class="table table-striped table-bordered" id="logsTable">
                 <thead>

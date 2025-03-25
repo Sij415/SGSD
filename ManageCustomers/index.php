@@ -4,17 +4,18 @@
 $required_role = 'admin';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
  // Start the session
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
-$query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
+$query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name);
+$stmt->bind_result($User_ID,$user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -46,6 +47,10 @@ if (isset($_POST['add_customer'])) {
     }
 
     $stmt->close();
+
+
+    logActivity($conn, $User_ID, "Created a new Customer $first_name $last_name");
+
 }
 
 
@@ -67,6 +72,8 @@ if (isset($_POST['edit_customer'])) {
     }
 
     $stmt->close();
+
+    logActivity($conn, $User_ID, "Edited a new customer $new_fname $new_lname");
 }
 
 // Fetch customers
@@ -74,6 +81,7 @@ $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
 // Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $User_ID, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
@@ -86,13 +94,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
 
     foreach ($customer_ids as $customer_id) {
         // Delete the customer
-        $query = "DELETE FROM Customers WHERE Customer_ID = ?";
+
+
+       
+        $query = "SELECT First_Name, Last_Name FROM Customers WHERE Customer_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $customer_id);
+        $stmt->execute();
+        $stmt->bind_result($Customer_lname, $Customer_fname);
+        $stmt->fetch();
+        $stmt->close();
+
+
+
+
+
+        $query = "DELETE FROM  ustomers WHERE Customer_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $customer_id);
         $stmt->execute();
         $stmt->close();
+
+
+        logActivity($conn, $User_ID, "Deleted a Customer $Customer_fname $Customer_lname");
     }
 
+    
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
@@ -270,8 +297,7 @@ $(document).ready(function() {
     // Check if there are any customers
     if ($("#customersTable tbody tr").length > 0 && $("#customersTable tbody tr td").length > 1) {
         // Add checkbox column to table header
-        $("#customersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
-
+        $("#customersTable thead tr").prepend("<th class='checkbox-column' style='width: 10%;'><button type='button' class='btn btn-sm custom-btn' id='select-all-btn' onclick='document.getElementById(\"select-all\").click()'>Select All <input type='checkbox' id='select-all' style='visibility:hidden; position:absolute;'></button></th>");
         // Add checkboxes to all rows
         $("#customersTable tbody tr").prepend(function() {
             var customerId = $(this).data("customer-id");
@@ -297,6 +323,22 @@ $(document).ready(function() {
         }
     });
 
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Handle modal close via escape key or clicking outside
+        $('#editCustomerModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
     // **Mobile: Tap a Customer Card to Select for Deletion**
     $(document).on("click", ".card", function(event) {
         let customerId = $(this).data("customer-id");
@@ -345,11 +387,12 @@ $(document).ready(function() {
         $("#selected-count").text(count + " selected");
         $("#delete-count").text(count);
 
-        if (count > 0) {
-            $("#selection-controls").fadeIn(300);
-        } else {
-            $("#selection-controls").fadeOut(300);
-        }
+            // Show/hide floating dialog based on selection
+            if (count > 0 && window.innerWidth >= 768) { // Only show on larger screens
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
     }
 
     // **Delete Button Click Event**
@@ -463,13 +506,13 @@ $(document).ready(function() {
             </li>
             <li>
 <!-- Logout Button -->
-<a href="" class="logout" onclick="document.getElementById('logoutForm').submit();">
+<a href="../Login" class="logout" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
     <i class="fa-solid fa-sign-out-alt"></i>
     <span>Log out</span>
 </a>
 
 <!-- Hidden Logout Form -->
-<form id="logoutForm" method="POST" action="">
+<form id="logoutForm" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
     <input type="hidden" name="logout" value="1">
 </form>
             </li>
@@ -530,6 +573,7 @@ $(document).ready(function() {
                 </div>
                 <?php if ($user_role === 'admin') : ?>
                     <!-- Add Customer Button -->
+                    <!-- <button class="btn custom-btn m-0" id="select-all" style="width: 10%;">All</button> -->
                     <button class="btn custom-btn m-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal" style="width: auto;">Add Customer</button>
                 <?php endif; ?>
                 <!-- Delete Confirmation Modal -->
@@ -574,7 +618,8 @@ $(document).ready(function() {
             </script>
 
             <!-- Table Layout (Visible on larger screens) -->    
-            <div style="max-height: 500px; overflow-y: auto;">      
+            <div class="table-container" style="max-height: 550px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;" onscroll="document.querySelector('.scroll-indicator').style.opacity = this.scrollTop > 20 ? '1' : '0';">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="customersTable">
                     <thead>
@@ -671,9 +716,9 @@ $(document).ready(function() {
                             </div>
                             <div class="mb-3">
                                 <label for="contact_number" class="form-label">Contact Number</label>
-                                <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" required>
+                                <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" min="0" required>
                             </div>
-                            <div class="modal-footer">
+                            <div class="modal-footer d-flex justify-content-end">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
                                 <button type="submit" name="add_customer" class="btn custom-btn">Add Customer</button>
                             </div>
@@ -703,10 +748,10 @@ $(document).ready(function() {
                             </div>
                             <div class="mb-3">
                                 <label for="edit_contact_num" class="form-label">Contact Number</label>
-                                <input type="number" class="form-control" id="edit_contact_num" name="New_ContactNum" placeholder="e.g., 09913323242" required>
+                                <input type="number" class="form-control" id="edit_contact_num" name="New_ContactNum" placeholder="e.g., 09913323242" min="0" required>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                                <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                                 <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                                 <button type="submit" name="edit_customer" class="btn custom-btn">Save Changes</button>
                             </div>
@@ -1190,7 +1235,7 @@ hr.line {
         /* ---------------------------------------------------
             RESPONSIVE ADJUSTMENTS
         ----------------------------------------------------- */
-
+/* 
         @media (max-width: 767px) {
             .container {
                 padding: 0.75rem;
@@ -1217,7 +1262,7 @@ hr.line {
             .card {
                 margin-bottom: 15px;
             }
-        }
+        } */
 
         /* ---------------------------------------------------
             UTILITY CLASSES

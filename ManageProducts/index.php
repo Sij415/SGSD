@@ -4,17 +4,18 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
  // Start the session
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
-$query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
+$query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name);
+$stmt->bind_result($User_ID, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -36,6 +37,7 @@ if (isset($_POST['add_product'])) {
     } else {
         $error_message = "Error adding product: " . $stmt->error;
     }
+    logActivity($conn, $User_ID, "Created a new Product $product_name");
 
     $stmt->close();
 }
@@ -57,7 +59,7 @@ if (isset($_POST['edit_product'])) {
     } else {
         $error_message = "Error updating product: " . $stmt->error;
     }
-
+    logActivity($conn, $User_ID, "Edited a Product: $new_productname");
     $stmt->close();
 }
 
@@ -65,7 +67,9 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
+// Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $User_ID, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
@@ -77,14 +81,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     $product_ids = json_decode($_POST['product_ids']);
 
     foreach ($product_ids as $product_id) {
-        // Delete the product
-        $query = "DELETE FROM Products WHERE Product_ID = ?";
+      
+
+        $query = "SELECT product_name FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
+        $stmt->bind_result($product_name);
+        $stmt->fetch();
         $stmt->close();
+        
+        logActivity($conn, $User_ID, "Deleted a Product: $product_name");
+        
+      // Delete the product
+      $query = "DELETE FROM Products WHERE Product_ID = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("i", $product_id);
+      $stmt->execute();
+      $stmt->close();
+    
+    
+    
+       
+
+
     }
 
+
+
+    
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
@@ -294,7 +319,7 @@ $(document).ready(function() {
     // Check if there are any products
     if ($("#ProductsTable tbody tr").length > 0 && $("#ProductsTable tbody tr td").length > 1) {
         // Add checkbox column to table header
-        $("#ProductsTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+        $("#ProductsTable thead tr").prepend("<th class='checkbox-column' style='width: 10%;'><button type='button' class='btn btn-sm custom-btn' id='select-all-btn' onclick='document.getElementById(\"select-all\").click()'>Select All <input type='checkbox' id='select-all' style='visibility:hidden; position:absolute;'></button></th>");
 
         // Add checkboxes to all rows
         $("#ProductsTable tbody tr").prepend(function() {
@@ -321,6 +346,22 @@ $(document).ready(function() {
         }
     });
 
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
+        // Handle modal close via escape key or clicking outside
+        $('#editProductModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+        
     // **Mobile: Tap a Product Card to Select for Deletion**
     $(document).on("click", ".card", function(event) {
         let productId = $(this).find(".card-body").data("product-id");
@@ -369,11 +410,12 @@ $(document).ready(function() {
         $("#selected-count").text(count + " selected");
         $("#delete-count").text(count);
 
-        if (count > 0) {
-            $("#selection-controls").fadeIn(300);
-        } else {
-            $("#selection-controls").fadeOut(300);
-        }
+            // Show/hide floating dialog based on selection
+            if (count > 0 && window.innerWidth >= 768) { // Only show on larger screens
+                $("#selection-controls").fadeIn(300);
+            } else {
+                $("#selection-controls").fadeOut(300);
+            }
     }
 
     // **Delete Button Click Event**
@@ -596,7 +638,8 @@ $(document).ready(function() {
                 });
             </script>
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto; overflow-x: hidden;">      
+            <div class="table-container" style="max-height: 550px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0.7; pointer-events: none;"></div>
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-bordered" id="ProductsTable">
                     <thead>
@@ -737,7 +780,7 @@ $(document).ready(function() {
                         <input type="text" class="form-control" id="edit_unit" name="New_Unit">
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                        <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                         <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                         <button type="submit" name="edit_product" class="btn custom-btn">Save Changes</button>
                     </div>

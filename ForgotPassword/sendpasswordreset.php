@@ -2,6 +2,7 @@
 // Enable error reporting for debugging
  error_reporting(E_ALL);
  ini_set('display_errors', 1);
+ date_default_timezone_set('Asia/Manila'); 
 
 $email = $_POST["email"];
 
@@ -9,7 +10,8 @@ try {
     // Generate reset token and its hash
     $token = bin2hex(random_bytes(16));
     $token_hash = hash("sha256", $token);
-    $expiry = date("Y-m-d H:i:s", time() + 60 * 30);
+    $expiry = (new DateTime())->modify('+30 minutes')->format('Y-m-d H:i:s');
+
 
     // Include database connection
     $mysqli = require "../dbconnect.php";
@@ -65,7 +67,7 @@ try {
                                     <p style="font-size: 16px; color: #7c8089; line-height: 1.5; margin: 20px 0;">
                                         If you wish to proceed, please click the button below to initiate the password reset process.
                                     </p>
-                                    <a href="http://10.147.20.116/ForgotPassword/NewPassword?token=$token style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Reset Password</a>
+                                    <a href="http://128.199.236.182/ForgotPassword/NewPassword?token=$token" style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Reset Password</a>
                                 </td>
                             </tr>
                             <tr>

@@ -26,6 +26,7 @@
 $required_role = 'admin,staff,driver';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -190,9 +191,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         }
         $stmt->close();
 
+        $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->bind_result($product_name);
+        $stmt->fetch();
+        $stmt->close();
+    
+        logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
+    
+    
+
+    
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
+
+
+
+
+
+
+
+
+        
     }
+
+
+
+    
+
+
+
+
+
 }
 
 // Handle editing an order
@@ -348,6 +380,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->bind_param("ii", $customer_id, $order_id);
         $stmt->execute();
         $stmt->close();
+        
+
+        $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->bind_result($product_name);
+        $stmt->fetch();
+        $stmt->close();
+    
+        logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
@@ -399,6 +463,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             $stmt->execute();
             $stmt->close();
 
+
+
+            $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $stmt->bind_result($product_name);
+            $stmt->fetch();
+            $stmt->close();
+        
+            logActivity($conn, $user_id, "Deleted a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type");
+        
+
+            
+
             // Delete transaction (this will cascade and delete the order)
             $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
             $stmt = $conn->prepare($query);
@@ -406,14 +485,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             $stmt->execute();
             $stmt->close();
         }
+        
     }
+
+
+
+    
+
+
+
+
+
+
+
+
 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
 
 // Handle logout when the form is submitted
+// Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $user_id, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
@@ -678,7 +772,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         // Check if there are any orders
         if ($("#OrdersTable tbody tr").length > 0 && $("#OrdersTable tbody tr td").length > 1) {
             // Add checkbox column to table header
-            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><input type="checkbox" id="select-all"></th>');
+            $("#OrdersTable thead tr").prepend('<th class="checkbox-column"><button type="button" class="btn btn-sm custom-btn" id="select-all-btn" onclick="document.getElementById(\'select-all\').click()">Select All <input type="checkbox" id="select-all" style="visibility:hidden; position:absolute;"></button></th>');
 
             // Add checkboxes to all rows
             $("#OrdersTable tbody tr").prepend(function() {
@@ -706,6 +800,22 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     updateSelectedCount();
                 }
             }
+        });
+
+        // **Deselect All Items**
+        $("#deselect-all-btn").click(function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
+        });
+
+        // Handle modal close via escape key or clicking outside
+        $('#editOrderModal').on('hidden.bs.modal', function() {
+            $(".row-checkbox").prop("checked", false);
+            $("#select-all").prop("checked", false);
+            selectedItems = [];
+            updateSelectedCount();
         });
 
         // Individual card selection
@@ -908,7 +1018,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
     </nav>
 
     <!-- Page Content  -->
-    <div id="content">
+    <!-- PLEASE PULL THIS INLINE, THIS IS THE THIRD TIME THAT THIS IS IMPLEMENTED -->
+    <div id="content" style="max-height: 750px; overflow-y: auto;">
+    
         <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNavbar">
             <div class="container-fluid">
             <button type="button" id="sidebarCollapse" class="btn btn-info ml-1" data-toggle="tooltip" data-placement="bottom" title="Toggle Sidebar">
@@ -1081,7 +1193,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     <?php endif; ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
                     <?php if ($user_role !== 'staff') : ?>
                         <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
                         <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
@@ -1112,6 +1224,14 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 <i class="bi bi-info-circle mr-1"></i>
                 Tap card to edit order details.
             </div>
+            <ul class="pl-0">
+                    <li style="font-size: 1em; background-color: #5dade2; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #3498db;">
+                        <i class="fas fa-arrow-right"></i> <span>Blue</span> = Outbound
+                    </li>
+                    <li style="font-size: 1em; background-color: #58d68d; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #2ecc71;">
+                        <i class="fas fa-arrow-left"></i> <span>Green</span> = Inbound
+                    </li>
+                </ul>
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
@@ -1176,9 +1296,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                     });
                 });
             </script>
-
             <!-- Table Layout (Visible on larger screens) -->
-            <div style="max-height: 750px; overflow-y: auto;">
+            <div class="table-container" style="max-height: 450px; overflow-y: auto; overflow-x: hidden; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative;">
+                <div class="scroll-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(transparent, rgba(111, 160, 98, 0.2)); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;"></div>
             <div class="table-responsive d-none d-md-block">
                 
                 <table class="table table-striped table-bordered" id="OrdersTable">
@@ -1573,16 +1693,74 @@ hr.line {
     background-color: #ebecec !important;
 }
 
-.order-type.outbound {
-            background-color: #007bff !important; /* Blue for Outbound Orders */
-            color: white;
-        }
+/* Order Type Styling */
+td.order-type {
+    margin-top: 32px !important;
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+    padding: 2px 4px !important; /* Decreased padding */
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    display: block !important;
+    align-items: center !important;
+    justify-content: center !important; /* Center content horizontally */
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    text-align: center !important;
+    letter-spacing: -0.02em !important;
+}
 
-        .order-type.inbound {
-            background-color: #28a745 !important; /* Green for Inbound Orders */
-            color: white;
-        }
-        
+.order-type.outbound {
+    background-color: #3498db !important;
+    color: white !important;
+    border-left: 3px solid #2980b9 !important;
+}
+
+.order-type.outbound::before {
+    content: "\f061" !important; /* Arrow right icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+.order-type.inbound {
+    background-color: #2ecc71 !important;
+    color: white !important;
+    border-left: 3px solid #27ae60 !important;
+}
+
+.order-type.inbound::before {
+    content: "\f060" !important; /* Arrow left icon */
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    margin-right: 5px !important;
+    font-size: 0.8rem !important;
+}
+
+.order-type:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15) !important;
+}
+/* Style for status badges */
+td:nth-child(5) {
+    font-weight: 500;
+    text-align: center; /* Center the text */
+}
+
+td:nth-child(5):contains("To Pick Up") {
+    color: #f39c12;
+}
+
+td:nth-child(5):contains("In Transit") {
+    color: #3498db;
+}
+
+td:nth-child(5):contains("Delivered") {
+    color: #2ecc71;
+}
+
 /* ---------------------------------------------------
     MANAGE ORDERS STYLES
 ----------------------------------------------------- */
