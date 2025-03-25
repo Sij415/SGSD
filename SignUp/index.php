@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <p style="font-size: 16px; color: #7c8089; line-height: 1.5; margin: 20px 0;">
                                                 If you wish to proceed, please click the button below to initiate the account activation.
                                             </p>
-                                            <a href="http://10.147.20.116/SignUp/AccountActivation?token=$activation_token" style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Activate Account</a>
+                                            <a href="http://128.199.236.182/SignUp/AccountActivation?token=$activation_token" style="display: inline-block; background-color: #82b370; color: #ffffff; padding: 12px 24px; text-decoration: none; font-size: 16px; border-radius: 6px; font-weight: bold;">Activate Account</a>
                                         </td>
                                     </tr>
                                     <tr>

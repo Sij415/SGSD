@@ -523,7 +523,7 @@ $(document).ready(function () {
                         cutout: '50%', // Creates a nice doughnut shape
                         plugins: {
                             legend: {
-                                position: 'right',
+                                position: window.innerWidth < 768 ? 'bottom' : 'right', // Change legend position based on screen width
                                 align: 'center',
                                 labels: {
                                     padding: 15,
