@@ -692,7 +692,7 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
     });
 
     // Edit order modal functionality
-    $(document).ready(function () {
+$(document).ready(function () {
     $("a[data-bs-target='#editOrderModal']").click(function () {
         var orderID = $(this).data("order-id");
         var customerFName = $(this).data("customer-first-name");
@@ -722,8 +722,17 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                 return false; // Stop looping once a match is found
             }
         });
+
+        // Handle customer fields based on order type
+        if (orderType === "INBOUND ORDER") {
+            $("#edit_customer_fname, #edit_customer_lname").val("N/A").prop("disabled", true);
+        } else {
+            $("#edit_customer_fname").val(customerFName).prop("disabled", false);
+            $("#edit_customer_lname").val(customerLName).prop("disabled", false);
+        }
     });
 });
+
 
         // PDF generation functionality
         $('.PDFdata').click(function(e) {
@@ -1035,86 +1044,103 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
             </div>
         </nav>
 
-        <!-- Add Order Modal -->
-        <div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="POST" action="">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Display Error Message -->
-                            <?php if (!empty($add_error_message)): ?>
-                                <div class="alert alert-danger text-center"><?php echo $add_error_message; ?></div>
-                            <?php endif; ?>
-                            <div class="mb-3">
-                                <label for="Customer" class="form-label">Customer Name</label>
-                                <select class="form-control" id="Customer" name="Customer_ID" style="height: fit-content;" required>
-                                    <option value="">Select Customer</option>
-                                    <?php foreach ($customers as $customer): ?>
-                                        <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
-                                            <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Product" class="form-label">Product</label>
-                                <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-                                    <option value="">Select Product</option>
-                                    <?php foreach ($products as $product): ?>
-                                        <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                            <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Status" class="form-label">Status</label>
-                                <select class="form-control" id="Status" name="Status" style="height: fit-content;" required>
-                                    <option value="">Select Status</option>
-                                    <option value="To Pick Up">To Pick Up</option>
-                                    <option value="In Transit">In Transit</option>
-                                    <option value="Delivered">Delivered</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Order_Type" class="form-label">Order Type</label>
-                                <select name="Order_Type" id="Order_Type" class="form-control" style="height: fit-content;" required>
-                                    <option value="">Select Order Type</option>
-                                    <option value="Inbound">Inbound</option>
-                                    <option value="Outbound">Outbound</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Quantity" class="form-label">Quantity</label>
-                                <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
-                            </div>
-                            <div class="mb-3">
-                                <label for="Notes" class="form-label">Notes</label>
-                                <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
-                                <script>
-                                function updateCharacterCount() {
-                                    const textarea = document.getElementById('Notes');
-                                    const charCount = document.getElementById('charCount');
-                                    charCount.textContent = `${textarea.value.length}/250`;
-                                }
-                                </script>
-                                <div class="d-flex justify-content-between">
-                                    <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
-                                    <div id="charCount" class="form-text text-muted" style="font-size: 12.6px;">0/250</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
-                            <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
-                        </div>
-                    </form>
+<!-- Add Order Modal -->
+<div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOrderModalLabel">Add New Order</h5>
                 </div>
-            </div>
+                <div class="modal-body">
+                    <!-- Display Error Message -->
+                    <?php if (!empty($add_error_message)): ?>
+                        <div class="alert alert-danger text-center"><?php echo $add_error_message; ?></div>
+                    <?php endif; ?>
+                    <div class="mb-3">
+                        <label for="Customer" class="form-label">Customer Name</label>
+                        <select class="form-control" id="Customer" name="Customer_ID" style="height: fit-content;" required>
+                            <option value="">Select Customer</option>
+                            <?php foreach ($customers as $customer): ?>
+                                <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
+                                    <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Product" class="form-label">Product</label>
+                        <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
+                            <option value="">Select Product</option>
+                            <?php foreach ($products as $product): ?>
+                                <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                    <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Status" class="form-label">Status</label>
+                        <select class="form-control" id="Status" name="Status" style="height: fit-content;" required>
+                            <option value="">Select Status</option>
+                            <option value="To Pick Up">To Pick Up</option>
+                            <option value="In Transit">In Transit</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Order_Type" class="form-label">Order Type</label>
+                        <select name="Order_Type" id="Order_Type" class="form-control" style="height: fit-content;" required>
+                            <option value="">Select Order Type</option>
+                            <option value="Inbound">Inbound</option>
+                            <option value="Outbound">Outbound</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Quantity" class="form-label">Quantity</label>
+                        <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="Notes" class="form-label">Notes</label>
+                        <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
+                        <script>
+                            function updateCharacterCount() {
+                                const textarea = document.getElementById('Notes');
+                                const charCount = document.getElementById('charCount');
+                                charCount.textContent = `${textarea.value.length}/250`;
+                            }
+
+                            // Disable Customer Name when Inbound is selected
+                            document.addEventListener("DOMContentLoaded", function () {
+                                const orderType = document.getElementById("Order_Type");
+                                const customerField = document.getElementById("Customer");
+
+                                orderType.addEventListener("change", function () {
+                                    if (this.value === "Inbound") {
+                                        customerField.disabled = true;
+                                        customerField.value = ""; // Clear selected customer
+                                    } else {
+                                        customerField.disabled = false;
+                                    }
+                                });
+                            });
+                        </script>
+                        <div class="d-flex justify-content-between">
+                            <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
+                            <div id="charCount" class="form-text text-muted" style="font-size: 12.6px;">0/250</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
+                    <button type="submit" name="add_order" class="btn custom-btn">Add Order</button>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
+
+
 
 <!-- Edit Order Modal -->
 <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
@@ -1132,8 +1158,14 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
                     <?php else: ?>
                         <input type="hidden" id="edit_order_id" name="Order_ID">
+                        
+                        <!-- Customer Name -->
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
+
+
+
+
                             <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
@@ -1141,7 +1173,10 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+
                         </div>
+
+                        <!-- Product -->
                         <div class="mb-3">
                             <label for="editProduct" class="form-label">Product</label>
                             <select class="form-control" id="editProduct" name="New_ProductID" style="height: fit-content;" required>
@@ -1152,10 +1187,14 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
+                        <!-- Quantity -->
                         <div class="mb-3">
                             <label for="edit_quantity" class="form-label">Quantity</label>
                             <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required placeholder="Enter quantity" min="0">
                         </div>
+
+                        <!-- Order Type -->
                         <div class="mb-3">
                             <label for="edit_order_type" class="form-label">Order Type</label>
                             <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
@@ -1163,6 +1202,8 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                 <option value="Outbound">Outbound</option>
                             </select>
                         </div>
+
+                        <!-- Status -->
                         <div class="mb-3">
                             <label for="edit_status" class="form-label">Status</label>
                             <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
@@ -1171,31 +1212,25 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                 <option value="Delivered">Delivered</option>
                             </select>
                         </div>
+
+                        <!-- Notes -->
                         <div class="mb-3">
                             <label for="edit_notes" class="form-label">Notes</label>
                             <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
-                            <script>
-                                function updateCharacterCountEdit() {
-                                    const textarea = document.getElementById('edit_notes');
-                                    const charCount = document.getElementById('editCharCount');
-                                    charCount.textContent = `${textarea.value.length}/250`;
-                                }
-                                // Initialize character count on modal open
-                                $(document).on('shown.bs.modal', '#editOrderModal', function () {
-                                    updateCharacterCountEdit();
-                                });
-                            </script>
+                            
                             <div class="d-flex justify-content-between">
                                 <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
-                                <div class="form-text text-muted" style="font-size: 12.6px;" id="editCharCount"><?php echo isset($row['Notes']) ? strlen($row['Notes']) : 0; ?>/250</div>
+                                <div class="form-text text-muted" id="editCharCount">
+                                    <?php echo isset($row['Notes']) ? strlen($row['Notes']) : 0; ?>/250
+                                </div>
                             </div>
                         </div>
                     <?php endif; ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
+                    <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef; color: #495057;">Close</button>
                     <?php if ($user_role !== 'staff') : ?>
-                        <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none" style="background-color: #dc3545 !important; color: #fff !important;">Delete</button>
+                        <button id="delete-selected-btn-edit" type="button" class="btn custom-btn btn-danger d-md-none">Delete</button>
                         <button type="submit" name="edit_order" class="btn custom-btn">Save Changes</button>
                     <?php endif; ?>
                 </div>
@@ -1203,6 +1238,33 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const orderType = document.getElementById("edit_order_type");
+    const customerField = document.getElementById("editCustomer");
+
+    function updateCustomerField() {
+        customerField.disabled = orderType.value === "Inbound";
+        if (customerField.disabled) customerField.value = ""; // Clear selection if disabled
+    }
+
+    // Run the function when modal opens
+    $(document).on('shown.bs.modal', '#editOrderModal', function () {
+        updateCustomerField();
+    });
+
+    // Update when user changes order type
+    orderType.addEventListener("change", updateCustomerField);
+});
+
+// Character Counter for Notes
+function updateCharacterCountEdit() {
+    const textarea = document.getElementById('edit_notes');
+    document.getElementById('editCharCount').textContent = `${textarea.value.length}/250`;
+}
+</script>
+
 
         <div class="container mt-4">
             <div class="pb-4">
@@ -1325,8 +1387,10 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         ?>
                                 <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_FName']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_LName']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></td>
+
+
                                     <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Unit'] . ') - ' . $row['Product_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                     <td class="order-type <?php echo $orderClass; ?>"><?php echo $orderType; ?></td>
@@ -1411,11 +1475,12 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                                             <p class="card-text"><strong>Managed by:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
                                         </div>
                                         <div class="col-6">
-                                            <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName']); ?></p>
-                                        </div>
-                                        <div class="col-6">
-                                            <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName']); ?></p>
-                                        </div>
+    <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
+</div>
+<div class="col-6">
+    <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
+</div>
+
                                         <div class="col-6">
                                             <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['Status']); ?></p>
                                         </div>
