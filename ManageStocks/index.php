@@ -58,7 +58,7 @@ function checkStockNotifications($conn, $product_id, $old_stock, $threshold) {
     if ($old_stock < $threshold) {
         $message = "⚠️ Stock for $product_name is critically low (Current: $old_stock, Threshold: $threshold). Reorder soon!";
         foreach (['admin', 'staff'] as $role) {
-            $insert_query = "INSERT INTO notifications (Role, Message, Created_At, cleared) VALUES (?, ?, NOW(), 0)";
+            $insert_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES (?, ?, NOW(), 0)";
             $stmt = $conn->prepare($insert_query);
             $stmt->bind_param("ss", $role, $message);
             $stmt->execute();
