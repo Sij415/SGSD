@@ -4,17 +4,18 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
  // Start the session
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
-$query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
+$query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name);
+$stmt->bind_result($User_ID, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -36,6 +37,7 @@ if (isset($_POST['add_product'])) {
     } else {
         $error_message = "Error adding product: " . $stmt->error;
     }
+    logActivity($conn, $User_ID, "Created a new Product $product_name");
 
     $stmt->close();
 }
@@ -57,7 +59,7 @@ if (isset($_POST['edit_product'])) {
     } else {
         $error_message = "Error updating product: " . $stmt->error;
     }
-
+    logActivity($conn, $User_ID, "Edited a Product: $new_productname");
     $stmt->close();
 }
 
@@ -65,7 +67,9 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
+// Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $User_ID, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
@@ -77,14 +81,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     $product_ids = json_decode($_POST['product_ids']);
 
     foreach ($product_ids as $product_id) {
-        // Delete the product
-        $query = "DELETE FROM Products WHERE Product_ID = ?";
+      
+
+        $query = "SELECT product_name FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
+        $stmt->bind_result($product_name);
+        $stmt->fetch();
         $stmt->close();
+        
+        logActivity($conn, $User_ID, "Deleted a Product: $product_name");
+        
+      // Delete the product
+      $query = "DELETE FROM Products WHERE Product_ID = ?";
+      $stmt = $conn->prepare($query);
+      $stmt->bind_param("i", $product_id);
+      $stmt->execute();
+      $stmt->close();
+    
+    
+    
+       
+
+
     }
 
+
+
+    
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }

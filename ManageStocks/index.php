@@ -3,6 +3,7 @@
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
 // Start the session
 ini_set('display_errors', 1);
 
@@ -100,6 +101,27 @@ if (isset($_POST['add_stock'])) {
         $error_message = "Error adding stock: " . $stmt->error;
     }
     $stmt->close();
+
+    $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $stmt->bind_result($product_name);
+    $stmt->fetch();
+    $stmt->close();
+
+
+
+    logActivity($conn, $user_id, "Created a new Stock $product_name");
+    
+
+
+
+
+
+
+
+
 }
 
 // Check if stock_id is passed via AJAX
@@ -160,6 +182,26 @@ if (isset($_POST['edit_stock'])) {
     }
 
     $stmt->close();
+
+
+
+//WALA KUKUHAHAN NG ID PARA PROD NAME
+
+
+    logActivity($conn, $user_id, "Edited a Stock");
+    
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // Fetch stock data for display
@@ -187,6 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
         $stmt->bind_param("i", $stock_id);
         $stmt->execute();
         $stmt->close();
+        logActivity($conn, $user_id, "Deleted a Stock $stock_id");
     }
 
     header("Location: " . $_SERVER['PHP_SELF']);
@@ -195,6 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_stocks'])) {
 
 // Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $user_id, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page

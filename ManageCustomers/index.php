@@ -4,17 +4,18 @@
 $required_role = 'admin';
 include('../check_session.php');
 include '../dbconnect.php';
+include '../log_functions.php';
  // Start the session
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
 // Get the user's first name and email from the database
-$query = "SELECT First_Name, Last_Name FROM Users WHERE Email = ?";
+$query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $user_email); // Bind the email as a string
 $stmt->execute();
-$stmt->bind_result($user_first_name, $user_last_name);
+$stmt->bind_result($User_ID,$user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 
@@ -46,6 +47,10 @@ if (isset($_POST['add_customer'])) {
     }
 
     $stmt->close();
+
+
+    logActivity($conn, $User_ID, "Created a new Customer $first_name $last_name");
+
 }
 
 
@@ -67,6 +72,8 @@ if (isset($_POST['edit_customer'])) {
     }
 
     $stmt->close();
+
+    logActivity($conn, $User_ID, "Edited a new customer $new_fname $new_lname");
 }
 
 // Fetch customers
@@ -74,6 +81,7 @@ $query = "SELECT * FROM Customers";
 $result = $conn->query($query);
 // Handle logout when the form is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
+    logActivity($conn, $User_ID, "Logged out");
     session_unset(); // Unset all session variables
     session_destroy(); // Destroy the session
     header("Location: ../Login"); // Redirect to login page
@@ -86,13 +94,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_customers'])) 
 
     foreach ($customer_ids as $customer_id) {
         // Delete the customer
-        $query = "DELETE FROM Customers WHERE Customer_ID = ?";
+
+
+       
+        $query = "SELECT First_Name, Last_Name FROM Customers WHERE Customer_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $customer_id);
+        $stmt->execute();
+        $stmt->bind_result($Customer_lname, $Customer_fname);
+        $stmt->fetch();
+        $stmt->close();
+
+
+
+
+
+        $query = "DELETE FROM  ustomers WHERE Customer_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $customer_id);
         $stmt->execute();
         $stmt->close();
+
+
+        logActivity($conn, $User_ID, "Deleted a Customer $Customer_fname $Customer_lname");
     }
 
+    
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
