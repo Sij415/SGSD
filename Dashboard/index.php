@@ -399,35 +399,147 @@ $(document).ready(function () {
                     productPieChart.destroy();
                 }
 
-                // Mobile-specific options
-                const isMobile = window.innerWidth <= 768;
-                const legendPosition = isMobile ? 'bottom' : 'left'; // Position legend at the bottom for mobile
+                // Create a varied color palette with contrasting colors
+                const colorPalette = [
+                    '#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f',
+                    '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab',
+                    '#6b6ecf', '#d37295', '#b07aa1', '#9d7660', '#5d8ca8',
+                    '#ff8c00', '#8549ba', '#008080', '#d62728', '#ffbb78'
+                ];
+
+                // Use custom colors instead of randomly generated ones
+                const chartColors = labels.map((_, i) => colorPalette[i % colorPalette.length]);
+
+                // Plugin to draw percentages inside the pie chart with enhanced readability
+                const doughnutLabelsPlugin = {
+                    id: 'doughnutLabels',
+                    afterDraw(chart) {
+                        const { ctx, width, height, _metasets } = chart;
+                        
+                        // Only proceed if we have data
+                        if (!chart.data.datasets[0].data.length) return;
+                        
+                        // Get the metadata for the doughnut chart
+                        const meta = _metasets[0];
+                        
+                        ctx.save();
+                        
+                        // For each data point, draw the percentage
+                        meta.data.forEach((element, index) => {
+                            // Get percentage value
+                            const value = values[index];
+                            const percentage = value.toFixed(1) + '%';
+                            
+                            // Only show label if segment is large enough (more than 3%)
+                            if (value < 3) return;
+                            
+                            // Calculate the middle point of the segment
+                            const { x, y } = element.getCenterPoint();
+                            
+                            // Get the angle in the middle of the segment
+                            const angle = element.startAngle + (element.endAngle - element.startAngle) / 2;
+                            
+                            // Calculate segment size ratio (0-1) to adjust text size and position
+                            const segmentRatio = value / 100;
+                            
+                            // Reduced radiusRatio to bring percentages closer to center
+                            const radiusRatio = -0.001 + (segmentRatio * 0.1); // between 25% and 35% of radius
+                            const radius = Math.min(chart.chartArea.width, chart.chartArea.height) / 2 * radiusRatio;
+                            
+                            // Position text
+                            const newX = x + Math.cos(angle) * radius;
+                            const newY = y + Math.sin(angle) * radius;
+                            
+                            // Calculate font size based on segment size (with min/max limits)
+                            const baseFontSize = 12;
+                            const minFontSize = 10;
+                            const maxFontSize = 16;
+                            const fontSize = Math.max(minFontSize, Math.min(maxFontSize, 
+                                               baseFontSize + (segmentRatio * 10)));
+                            
+                            // Get segment color and determine if we need dark or light text
+                            const bgColor = chartColors[index];
+                            // Simple luminance formula to determine if background is dark or light
+                            const r = parseInt(bgColor.slice(1, 3), 16);
+                            const g = parseInt(bgColor.slice(3, 5), 16);
+                            const b = parseInt(bgColor.slice(5, 7), 16);
+                            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                            const textColor = luminance > 0.5 ? '#000000' : '#FFFFFF';
+                            
+                            // Draw text background/container for better readability
+                            const textWidth = ctx.measureText(percentage).width;
+                            const padding = 4;
+                            const backgroundRadius = 10;
+                            
+                            // Draw rounded rectangle background with semi-transparency
+                            ctx.beginPath();
+                            ctx.roundRect(
+                                newX - (textWidth/2) - padding, 
+                                newY - (fontSize/2) - padding,
+                                textWidth + (padding * 2),
+                                fontSize + (padding * 2),
+                                backgroundRadius
+                            );
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+                            ctx.fill();
+                            
+                            // Set text styling
+                            ctx.font = `bold ${fontSize}px Inter`;
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            // Add text shadow for better visibility
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                            ctx.shadowBlur = 3;
+                            
+                            // Draw the text
+                            ctx.fillText(percentage, newX, newY);
+                            
+                            // Reset shadow
+                            ctx.shadowBlur = 0;
+                        });
+                        
+                        ctx.restore();
+                    }
+                };
 
                 productPieChart = new Chart(ctx, {
-                    type: 'pie',
+                    type: 'doughnut', // Use doughnut for more modern look
                     data: {
                         labels: labels,
                         datasets: [{
                             data: values,
-                            backgroundColor: colors
+                            backgroundColor: chartColors,
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            hoverBorderWidth: 4,
+                            hoverOffset: 10
                         }]
                     },
                     options: {
-                        responsive: true, // Ensure it scales properly
-                        maintainAspectRatio: false, // Prevents it from forcing a square aspect ratio
-                        aspectRatio: 2, // Adjust as needed (higher means wider, lower means taller)
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '50%', // Creates a nice doughnut shape
                         plugins: {
                             legend: {
-                                position: legendPosition, // Use dynamic legend position
+                                position: 'right',
+                                align: 'center',
                                 labels: {
+                                    padding: 15,
+                                    pointStyle: 'circle',
+                                    font: {
+                                        family: 'Inter',
+                                        size: 12,
+                                        weight: '600'
+                                    },
                                     generateLabels: function (chart) {
                                         let dataset = chart.data.datasets[0]; 
                                         if (!dataset || !dataset.data || dataset.data.length === 0) {
-                                            console.warn("⚠️ No product quantity data found in dataset!");
                                             return [];
                                         }
                                         return filteredData.map((product, index) => ({
-                                            text: `${product.Product_Name}: ${product.quantity_sold} units sold (${product.percentage.toFixed(2)}%)`,
+                                            text: `${product.Product_Name}: ${product.percentage.toFixed(1)}%`,
                                             fillStyle: dataset.backgroundColor[index],
                                             hidden: !chart.getDataVisibility(index),
                                             index: index
@@ -436,26 +548,41 @@ $(document).ready(function () {
                                 }
                             },
                             tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                titleColor: '#333',
+                                bodyColor: '#333',
+                                borderColor: '#ccc',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                padding: 12,
+                                boxPadding: 6,
                                 callbacks: {
                                     label: function (tooltipItem) {
                                         let index = tooltipItem.dataIndex;
-                                        let dataset = tooltipItem.chart.data.datasets[0];
-
-                                        if (!dataset || !dataset.data || !filteredData) {
-                                            return "No data available";
-                                        }
-
                                         let productData = filteredData[index];
                                         if (!productData) {
                                             return "No data available";
                                         }
-
-                                        return `${productData.Product_Name}: ${productData.quantity_sold} units sold (${productData.percentage.toFixed(2)}%)`;
+                                        return [
+                                            `Product: ${productData.Product_Name}`,
+                                            `Units sold: ${productData.quantity_sold}`,
+                                            `Share: ${productData.percentage.toFixed(2)}%`
+                                        ];
                                     }
                                 }
                             }
+                        },
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true,
+                            duration: 1000,
+                            easing: 'easeOutCirc'
+                        },
+                        layout: {
+                            padding: 20
                         }
-                    }
+                    },
+                    plugins: [doughnutLabelsPlugin]
                 });
 
             },
