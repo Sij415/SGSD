@@ -282,10 +282,17 @@ $conn->close();
         </select>
     </div>
     <div class="form-field-signup">
-        <div class="terms-container" style="display: flex; align-items: flex-start; margin: 10px 0;">
-            <input class="tocpp" type="checkbox" id="terms" name="terms" required style="width: 22px; margin-right: 10px; position: relative; !important;">
-            <label for="terms" class="terms-label m-0">I agree to the <a href="../TOCPP/toc.pdf">Terms & Conditions</a> and <a href="../TOCPP/pp.pdf">Privacy Policy</a></label>
-        </div> </div>
+        <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <input class="tocpp" type="checkbox" id="terms" name="terms" required style="font-size: 16px; width: 22px; margin-right: 10px; position: relative; !important;">
+                <label for="terms" class="terms-label m-0">I agree to the <a href="../TOCPP/toc.pdf">Terms & Conditions</a></label>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <input class="tocpp" type="checkbox" id="privacy" name="privacy" required style="font-size: 16px; width: 22px; margin-right: 10px; position: relative; !important;">
+                <label for="privacy" class="terms-label m-0" style="font-size: 16px;">I agree to the <a href="../TOCPP/pp.pdf">Privacy Policy</a></label>
+            </div>
+        </div>
+        </div>
     <div class="button-group">
         <input class="signup-cont-btn" type="submit" value="Signup">
     </div>

@@ -446,12 +446,21 @@ $(document).ready(function() {
 
             <?php if ($user_role !== 'driver') : // Exclude for drivers 
             ?>
-                <li>
-                    <a href="../ManageOrders">
-                        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
-                        <span>&nbsp;Manage Orders</span>
-                    </a>
-                </li>
+            <!-- Revision 1 -->
+            <li>
+                <a href="../InboundInvoices">
+                    <i class="fa-solid fa-file-import" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Inbound Invoices</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="../OutboundInvoices">
+                    <i class="fa-solid fa-file-export" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Outbound Invoices</span>
+                </a>
+            </li>
+            <!-- Revision 1 CODE ENDS HERE -->
             <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
@@ -706,17 +715,44 @@ $(document).ready(function() {
                             <!-- Hidden field for Customer_ID (auto-incremented, not user-inputted) -->
                             <input type="hidden" name="Customer_ID">
 
-                            <div class="mb-3">
-                                <label for="first_name" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="First_Name" name="First_Name" placeholder="e.g., Jon" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="First_Name" name="First_Name" placeholder="e.g., Jon" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="Last_Name" name="Last_Name" placeholder="e.g., Don" required>
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label for="last_name" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="Last_Name" name="Last_Name" placeholder="e.g., Don" required>
+                                <label for="contact_type" class="form-label">Contact Type</label>
+                                <select class="form-control" id="contact_type" name="Contact_Type" style="height: fit-content;" required onchange="updatePlaceholder()">
+                                    <option value="phone">Phone Number</option>
+                                    <option value="landline">Landline Number</option>
+                                </select>
+                                <script>
+                                    function updatePlaceholder() {
+                                        const contactType = document.getElementById('contact_type').value;
+                                        const contactNumberInput = document.getElementById('Contact_Number');
+                                        contactNumberInput.disabled = false; // Enable the field when type is selected
+                                        if (contactType === 'phone') {
+                                            contactNumberInput.placeholder = "e.g., 09913323242";
+                                        } else if (contactType === 'landline') {
+                                            contactNumberInput.placeholder = "e.g., (02) 7791 3101";
+                                        }
+                                    }
+
+                                    // Disable the contact number field initially
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        document.getElementById('Contact_Number').disabled = true;
+                                    });
+                                </script>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="contact_number" class="form-label">Contact Number</label>
-                                <input type="number" class="form-control" id="Contact_Number" name="Contact_Number" placeholder="e.g., 09913323242" min="0" required>
+                                <input type="number" class="form-control" id="Contact_Number" name="Contact_Number"  placeholder="Please select type of number first." min="0" max="99999999999" oninput="if(this.value.length > 11) this.value = this.value.slice(0, 11);" onkeydown="return event.key !== 'e';" required disabled>
                             </div>
                             <div class="modal-footer d-flex justify-content-end">
                                 <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
@@ -738,14 +774,26 @@ $(document).ready(function() {
                     <div class="modal-body">
                         <form method="POST" action="">
                             <input type="hidden" id="edit_customer_id" name="Customer_ID">
-                            <div class="mb-3">
-                                <label for="edit_first_name" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="edit_first_name" name="New_FirstName" placeholder="e.g., Jon" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="edit_first_name" name="New_FirstName" placeholder="e.g., Jon" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="edit_last_name" name="New_LastName" placeholder="e.g., Don" required>
+                                </div>
                             </div>
+                            <!-- Add backend function for type of Contact-->
                             <div class="mb-3">
-                                <label for="edit_last_name" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="edit_last_name" name="New_LastName" placeholder="e.g., Don" required>
+                                <label for="contact_type" class="form-label">Contact Type</label>
+                                <select class="form-control" id="contact_type" name="Contact_Type" style="height: fit-content;" required onchange="updatePlaceholder()">
+                                    <option value="phone">Phone Number</option>
+                                    <option value="landline">Landline Number</option>
+                                </select>
+                                </select>
                             </div>
+                            <!-- Ends Here -->
                             <div class="mb-3">
                                 <label for="edit_contact_num" class="form-label">Contact Number</label>
                                 <input type="number" class="form-control" id="edit_contact_num" name="New_ContactNum" placeholder="e.g., 09913323242" min="0" required>

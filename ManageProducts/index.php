@@ -469,12 +469,21 @@ $(document).ready(function() {
 
             <?php if ($user_role !== 'driver') : // Exclude for drivers 
             ?>
-                <li>
-                    <a href="../ManageOrders">
-                        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
-                        <span>&nbsp;Manage Orders</span>
-                    </a>
-                </li>
+            <!-- Revision 1 -->
+            <li>
+                <a href="../InboundInvoices">
+                    <i class="fa-solid fa-file-import" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Inbound Invoices</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="../OutboundInvoices">
+                    <i class="fa-solid fa-file-export" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Outbound Invoices</span>
+                </a>
+            </li>
+            <!-- Revision 1 CODE ENDS HERE -->
             <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
@@ -734,13 +743,15 @@ $(document).ready(function() {
                         <label for="Product_Type" class="form-label">Product Type</label>
                         <input type="text" class="form-control" id="Product_Type" name="Product_Type" placeholder="Enter Product Type" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="Price" class="form-label">Price</label>
-                        <input type="number" class="form-control" id="Price" name="Price" placeholder="Enter Price" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="Unit" class="form-label">Unit</label>
-                        <input type="text" class="form-control" id="Unit" name="Unit" placeholder="Enter Unit" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="Price" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="Price" name="Price" placeholder="Enter Price" oninput="if(this.value.length > 11) this.value = this.value.slice(0, 11);" onkeydown="return event.key !== 'e';" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Unit" class="form-label">Unit</label>
+                            <input type="text" class="form-control" id="Unit" name="Unit" placeholder="Enter Unit" required>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
@@ -771,13 +782,15 @@ $(document).ready(function() {
                         <label for="edit_product_type" class="form-label">Product Type</label>
                         <input type="text" class="form-control" id="edit_product_type" name="New_ProductType">
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_price" class="form-label">Price</label>
-                        <input type="number" class="form-control" id="edit_price" name="New_Price">
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_unit" class="form-label">Unit</label>
-                        <input type="text" class="form-control" id="edit_unit" name="New_Unit">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_price" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="edit_price" name="New_Price" oninput="if(this.value.length > 11) this.value = this.value.slice(0, 11);" onkeydown="return event.key !== 'e';">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_unit" class="form-label">Unit</label>
+                            <input type="text" class="form-control" id="edit_unit" name="New_Unit">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>
