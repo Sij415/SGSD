@@ -1025,13 +1025,15 @@ $(document).ready(function() {
                             ?>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="old_stock" class="form-label">Old Stock</label>
-                        <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" placeholder="Enter old stock quantity" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_stock" class="form-label">New Stock</label>
-                        <input type="number" class="form-control" id="New_Stock" name="New_Stock" placeholder="Enter new stock quantity" min="0" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="old_stock" class="form-label">Old Stock</label>
+                            <input type="number" class="form-control" id="Old_Stock" name="Old_Stock" placeholder="Enter old stock quantity" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="new_stock" class="form-label">New Stock</label>
+                            <input type="number" class="form-control" id="New_Stock" name="New_Stock" placeholder="Enter new stock quantity" min="0" required>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="threshold" class="form-label">Threshold</label>

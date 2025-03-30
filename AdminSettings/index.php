@@ -358,8 +358,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                             </div>
                         </div>
                         <div class="d-flex justify-content-end p-3">
-                            <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
+                            <button type="button" class="btn custom-btn mr-2" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
                                 <i class="fas fa-clipboard"></i> View Logs
+                            </button>
+                            <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
+                                <i class="fas fa-archive"></i> Archives
                             </button>
                         </div>
                     </div>
@@ -469,7 +472,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                             <div>
 
                                 <!-- Table Layout (Visible on larger screens) -->
-                                <div class="table-responsive d-none d-md-block">
+                                <div class="table-responsive d-none d-md-block" style="max-height: 500px; overflow-y: auto;">
                                     <table class="table table-striped table-bordered">
                                         <thead>
                                             <tr>

@@ -730,9 +730,9 @@ $(document).ready(function () {
                     </button>
                         <div class="dropdown-menu dropdown-menu-right p-0" ng-class="{'show': dropdownVisible}"
                              aria-labelledby="notificationButton" 
-                             style="width: 300px; border-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+                             style="width: 300px; border-top-left-radius: 12px; border-top-right-radius: 12px; border: none; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
                             <div class="p-2 border-bottom d-flex justify-content-between align-items-center position-sticky top-0 bg-white" 
-                                 style="border-radius: 12px; z-index: 1030; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                 style="border-radius: 12px; z-index: 1030;">
                                 <h6 class="m-0" style="font-weight: 600; letter-spacing: -0.045em;">Notifications</h6>
                                 <a href="#" style="color: #6fa062; font-weight: 600; font-size: 0.85rem;"
                                    ng-click="clearAllNotifications()">Clear all notifications</a>
