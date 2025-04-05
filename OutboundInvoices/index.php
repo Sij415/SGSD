@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $quantity = $_POST['Quantity'];
     $notes = $_POST['Notes'];
     
-    // Get Product_ID using the 3 input fields
+    // Get Product_ID and Price using the 3 input fields
     $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ? AND Unit = ? AND Product_Type = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("sss", $product_name, $unit, $product_type);
