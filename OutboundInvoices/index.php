@@ -51,7 +51,6 @@ $query = "SELECT
             Products.Product_Name, 
             Products.Product_Type, 
             Products.Unit,
-            Orders.Status,
             Orders.Order_Type, 
             Orders.Quantity,
             Orders.Total_Price,
@@ -151,18 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         exit;
     }
 
-    // Update stock based on order type and status
-    if ($order_type === "Inbound" && $status === "Delivered") {
-        // Delivered Inbound: Consolidate New_Stock to Old_Stock, then add
-        $query = "UPDATE Stocks SET Old_Stock = Old_Stock + New_Stock, New_Stock = ? WHERE Product_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ii", $quantity, $product_id);
-    } elseif ($order_type === "Inbound") {
-        // Pending Inbound: Just add to New_Stock
-        $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("ii", $quantity, $product_id);
-    } else {
         // Outbound order logic
         if ($quantity <= $old_stock) {
             // Deduct only from Old_Stock
@@ -227,35 +214,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         exit();
 
     }
-}
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
     $status = $_POST['New_Status'];
 
-    if ($user_role === 'driver') {
-        $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("si", $status, $order_id);
-        $stmt->execute();
-        $stmt->close();
-    } else {
         // Fetch updated order details
         $customer_id = $_POST['New_CustomerID'];  // Directly from form
-        $product_id = $_POST['New_ProductID'];    // Directly from form
+        $product_name = $_POST['New_ProductName'];
+        $unit = $_POST['New_Unit'];
+        $product_type = $_POST['New_ProductType'];
         $order_type = $_POST['New_OrderType'];
         $quantity = $_POST['New_Quantity'];
         $notes = $_POST['New_Notes'];
 
-        // Get Product_ID and Price
-        $query = "SELECT Price FROM Products WHERE Product_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $product_id);
+        // Get Product_ID using composite product fields
+        $product_query = "SELECT Product_ID FROM Products WHERE Product_Name = ? AND Unit = ? AND Product_Type = ?";
+        $stmt = $conn->prepare($product_query);
+        $stmt->bind_param("sss", $product_name, $unit, $product_type);
         $stmt->execute();
-        $stmt->bind_result($price);
+        $stmt->bind_result($product_id);
         $stmt->fetch();
         $stmt->close();
+
+        // If product not found, show error
+        if (!$product_id) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Product not found in database.'
+                    }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
+                });
+            </script>";
+            exit();
+        }
 
         // Get Current Quantity from Orders
         $query = "SELECT Quantity FROM Orders WHERE Order_ID = ?";
@@ -424,7 +421,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-    }
 }
 
 // Avoid infinite loop by checking the 'reload' parameter
@@ -1221,16 +1217,6 @@ $(document).ready(function () {
                             <label for="edit_quantity" class="form-label">Quantity</label>
                             <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required placeholder="Enter quantity" min="0">
                         </div>
-
-                        <!-- Order Type -->
-                        <div class="mb-3">
-                            <label for="edit_order_type" class="form-label">Order Type</label>
-                            <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
-                                <option value="Inbound">Inbound</option>
-                                <option value="Outbound">Outbound</option>
-                            </select>
-                        </div>
-
 
                         <!-- Notes -->
                         <div class="mb-3">

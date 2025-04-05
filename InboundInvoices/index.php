@@ -51,7 +51,6 @@ $query = "SELECT
             Products.Product_Name, 
             Products.Product_Type, 
             Products.Unit,
-            Orders.Status,
             Orders.Order_Type, 
             Orders.Quantity,
             Orders.Total_Price,
@@ -63,7 +62,6 @@ $query = "SELECT
           LEFT JOIN Customers ON Transactions.Customer_ID = Customers.Customer_ID
           WHERE Orders.Order_Type = 'Inbound'
           ORDER BY Orders.Order_ID DESC";
-
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
@@ -202,12 +200,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-
-
-
-
-
-
       // Insert Notification Logic for New Order
       if ($order_type === "Inbound") {
         $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
@@ -219,40 +211,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->execute();
         $stmt->close();
     }
-
-
-
-
-
-
-
-
-    
         logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
-    
-    
-
     
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-
-
-
-
-
-
-
-
         
     }
-
-
-
-    
-
-
-
-
 
 }
 
@@ -410,7 +374,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->execute();
         $stmt->close();
         
-
         $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
@@ -418,8 +381,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->bind_result($product_name);
         $stmt->fetch();
         $stmt->close();
-
-
 
         if ($status === "Delivered") {
             $notification_message = "Order Delivered: $product_name, Quantity: $quantity.";
@@ -446,39 +407,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             $stmt->close();
         }
 
-
-
-
-
-
-
-
-
-
-
-    
         logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
@@ -530,8 +459,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             $stmt->execute();
             $stmt->close();
 
-
-
             $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("i", $product_id);
@@ -542,9 +469,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
         
             logActivity($conn, $user_id, "Deleted a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type");
         
-
-            
-
             // Delete transaction (this will cascade and delete the order)
             $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
             $stmt = $conn->prepare($query);
@@ -554,18 +478,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
         }
         
     }
-
-
-
-    
-
-
-
-
-
-
-
-
 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
