@@ -78,18 +78,19 @@ $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $customer_id = $_POST['Customer_ID'];
-    $product_id = $_POST['Product_ID'];
-    $status = $_POST['Status'];
-    $order_type = $_POST['Order_Type'];
+    $product_name = $_POST['Product_Name'];
+    $unit = $_POST['Unit'];
+    $product_type = $_POST['Product_Type'];
+    $order_type = "Outbound";
     $quantity = $_POST['Quantity'];
     $notes = $_POST['Notes'];
-
-    // Fetch Product Price
-    $query = "SELECT Price FROM Products WHERE Product_ID = ?";
+    
+    // Get Product_ID using the 3 input fields
+    $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ? AND Unit = ? AND Product_Type = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $product_id);
+    $stmt->bind_param("sss", $product_name, $unit, $product_type);
     $stmt->execute();
-    $stmt->bind_result($price);
+    $stmt->bind_result($product_id, $price);
     $stmt->fetch();
     $stmt->close();
     
@@ -134,42 +135,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
             });
         </script>";
     } else {
-        // Move New_Stock to Old_Stock if Old_Stock is 0
-        if ($old_stock == 0) {
-            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("i", $product_id);
-            $stmt->execute();
-            $stmt->close();
-            $old_stock = $new_stock;
-            $new_stock = 0;
-        }
+        $total_stock = $old_stock + $new_stock;
 
-        // Update stock based on order type and status
-        if ($order_type === "Inbound" && $status === "Delivered") {
-            // Move New_Stock to Old_Stock and add quantity to New_Stock
-            $query = "UPDATE Stocks SET Old_Stock = Old_Stock + New_Stock, New_Stock = ? WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $new_stock_after_update = $quantity;
-            $stmt->bind_param("ii", $new_stock_after_update, $product_id);
-        } elseif ($order_type === "Inbound") {
-            // Inbound Order: Add to New_Stock
-            $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
+    // Check for sufficient stock for outbound
+    if ($order_type !== "Inbound" && $quantity > $total_stock) {
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Insufficient stock available for this product.'
+                });
+            });
+        </script>";
+        exit;
+    }
+
+    // Update stock based on order type and status
+    if ($order_type === "Inbound" && $status === "Delivered") {
+        // Delivered Inbound: Consolidate New_Stock to Old_Stock, then add
+        $query = "UPDATE Stocks SET Old_Stock = Old_Stock + New_Stock, New_Stock = ? WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $quantity, $product_id);
+    } elseif ($order_type === "Inbound") {
+        // Pending Inbound: Just add to New_Stock
+        $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $quantity, $product_id);
+    } else {
+        // Outbound order logic
+        if ($quantity <= $old_stock) {
+            // Deduct only from Old_Stock
+            $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ii", $quantity, $product_id);
         } else {
-            // Outbound Order: Deduct from Old_Stock first, then New_Stock if needed
-            if ($quantity <= $old_stock) {
-                $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $quantity, $product_id);
-            } else {
-                $remaining_qty = $quantity - $old_stock;
-                $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $remaining_qty, $product_id);
-            }
+            // Deduct from both Old_Stock and New_Stock
+            $remainder = $quantity - $old_stock;
+            $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $remainder, $product_id);
         }
+    }
         
         $stmt->execute();
         $stmt->close();
@@ -202,12 +209,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-
-
-
-
-
-
       // Insert Notification Logic for New Order
       if ($order_type === "Inbound") {
         $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
@@ -219,41 +220,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->execute();
         $stmt->close();
     }
-
-
-
-
-
-
-
-
     
         logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
-    
-    
-
     
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
 
-
-
-
-
-
-
-
-        
     }
-
-
-
-    
-
-
-
-
-
 }
 
 // Handle editing an order
@@ -445,40 +418,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             $stmt->execute();
             $stmt->close();
         }
-
-
-
-
-
-
-
-
-
-
-
     
         logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
@@ -530,8 +472,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             $stmt->execute();
             $stmt->close();
 
-
-
             $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("i", $product_id);
@@ -541,9 +481,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             $stmt->close();
         
             logActivity($conn, $user_id, "Deleted a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type");
-        
-
-            
 
             // Delete transaction (this will cascade and delete the order)
             $query = "DELETE FROM Transactions WHERE Transaction_ID = ?";
@@ -554,18 +491,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
         }
         
     }
-
-
-
-    
-
-
-
-
-
-
-
-
 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
@@ -809,7 +734,6 @@ $(document).ready(function () {
             const managedBy = $(this).data('managed-by');
             const customerName = $(this).data('customer-name');
             const productName = $(this).data('product');
-            const status = $(this).data('status');
             const orderType = $(this).data('order-type');
             const quantity = $(this).data('quantity');
             const totalPrice = $(this).data('total-price');
@@ -819,7 +743,6 @@ $(document).ready(function () {
             $('#managed_by').val(managedBy);
             $('#customer_name').val(customerName);
             $('#product_name').val(productName);
-            $('#status').val(status);
             $('#order_type').val(orderType);
             $('#quantity').val(quantity);
             $('#total_price').val(totalPrice);
@@ -1144,32 +1067,42 @@ $(document).ready(function () {
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <!-- Product Name -->
                     <div class="mb-3">
-                        <label for="Product" class="form-label">Product</label>
-                        <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-                            <option value="">Select Product</option>
-                            <?php foreach ($products as $product): ?>
-                                <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                    <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
-                                </option>
+                        <label for="productName" class="form-label">Product Name</label>
+                        <select class="form-control" id="productName" name="Product_Name" style="height: fit-content;" required>
+                            <option value="">Select Product Name</option>
+                            <?php 
+                            $productNames = array_unique(array_column($products, 'Product_Name'));
+                            foreach ($productNames as $name): ?>
+                                <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <!-- Unit -->
                     <div class="mb-3">
-                        <label for="Status" class="form-label">Status</label>
-                        <select class="form-control" id="Status" name="Status" style="height: fit-content;" required>
-                            <option value="">Select Status</option>
-                            <option value="To Pick Up">To Pick Up</option>
-                            <option value="In Transit">In Transit</option>
-                            <option value="Delivered">Delivered</option>
+                        <label for="unit" class="form-label">Unit</label>
+                        <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                            <option value="">Select Unit</option>
+                            <?php 
+                            $units = array_unique(array_column($products, 'Unit'));
+                            foreach ($units as $unit): ?>
+                                <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <!-- Product Type -->
                     <div class="mb-3">
-                        <label for="Order_Type" class="form-label">Order Type</label>
-                        <select name="Order_Type" id="Order_Type" class="form-control" style="height: fit-content;" required>
-                            <option value="">Select Order Type</option>
-                            <option value="Inbound">Inbound</option>
-                            <option value="Outbound">Outbound</option>
+                        <label for="productType" class="form-label">Product Type</label>
+                        <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                            <option value="">Select Product Type</option>
+                            <?php 
+                            $types = array_unique(array_column($products, 'Product_Type'));
+                            foreach ($types as $type): ?>
+                                <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -1216,8 +1149,6 @@ $(document).ready(function () {
     </div>
 </div>
 
-
-
 <!-- Edit Order Modal -->
 <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -1239,9 +1170,6 @@ $(document).ready(function () {
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
 
-
-
-
                             <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
@@ -1252,14 +1180,38 @@ $(document).ready(function () {
 
                         </div>
 
-                        <!-- Product -->
+                        <!-- Product Name -->
                         <div class="mb-3">
-                            <label for="editProduct" class="form-label">Product</label>
-                            <select class="form-control" id="editProduct" name="New_ProductID" style="height: fit-content;" required>
-                                <?php foreach ($products as $product): ?>
-                                    <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                        <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
-                                    </option>
+                            <label for="productName" class="form-label">Product Name</label>
+                            <select class="form-control" id="productName" name="Product_Name" style="height: fit-content;" required>
+                                <?php 
+                                $productNames = array_unique(array_column($products, 'Product_Name'));
+                                foreach ($productNames as $name): ?>
+                                    <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Unit -->
+                        <div class="mb-3">
+                            <label for="unit" class="form-label">Unit</label>
+                            <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                                <?php 
+                                $units = array_unique(array_column($products, 'Unit'));
+                                foreach ($units as $unit): ?>
+                                    <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Product Type -->
+                        <div class="mb-3">
+                            <label for="productType" class="form-label">Product Type</label>
+                            <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                                <?php 
+                                $types = array_unique(array_column($products, 'Product_Type'));
+                                foreach ($types as $type): ?>
+                                    <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -1279,15 +1231,6 @@ $(document).ready(function () {
                             </select>
                         </div>
 
-                        <!-- Status -->
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status</label>
-                            <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
-                                <option value="To Pick Up">To Pick Up</option>
-                                <option value="In Transit">In Transit</option>
-                                <option value="Delivered">Delivered</option>
-                            </select>
-                        </div>
 
                         <!-- Notes -->
                         <div class="mb-3">
@@ -1444,13 +1387,14 @@ function updateCharacterCountEdit() {
                         <tr>
                             <th onclick="sortTable(1)">Order ID <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(2)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Product<i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Status <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Customer <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Product<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Unit<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Product Type<i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(8)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(9)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(8)">Order Type <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(9)">Total Price <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(10)">Notes <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
@@ -1464,13 +1408,12 @@ function updateCharacterCountEdit() {
                                 <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
                                     <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></td>
-
-
-                                    <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Unit'] . ') - ' . $row['Product_Type']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Status']); ?></td>
+                                    <td><?php echo htmlspecialchars(($row['Customer_FName'] ?? "N/A") . " " . ($row['Customer_LName'] ?? "N/A"), ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Unit']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                                     <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                     <td class="text-center"> 
@@ -1482,7 +1425,6 @@ function updateCharacterCountEdit() {
                                         data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
                                         data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
                                         data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
-                                        data-status="<?php echo htmlspecialchars($row['Status']); ?>" 
                                         data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
                                         data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
                                         <i class="bi bi-pencil-square"></i>
@@ -1493,7 +1435,6 @@ function updateCharacterCountEdit() {
                                             data-managed-by="<?php echo $row['Full_Name']; ?>" 
                                             data-customer-name="<?php echo $row['Customer_FName'] . ' ' . $row['Customer_LName']; ?>"
                                             data-product="<?php echo $row['Product_Name'].' ('.$row['Product_Type'].')'; ?>"
-                                            data-status="<?php echo $row['Status']; ?>" 
                                             data-order-type="<?php echo $row['Order_Type']; ?>"
                                             data-quantity="<?php echo $row['Quantity']; ?>"
                                             data-total-price="<?php echo $row['Total_Price'] ?>"
@@ -1537,8 +1478,7 @@ function updateCharacterCountEdit() {
                             data-customer-last-name="<?php echo $row['Customer_LName']; ?>"
                             data-product-name="<?php echo $row['Product_Name']; ?>" 
                             data-product-type="<?php echo $row['Product_Type']; ?>"
-                            data-product-unit="<?php echo $row['Unit']; ?>"
-                            data-status="<?php echo $row['Status']; ?>" 
+                            data-product-unit="<?php echo $row['Unit']; ?>" 
                             data-order-type="<?php echo $row['Order_Type']; ?>"
                             data-quantity="<?php echo $row['Quantity']; ?>"
                             data-total-price="<?php echo $row['Total_Price']; ?>"
@@ -1551,14 +1491,10 @@ function updateCharacterCountEdit() {
                                             <p class="card-text"><strong>Managed by:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
                                         </div>
                                         <div class="col-6">
-    <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
-</div>
-<div class="col-6">
-    <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
-</div>
-
+                                            <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
+                                        </div>
                                         <div class="col-6">
-                                            <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['Status']); ?></p>
+                                            <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
                                         </div>
                                         <div class="col-6">
                                             <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Order_Type']); ?></p>

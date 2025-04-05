@@ -23,7 +23,7 @@
 
 <?php
 // Include database connection
-$required_role = 'admin,staff,driver';
+$required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
 include '../log_functions.php';
