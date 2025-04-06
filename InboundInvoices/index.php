@@ -1056,24 +1056,42 @@ $(document).ready(function () {
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <!-- Product Name -->
                     <div class="mb-3">
-                        <label for="Product" class="form-label">Product</label>
-                        <select class="form-control" id="product_id" name="Product_ID" style="height: fit-content;" required>
-                            <option value="">Select Product</option>
-                            <?php foreach ($products as $product): ?>
-                                <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                    <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
-                                </option>
+                        <label for="productName" class="form-label">Product Name</label>
+                        <select class="form-control" id="productName" name="Product_Name" style="height: fit-content;" required>
+                            <option value="">Select Product Name</option>
+                            <?php 
+                            $productNames = array_unique(array_column($products, 'Product_Name'));
+                            foreach ($productNames as $name): ?>
+                                <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <!-- Unit -->
                     <div class="mb-3">
-                        <label for="Status" class="form-label">Status</label>
-                        <select class="form-control" id="Status" name="Status" style="height: fit-content;" required>
-                            <option value="">Select Status</option>
-                            <option value="To Pick Up">To Pick Up</option>
-                            <option value="In Transit">In Transit</option>
-                            <option value="Delivered">Delivered</option>
+                        <label for="unit" class="form-label">Unit</label>
+                        <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                            <option value="">Select Unit</option>
+                            <?php 
+                            $units = array_unique(array_column($products, 'Unit'));
+                            foreach ($units as $unit): ?>
+                                <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Product Type -->
+                    <div class="mb-3">
+                        <label for="productType" class="form-label">Product Type</label>
+                        <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                            <option value="">Select Product Type</option>
+                            <?php 
+                            $types = array_unique(array_column($products, 'Product_Type'));
+                            foreach ($types as $type): ?>
+                                <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -1128,8 +1146,6 @@ $(document).ready(function () {
     </div>
 </div>
 
-
-
 <!-- Edit Order Modal -->
 <div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -1150,10 +1166,6 @@ $(document).ready(function () {
                         <!-- Customer Name -->
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
-
-
-
-
                             <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
@@ -1164,14 +1176,38 @@ $(document).ready(function () {
 
                         </div>
 
-                        <!-- Product -->
+                        <!-- Product Name -->
                         <div class="mb-3">
-                            <label for="editProduct" class="form-label">Product</label>
-                            <select class="form-control" id="editProduct" name="New_ProductID" style="height: fit-content;" required>
-                                <?php foreach ($products as $product): ?>
-                                    <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
-                                        <?= htmlspecialchars($product['Product_Name'] . ' (' . $product['Unit'] . ') - ' . $product['Product_Type']) ?>
-                                    </option>
+                            <label for="productName" class="form-label">Product Name</label>
+                            <select class="form-control" id="productName" name="Product_Name" style="height: fit-content;" required>
+                                <?php 
+                                $productNames = array_unique(array_column($products, 'Product_Name'));
+                                foreach ($productNames as $name): ?>
+                                    <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Unit -->
+                        <div class="mb-3">
+                            <label for="unit" class="form-label">Unit</label>
+                            <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                                <?php 
+                                $units = array_unique(array_column($products, 'Unit'));
+                                foreach ($units as $unit): ?>
+                                    <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Product Type -->
+                        <div class="mb-3">
+                            <label for="productType" class="form-label">Product Type</label>
+                            <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                                <?php 
+                                $types = array_unique(array_column($products, 'Product_Type'));
+                                foreach ($types as $type): ?>
+                                    <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -1188,16 +1224,6 @@ $(document).ready(function () {
                             <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
                                 <option value="Inbound">Inbound</option>
                                 <option value="Outbound">Outbound</option>
-                            </select>
-                        </div>
-
-                        <!-- Status -->
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status</label>
-                            <select class="form-control" id="edit_status" name="New_Status" style="height: fit-content;" required>
-                                <option value="To Pick Up">To Pick Up</option>
-                                <option value="In Transit">In Transit</option>
-                                <option value="Delivered">Delivered</option>
                             </select>
                         </div>
 
@@ -1356,12 +1382,12 @@ function updateCharacterCountEdit() {
                         <tr>
                             <th onclick="sortTable(1)">Order ID <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(2)">Managed by <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(3)">Customer's First Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(4)">Customer's Last Name <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(5)">Product<i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(6)">Status <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(7)">Order Type <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(8)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(3)">Customer <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(4)">Product<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(5)">Unit<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(6)">Product Type<i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(8)">Order Type <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(9)">Total Price <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(10)">Notes <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
@@ -1375,16 +1401,14 @@ function updateCharacterCountEdit() {
                                 $orderClass = ($orderType == 'Outbound') ? 'outbound' : 'inbound';
                         ?>
                                 <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
-                                    <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
+                                <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></td>
-
-
-                                    <td><?php echo htmlspecialchars($row['Product_Name'] . ' (' . $row['Unit'] . ') - ' . $row['Product_Type']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Status']); ?></td>
-                                    <td class="order-type <?php echo $orderClass; ?>"><?php echo $orderType; ?></td>
+                                    <td><?php echo htmlspecialchars(($row['Customer_FName'] ?? "N/A") . " " . ($row['Customer_LName'] ?? "N/A"), ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_Name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Unit']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Product_Type']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                                     <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                     <td class="text-center"> 
@@ -1396,7 +1420,6 @@ function updateCharacterCountEdit() {
                                         data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
                                         data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
                                         data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
-                                        data-status="<?php echo htmlspecialchars($row['Status']); ?>" 
                                         data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
                                         data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
                                         <i class="bi bi-pencil-square"></i>
@@ -1465,14 +1488,10 @@ function updateCharacterCountEdit() {
                                             <p class="card-text"><strong>Managed by:</strong> <?php echo htmlspecialchars($row['Full_Name']); ?></p>
                                         </div>
                                         <div class="col-6">
-    <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
-</div>
-<div class="col-6">
-    <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
-</div>
-
+                                            <p class="card-text"><strong>Customer's First Name:</strong> <?php echo htmlspecialchars($row['Customer_FName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
+                                        </div>
                                         <div class="col-6">
-                                            <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['Status']); ?></p>
+                                            <p class="card-text"><strong>Customer's Last Name:</strong> <?php echo htmlspecialchars($row['Customer_LName'] ?? "N/A", ENT_QUOTES, 'UTF-8'); ?></p>
                                         </div>
                                         <div class="col-6">
                                             <p class="card-text"><strong>Order Type:</strong> <?php echo htmlspecialchars($row['Order_Type']); ?></p>
