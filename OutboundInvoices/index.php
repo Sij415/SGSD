@@ -169,10 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->close();
 
         // Insert Order
-        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("iissidsi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $notes, $transaction_id);
+        $stmt->bind_param("iisidsi", $user_id, $product_id, $order_type, $quantity, $total_price, $notes, $transaction_id);
         if (!$stmt->execute()) {
             error_log("Error inserting order: " . $stmt->error);
         }
@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 
       // Insert Notification Logic for New Order
       if ($order_type === "Inbound") {
-        $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
+        $notification_message = "New Inbound Order: $product_name, Quantity: $quantity,.";
 
         // Notify Driver
         $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->close();
     }
     
-        logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
+        logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Notes: $notes");
     
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
@@ -218,7 +218,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
-    $status = $_POST['New_Status'];
 
         // Fetch updated order details
         $customer_id = $_POST['New_CustomerID'];  // Directly from form
@@ -416,7 +415,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             $stmt->close();
         }
     
-        logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
+        logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Notes: $notes");
     
 
         header("Location: " . $_SERVER['PHP_SELF']);

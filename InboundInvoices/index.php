@@ -75,19 +75,29 @@ $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 
 // Handle adding a new order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-    $customer_id = $_POST['Customer_ID'];
-    $product_id = $_POST['Product_ID'];
-    $status = $_POST['Status'];
-    $order_type = $_POST['Order_Type'];
+    // Dynamically fetch the Customer_ID for "St. Gabriel Softdrinks Delivery"
+    $stmt = $conn->prepare("SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?");
+    $first_name = 'St. Gabriel';
+    $last_name = 'Softdrinks Delivery';
+    $stmt->bind_param("ss", $first_name, $last_name);
+    $stmt->execute();
+    $stmt->bind_result($customer_id);
+    $stmt->fetch();
+    $stmt->close();
+
+    $product_name = $_POST['Product_Name'];
+    $unit = $_POST['Unit'];
+    $product_type = $_POST['Product_Type'];
+    $order_type = "Inbound";
     $quantity = $_POST['Quantity'];
     $notes = $_POST['Notes'];
 
-    // Fetch Product Price
-    $query = "SELECT Price FROM Products WHERE Product_ID = ?";
+    // Get Product_ID and Price using the 3 input fields
+    $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ? AND Unit = ? AND Product_Type = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $product_id);
+    $stmt->bind_param("sss", $product_name, $unit, $product_type);
     $stmt->execute();
-    $stmt->bind_result($price);
+    $stmt->bind_result($product_id, $price);
     $stmt->fetch();
     $stmt->close();
     
@@ -110,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $stmt->fetch();
     $stmt->close();
 
-    // Check if stock entry exists for the product
+    // Check if stock entry exists
     if ($old_stock === null && $new_stock === null) {
         echo "<script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -121,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                 });
             });
         </script>";
-    } else if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
+    } } else if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
         echo "<script>
             document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
@@ -144,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         }
 
         // Update stock based on order type and status
-        if ($order_type === "Inbound" && $status === "Delivered") {
+        if ($order_type === "Inbound") {
             // Move New_Stock to Old_Stock and add quantity to New_Stock
             $query = "UPDATE Stocks SET Old_Stock = Old_Stock + New_Stock, New_Stock = ? WHERE Product_ID = ?";
             $stmt = $conn->prepare($query);
@@ -156,42 +166,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ii", $quantity, $product_id);
         } else {
-            // Outbound Order: Deduct from Old_Stock first, then New_Stock if needed
-            if ($quantity <= $old_stock) {
-                $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $quantity, $product_id);
-            } else {
-                $remaining_qty = $quantity - $old_stock;
-                $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $remaining_qty, $product_id);
-            }
-        }
-        
+        // Add inbound quantity to New_Stock
+        $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $quantity, $product_id);
         $stmt->execute();
         $stmt->close();
 
-        // Insert Order
-        $query = "INSERT INTO Orders (User_ID, Product_ID, Status, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Insert Order (no status field)
+        $query = "INSERT INTO Orders (User_ID, Product_ID, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("iissidsi", $user_id, $product_id, $status, $order_type, $quantity, $total_price, $notes, $transaction_id);
+        $stmt->bind_param("iisidsi", $user_id, $product_id, $order_type, $quantity, $total_price, $notes, $transaction_id);
         if (!$stmt->execute()) {
             error_log("Error inserting order: " . $stmt->error);
         }
         $order_id = $stmt->insert_id;
         $stmt->close();
 
-        // Update Transactions with Order_ID
+        // Link order to transaction
         $query = "UPDATE Transactions SET Order_ID = ? WHERE Transaction_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ii", $order_id, $transaction_id);
-        if (!$stmt->execute()) {
-            error_log("Error updating transaction with order ID: " . $stmt->error);
-        }
+        $stmt->execute();
         $stmt->close();
 
+        // Fetch product name for logs/notifications
         $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
@@ -200,30 +200,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->fetch();
         $stmt->close();
 
-      // Insert Notification Logic for New Order
-      if ($order_type === "Inbound") {
-        $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
-
         // Notify Driver
+        $notification_message = "New Inbound Order: $product_name, Quantity: $quantity.";
         $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
         $stmt = $conn->prepare($notif_query);
         $stmt->bind_param("s", $notification_message);
         $stmt->execute();
         $stmt->close();
-    }
-        logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
-    
+
+        // Log activity
+        logActivity($conn, $user_id, "Created Inbound Order: $product_name, Quantity: $quantity, Notes: $notes");
+
+        // Redirect to refresh page
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-        
     }
-
 }
 
 // Handle editing an order
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
-    $status = $_POST['New_Status'];
 
     if ($user_role === 'driver') {
         $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
@@ -282,22 +278,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             exit();
         }
 
-        // Move New_Stock to Old_Stock if Old_Stock is 0
-        if ($old_stock == 0) {
-            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("i", $product_id);
-            $stmt->execute();
-            $stmt->close();
-            $old_stock = $new_stock;
-            $new_stock = 0;
-        }
-
         // Check if the combined stock is sufficient
         $total_stock = $old_stock + $new_stock;
         $quantity_difference = $quantity - $current_quantity;
 
-        if ($order_type !== "Inbound" && $quantity_difference > $total_stock) {
+        if ($quantity_difference > $total_stock) {
             echo "<script>
                 document.addEventListener('DOMContentLoaded', function() {
                     Swal.fire({
@@ -407,7 +392,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             $stmt->close();
         }
 
-        logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
+        logActivity($conn, $user_id, "Edited a Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Notes: $notes");
 
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
@@ -448,11 +433,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_orders'])) {
             if ($order_type === "Inbound") {
                 // Inbound Order: Deduct from New_Stock
                 $query = "UPDATE Stocks SET New_Stock = New_Stock - ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $quantity, $product_id);
-            } else {
-                // Outbound Order: Add back to Old_Stock
-                $query = "UPDATE Stocks SET Old_Stock = Old_Stock + ? WHERE Product_ID = ?";
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param("ii", $quantity, $product_id);
             }
@@ -1047,14 +1027,7 @@ $(document).ready(function () {
                     <?php endif; ?>
                     <div class="mb-3">
                         <label for="Customer" class="form-label">Customer Name</label>
-                        <select class="form-control" id="Customer" name="Customer_ID" style="height: fit-content;" required>
-                            <option value="">Select Customer</option>
-                            <?php foreach ($customers as $customer): ?>
-                                <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
-                                    <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <input type="text" class="form-control" value="St. Gabriel Softdrinks Delivery" style="height: fit-content;" readonly>
                     </div>
                     <!-- Product Name -->
                     <div class="mb-3">
@@ -1092,14 +1065,6 @@ $(document).ready(function () {
                             foreach ($types as $type): ?>
                                 <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
                             <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="Order_Type" class="form-label">Order Type</label>
-                        <select name="Order_Type" id="Order_Type" class="form-control" style="height: fit-content;" required>
-                            <option value="">Select Order Type</option>
-                            <option value="Inbound">Inbound</option>
-                            <option value="Outbound">Outbound</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -1216,15 +1181,6 @@ $(document).ready(function () {
                         <div class="mb-3">
                             <label for="edit_quantity" class="form-label">Quantity</label>
                             <input type="number" class="form-control" id="edit_quantity" name="New_Quantity" style="height: fit-content;" required placeholder="Enter quantity" min="0">
-                        </div>
-
-                        <!-- Order Type -->
-                        <div class="mb-3">
-                            <label for="edit_order_type" class="form-label">Order Type</label>
-                            <select class="form-control" id="edit_order_type" name="New_OrderType" style="height: fit-content;" required>
-                                <option value="Inbound">Inbound</option>
-                                <option value="Outbound">Outbound</option>
-                            </select>
                         </div>
 
                         <!-- Notes -->
@@ -1430,7 +1386,6 @@ function updateCharacterCountEdit() {
                                             data-managed-by="<?php echo $row['Full_Name']; ?>" 
                                             data-customer-name="<?php echo $row['Customer_FName'] . ' ' . $row['Customer_LName']; ?>"
                                             data-product="<?php echo $row['Product_Name'].' ('.$row['Product_Type'].')'; ?>"
-                                            data-status="<?php echo $row['Status']; ?>" 
                                             data-order-type="<?php echo $row['Order_Type']; ?>"
                                             data-quantity="<?php echo $row['Quantity']; ?>"
                                             data-total-price="<?php echo $row['Total_Price'] ?>"
