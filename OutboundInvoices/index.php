@@ -1074,31 +1074,32 @@ $(document).ready(function () {
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class='row'>
+                        <!-- Unit -->
+                        <div class="col-md-6 mb-3">
+                            <label for="unit" class="form-label">Unit</label>
+                            <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                                <option value="">Select Unit</option>
+                                <?php 
+                                $units = array_unique(array_column($products, 'Unit'));
+                                foreach ($units as $unit): ?>
+                                    <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                    <!-- Unit -->
-                    <div class="mb-3">
-                        <label for="unit" class="form-label">Unit</label>
-                        <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
-                            <option value="">Select Unit</option>
-                            <?php 
-                            $units = array_unique(array_column($products, 'Unit'));
-                            foreach ($units as $unit): ?>
-                                <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Product Type -->
-                    <div class="mb-3">
-                        <label for="productType" class="form-label">Product Type</label>
-                        <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
-                            <option value="">Select Product Type</option>
-                            <?php 
-                            $types = array_unique(array_column($products, 'Product_Type'));
-                            foreach ($types as $type): ?>
-                                <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <!-- Product Type -->
+                        <div class="col-md-6 mb-3">
+                            <label for="productType" class="form-label">Product Type</label>
+                            <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                                <option value="">Select Product Type</option>
+                                <?php 
+                                $types = array_unique(array_column($products, 'Product_Type'));
+                                foreach ($types as $type): ?>
+                                    <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="Quantity" class="form-label">Quantity</label>
@@ -1186,29 +1187,30 @@ $(document).ready(function () {
                                 <?php endforeach; ?>
                             </select>
                         </div>
+                        <div class='row'>
+                            <!-- Unit -->
+                            <div class="col-md-6 mb-3">
+                                <label for="unit" class="form-label">Unit</label>
+                                <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                                    <?php 
+                                    $units = array_unique(array_column($products, 'Unit'));
+                                    foreach ($units as $unit): ?>
+                                        <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-                        <!-- Unit -->
-                        <div class="mb-3">
-                            <label for="unit" class="form-label">Unit</label>
-                            <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
-                                <?php 
-                                $units = array_unique(array_column($products, 'Unit'));
-                                foreach ($units as $unit): ?>
-                                    <option value="<?= htmlspecialchars($unit) ?>"><?= htmlspecialchars($unit) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <!-- Product Type -->
-                        <div class="mb-3">
-                            <label for="productType" class="form-label">Product Type</label>
-                            <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
-                                <?php 
-                                $types = array_unique(array_column($products, 'Product_Type'));
-                                foreach ($types as $type): ?>
-                                    <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <!-- Product Type -->
+                            <div class="col-md-6 mb-3">
+                                <label for="productType" class="form-label">Product Type</label>
+                                <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                                    <?php 
+                                    $types = array_unique(array_column($products, 'Product_Type'));
+                                    foreach ($types as $type): ?>
+                                        <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Quantity -->
@@ -1290,14 +1292,6 @@ function updateCharacterCountEdit() {
                 <i class="bi bi-info-circle mr-1"></i>
                 Tap card to edit order details.
             </div>
-            <ul class="pl-0">
-                    <li style="font-size: 1em; background-color: #5dade2; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #3498db;">
-                        <i class="fas fa-arrow-right"></i> <span>Blue</span> = Outbound
-                    </li>
-                    <li style="font-size: 1em; background-color: #58d68d; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #2ecc71;">
-                        <i class="fas fa-arrow-left"></i> <span>Green</span> = Inbound
-                    </li>
-                </ul>
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
@@ -1431,7 +1425,7 @@ function updateCharacterCountEdit() {
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-            <td colspan="11" class="text-center">No orders found.</td>
+            <td colspan="12" class="text-center">No orders found.</td>
         </tr>
                         <?php endif; ?>
                     </tbody>
