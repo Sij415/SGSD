@@ -1238,20 +1238,20 @@ function updateCharacterCountEdit() {
 
         <div class="container mt-4">
             <div class="pb-4">
-            <i class="fa-solid fa-chart-bar" style="font-size:56px;"></i>
+            <i class="fa-solid fa-file-import" style="font-size:56px;"></i>
             </div>
             <div class="d-flex align-items-center">
                 <h3 style="font-size: 40px; letter-spacing: -0.045em;">
-                    <b>Manage Orders</b>
+                    <b>Inbound Invoices</b>
                 </h3>
-                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage orders including adding, editing, and viewing order details."></i>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage inbound invoices including adding, editing, and viewing details."></i>
                 <script>
                     $(document).ready(function(){
                         $('[data-toggle="tooltip"]').tooltip();
                     });
                 </script>
             </div>
-            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage orders.</h4>
+            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage inbound invoices.</h4>
             <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
                 <i class="bi bi-info-circle mr-1"></i>
                 Tap card to edit order details.
