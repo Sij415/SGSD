@@ -139,9 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->execute();
         $stmt->close();
 
-        // Log the stock update
-        error_log("Updated New_Stock for Product_ID: $product_id with Quantity: $quantity");
-
         // Insert Order
         $query = "INSERT INTO Orders (User_ID, Product_ID, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
                   VALUES (?, ?, ?, ?, ?, ?, ?)";
