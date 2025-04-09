@@ -1106,8 +1106,8 @@ $(document).ready(function () {
                         <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
                     </div>
                     <div class="mb-3">
-                        <label for="Notes" class="form-label">Notes</label>
-                        <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
+                        <label for="Notes" class="form-label">Remarks</label>
+                        <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter Remarks" oninput="updateCharacterCount()"></textarea>
                         <script>
                             function updateCharacterCount() {
                                 const textarea = document.getElementById('Notes');
@@ -1221,8 +1221,8 @@ $(document).ready(function () {
 
                         <!-- Notes -->
                         <div class="mb-3">
-                            <label for="edit_notes" class="form-label">Notes</label>
-                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
+                            <label for="edit_notes" class="form-label">Remarks</label>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter Remarks" oninput="updateCharacterCountEdit()"></textarea>
                             
                             <div class="d-flex justify-content-between">
                                 <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
@@ -1373,7 +1373,7 @@ function updateCharacterCountEdit() {
                             <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(8)">Order Type <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(9)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(10)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(10)">Remarks <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
@@ -1485,7 +1485,7 @@ function updateCharacterCountEdit() {
                                             <p class="card-text"><strong>Total Price:</strong> <?php echo htmlspecialchars($row['Total_Price']); ?></p>
                                         </div>
                                         <div class="col-6">
-                                            <p class="card-text"><strong>Notes:</strong> <?php echo htmlspecialchars($row['Notes']); ?></p>
+                                            <p class="card-text"><strong>Remarks:</strong> <?php echo htmlspecialchars($row['Notes']); ?></p>
                                         </div>
                                     </div>
                                 </div>
