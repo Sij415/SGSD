@@ -1254,7 +1254,7 @@ function updateCharacterCountEdit() {
                                     <td><?php echo htmlspecialchars($row['Quantity']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Order_Type']); ?></td>
                                     <td>₱<?php echo number_format(htmlspecialchars($row['Total_Price']), 2); ?></td>
-                                    <td><?php echo htmlspecialchars($row['Remarks']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                     <td class="text-center"> 
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal"
                                         data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>" 
@@ -1265,7 +1265,7 @@ function updateCharacterCountEdit() {
                                         data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
                                         data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
                                         data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
-                                        data-notes="<?php echo htmlspecialchars($row['Remarks']); ?>">
+                                        data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     </td>
@@ -1277,7 +1277,7 @@ function updateCharacterCountEdit() {
                                             data-order-type="<?php echo $row['Order_Type']; ?>"
                                             data-quantity="<?php echo $row['Quantity']; ?>"
                                             data-total-price="<?php echo $row['Total_Price'] ?>"
-                                            data-notes="<?php echo $row['Remarks'] ?>">
+                                            data-notes="<?php echo $row['Notes'] ?>">
                                             <i class="bi bi-envelope-paper"></i>
                                     </a>
                                 </td>
