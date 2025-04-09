@@ -1280,7 +1280,7 @@ function updateCharacterCountEdit() {
                 <h3 style="font-size: 40px; letter-spacing: -0.045em;">
                     <b>Outbound Invoices</b>
                 </h3>
-                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage orders including adding, editing, and viewing order details."></i>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage outbound invoices including adding, editing, and viewing details."></i>
                 <script>
                     $(document).ready(function(){
                         $('[data-toggle="tooltip"]').tooltip();
