@@ -924,6 +924,7 @@ $(document).ready(function () {
                     <?php endif; ?>
                     <div class="mb-3">
                         <label for="Customer" class="form-label">Customer Name</label>
+                        <!-- Is this intentionally hardcoded? -->
                         <input type="text" class="form-control" value="St. Gabriel Softdrinks Delivery" style="height: fit-content;" readonly>
                     </div>
                     <!-- Product Name -->
@@ -938,9 +939,10 @@ $(document).ready(function () {
                             <?php endforeach; ?>
                         </select>
                     </div>
-
+                    
+                    <div class='row'>
                     <!-- Unit -->
-                    <div class="mb-3">
+                    <div class="col-md-6 mb-3">
                         <label for="unit" class="form-label">Unit</label>
                         <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
                             <option value="">Select Unit</option>
@@ -951,9 +953,8 @@ $(document).ready(function () {
                             <?php endforeach; ?>
                         </select>
                     </div>
-
                     <!-- Product Type -->
-                    <div class="mb-3">
+                    <div class="col-md-6 mb-3">
                         <label for="productType" class="form-label">Product Type</label>
                         <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
                             <option value="">Select Product Type</option>
@@ -963,6 +964,7 @@ $(document).ready(function () {
                                 <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
                     </div>
                     <div class="mb-3">
                         <label for="Quantity" class="form-label">Quantity</label>
@@ -1037,7 +1039,6 @@ $(document).ready(function () {
                             </select>
 
                         </div>
-
                         <!-- Product Name -->
                         <div class="mb-3">
                             <label for="productName" class="form-label">Product Name</label>
@@ -1050,8 +1051,9 @@ $(document).ready(function () {
                             </select>
                         </div>
 
+                        <div class='row'>
                         <!-- Unit -->
-                        <div class="mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="unit" class="form-label">Unit</label>
                             <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
                                 <?php 
@@ -1063,7 +1065,7 @@ $(document).ready(function () {
                         </div>
 
                         <!-- Product Type -->
-                        <div class="mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="productType" class="form-label">Product Type</label>
                             <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
                                 <?php 
@@ -1073,7 +1075,7 @@ $(document).ready(function () {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-
+                        </div>
                         <!-- Quantity -->
                         <div class="mb-3">
                             <label for="edit_quantity" class="form-label">Quantity</label>
@@ -1135,32 +1137,24 @@ function updateCharacterCountEdit() {
 
         <div class="container mt-4">
             <div class="pb-4">
-            <i class="fa-solid fa-chart-bar" style="font-size:56px;"></i>
+            <i class="fa-solid fa-file-import" style="font-size:56px;"></i>
             </div>
             <div class="d-flex align-items-center">
                 <h3 style="font-size: 40px; letter-spacing: -0.045em;">
-                    <b>Manage Orders</b>
+                    <b>Inbound Invoices</b>
                 </h3>
-                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage orders including adding, editing, and viewing order details."></i>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage inbound invoices including adding, editing, and viewing details."></i>
                 <script>
                     $(document).ready(function(){
                         $('[data-toggle="tooltip"]').tooltip();
                     });
                 </script>
             </div>
-            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage orders.</h4>
+            <h4 class="mb-2" style="color: gray; font-size: 16px;">Add, edit, and manage inbound invoices.</h4>
             <div class="alert alert-light d-lg-none d-md-block" role="alert" style="color: gray; background-color: #e8ecef;">
                 <i class="bi bi-info-circle mr-1"></i>
                 Tap card to edit order details.
             </div>
-            <ul class="pl-0">
-                    <li style="font-size: 1em; background-color: #5dade2; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #3498db;">
-                        <i class="fas fa-arrow-right"></i> <span>Blue</span> = Outbound
-                    </li>
-                    <li style="font-size: 1em; background-color: #58d68d; color: #ffffff; padding: 5px; border-radius: 5px; list-style-type: none; margin-bottom: 5px; border: 1px solid #2ecc71;">
-                        <i class="fas fa-arrow-left"></i> <span>Green</span> = Inbound
-                    </li>
-                </ul>
             <!-- Search Box -->
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <!-- Search Input Group -->
@@ -1294,7 +1288,7 @@ function updateCharacterCountEdit() {
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-            <td colspan="11" class="text-center">No orders found.</td>
+            <td colspan="12" class="text-center">No orders found.</td>
         </tr>
                         <?php endif; ?>
                     </tbody>
