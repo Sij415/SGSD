@@ -1,4 +1,4 @@
-# SGSD - System for [Your System Purpose]
+# SGSD - System for San Gabriel Soft drinks delivery
 
 ![SGSD Logo](path/to/logo.png)
 
@@ -10,7 +10,7 @@
 
 ## 📋 Overview
 
-SGSD is a comprehensive web-based system designed to [brief description of your system purpose and goals]. Our platform provides [main value proposition] to help users [main benefit].
+SGSD is a comprehensive web-based system designed to automate their inventory system whilst retaining their manual operations as Clients request. Our platform provides a user-friendly interface and robust backend to help users efficiently manage their soft drinks delivery operations.
 
 ## ✨ Key Features
 
@@ -20,10 +20,6 @@ SGSD is a comprehensive web-based system designed to [brief description of your 
 - **Feature 4**: Description of one more amazing feature
 
 ## 🖼️ Screenshots
-
-### Homepage
-![Homepage](path/to/homepage-screenshot.png)
-*Caption explaining the homepage features*
 
 ### Dashboard
 ![Dashboard](path/to/dashboard-screenshot.png)
@@ -40,18 +36,6 @@ SGSD is a comprehensive web-based system designed to [brief description of your 
 - **Server**: Apache (XAMPP)
 - **Libraries/Frameworks**: [List any libraries or frameworks used]
 - **Tools**: [Any other tools used in development]
-
-## 🚀 Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/SGSD.git
-
-# Navigate to project directory
-cd SGSD
-
-# [Any additional installation steps]
-```
 
 ## 💻 Usage
 
