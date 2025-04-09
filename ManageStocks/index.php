@@ -76,27 +76,6 @@ function checkStockNotifications($conn, $product_id, $old_stock, $threshold) {
     }
 }
 
-// Check all stock entries and move New_Stock to Old_Stock if needed
-$check_query = "SELECT Stock_ID, Product_ID, Old_Stock, New_Stock, Threshold FROM Stocks";
-$check_stmt = $conn->prepare($check_query);
-$check_stmt->execute();
-$check_stmt->store_result();
-$check_stmt->bind_result($stock_id, $product_id, $old_stock, $new_stock, $threshold);
-
-while ($check_stmt->fetch()) {
-    if ($old_stock == 0 && $new_stock > 0) {
-        $update_query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Stock_ID = ?";
-        $update_stmt = $conn->prepare($update_query);
-        $update_stmt->bind_param("i", $stock_id);
-        $update_stmt->execute();
-        $update_stmt->close();
-        $old_stock = $new_stock;
-        $new_stock = 0;
-    }
-    if (!empty($product_id)) checkStockNotifications($conn, $product_id, $old_stock, $threshold);
-}
-$check_stmt->close();
-
 // Fetch stock details via AJAX
 if (isset($_POST['fetch_stock']) && isset($_POST['stock_id'])) {
     $stock_id = $_POST['stock_id'];

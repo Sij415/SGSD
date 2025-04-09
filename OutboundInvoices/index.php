@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $total_stock = $old_stock + $new_stock;
 
     // Check for sufficient stock for outbound
-    if ($order_type !== "Inbound" && $quantity > $total_stock) {
+    if ($order_type == "Outbound" && $quantity > $total_stock) {
         echo "<script>
             document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({

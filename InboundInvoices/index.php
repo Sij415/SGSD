@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $stmt->bind_result($product_id, $price);
     $stmt->fetch();
     $stmt->close();
-    
+
     $total_price = $price * $quantity;
 
     // Insert Transaction
@@ -112,16 +112,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
     $stmt->close();
 
     // Fetch stock details
-    $query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ?";
+    $query = "SELECT New_Stock FROM Stocks WHERE Product_ID = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $product_id);
     $stmt->execute();
-    $stmt->bind_result($old_stock, $new_stock);
+    $stmt->bind_result($new_stock);
     $stmt->fetch();
     $stmt->close();
 
     // Check if stock entry exists
-    if ($old_stock === null && $new_stock === null) {
+    if ($new_stock === null) {
         echo "<script>
             document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
@@ -131,41 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                 });
             });
         </script>";
-    } } else if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
-        echo "<script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Insufficient stock available for this product.'
-                });
-            });
-        </script>";
     } else {
-        // Move New_Stock to Old_Stock if Old_Stock is 0
-        if ($old_stock == 0) {
-            $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("i", $product_id);
-            $stmt->execute();
-            $stmt->close();
-            $old_stock = $new_stock;
-            $new_stock = 0;
-        }
-
-        // Update stock based on order type and status
-        if ($order_type === "Inbound") {
-            // Move New_Stock to Old_Stock and add quantity to New_Stock
-            $query = "UPDATE Stocks SET Old_Stock = Old_Stock + New_Stock, New_Stock = ? WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $new_stock_after_update = $quantity;
-            $stmt->bind_param("ii", $new_stock_after_update, $product_id);
-        } elseif ($order_type === "Inbound") {
-            // Inbound Order: Add to New_Stock
-            $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("ii", $quantity, $product_id);
-        } else {
         // Add inbound quantity to New_Stock
         $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
@@ -173,7 +139,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->execute();
         $stmt->close();
 
-        // Insert Order (no status field)
+        // Log the stock update
+        error_log("Updated New_Stock for Product_ID: $product_id with Quantity: $quantity");
+
+        // Insert Order
         $query = "INSERT INTO Orders (User_ID, Product_ID, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
                   VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
@@ -189,15 +158,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ii", $order_id, $transaction_id);
         $stmt->execute();
-        $stmt->close();
-
-        // Fetch product name for logs/notifications
-        $query = "SELECT Product_Name FROM Products WHERE Product_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $product_id);
-        $stmt->execute();
-        $stmt->bind_result($product_name);
-        $stmt->fetch();
         $stmt->close();
 
         // Notify Driver
@@ -254,16 +214,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         $stmt->close();
 
         // Get Stock Levels
-        $query = "SELECT Old_Stock, New_Stock FROM Stocks WHERE Product_ID = ?";
+        $query = "SELECT New_Stock FROM Stocks WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
-        $stmt->bind_result($old_stock, $new_stock);
+        $stmt->bind_result( $new_stock);
         $stmt->fetch();
         $stmt->close();
 
         // Check if stock entry exists for the product
-        if ($old_stock === null && $new_stock === null) {
+        if ($new_stock === null) {
             echo "<script>
                 document.addEventListener('DOMContentLoaded', function() {
                     Swal.fire({
@@ -276,69 +236,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
                 });
             </script>";
             exit();
-        }
-
-        // Check if the combined stock is sufficient
-        $total_stock = $old_stock + $new_stock;
-        $quantity_difference = $quantity - $current_quantity;
-
-        if ($quantity_difference > $total_stock) {
-            echo "<script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Quantity exceeds available stock.'
-                    }).then(function() {
-                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
-                    });
-                });
-            </script>";
-            exit();
-        }
-
-        if ($quantity_difference != 0) {
-            // If quantity is changed, validate and update stock
-            if ($quantity_difference > 0) {
-                // If new quantity is greater, validate and update stock
-                if ($order_type === "Inbound") {
-                    $query = "UPDATE Stocks SET New_Stock = New_Stock + ? WHERE Product_ID = ?";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("ii", $quantity_difference, $product_id);
-                    $stmt->execute();
-                    $stmt->close();
-                } else {
-                    if ($quantity_difference <= $old_stock) {
-                        $query = "UPDATE Stocks SET Old_Stock = Old_Stock - ? WHERE Product_ID = ?";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("ii", $quantity_difference, $product_id);
-                        $stmt->execute();
-                        $stmt->close();
-                    } else {
-                        $remaining_qty = $quantity_difference - $old_stock;
-                        $query = "UPDATE Stocks SET Old_Stock = 0, New_Stock = New_Stock - ? WHERE Product_ID = ?";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("ii", $remaining_qty, $product_id);
-                        $stmt->execute();
-                        $stmt->close();
-
-                        // Move remaining New_Stock to Old_Stock if Old_Stock is depleted
-                        $query = "UPDATE Stocks SET Old_Stock = New_Stock, New_Stock = 0 WHERE Product_ID = ?";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("i", $product_id);
-                        $stmt->execute();
-                        $stmt->close();
-                    }
-                }
-            } else {
-                // If new quantity is less, add back to Old_Stock
-                $quantity_difference = abs($quantity_difference);
-                $query = "UPDATE Stocks SET Old_Stock = Old_Stock + ? WHERE Product_ID = ?";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("ii", $quantity_difference, $product_id);
-                $stmt->execute();
-                $stmt->close();
-            }
         }
 
         // Update Order
@@ -1409,7 +1306,6 @@ function updateCharacterCountEdit() {
             <input type="hidden" name="managed_by" id="managed_by">
             <input type="hidden" name="customer_name" id="customer_name">
             <input type="hidden" name="product_name" id="product_name">
-            <input type="hidden" name="status" id="status">
             <input type="hidden" name="order_type" id="order_type">
             <input type="hidden" name="quantity" id="quantity">
             <input type="hidden" name="total_price" id="total_price">
@@ -1430,7 +1326,6 @@ function updateCharacterCountEdit() {
                             data-product-name="<?php echo $row['Product_Name']; ?>" 
                             data-product-type="<?php echo $row['Product_Type']; ?>"
                             data-product-unit="<?php echo $row['Unit']; ?>"
-                            data-status="<?php echo $row['Status']; ?>" 
                             data-order-type="<?php echo $row['Order_Type']; ?>"
                             data-quantity="<?php echo $row['Quantity']; ?>"
                             data-total-price="<?php echo $row['Total_Price']; ?>"
