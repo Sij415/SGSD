@@ -1,24 +1,21 @@
 <?php
 // Include database connection
-
 $required_role = 'admin,staff';
 include('../check_session.php');
 include '../dbconnect.php';
 include '../log_functions.php';
- // Start the session
+
 ini_set('display_errors', 1);
 
 // Fetch user details from session
 $user_email = $_SESSION['email'];
-// Get the user's first name and email from the database
 $query = "SELECT User_ID, First_Name, Last_Name FROM Users WHERE Email = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $user_email); // Bind the email as a string
+$stmt->bind_param("s", $user_email);
 $stmt->execute();
 $stmt->bind_result($User_ID, $user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
-
 
 // Handle adding product
 if (isset($_POST['add_product'])) {
@@ -27,18 +24,27 @@ if (isset($_POST['add_product'])) {
     $price = $_POST['Price'];
     $unit = $_POST['Unit'];
 
-    // Proceed with inserting into Product table
+    // Insert into Products table
     $query = "INSERT INTO Products (Product_Name, Product_Type, Price, Unit) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ssds", $product_name, $product_type, $price, $unit);
 
     if ($stmt->execute()) {
+        $product_id = $stmt->insert_id; // Get the new Product_ID
+
+        // Automatically insert stock entry with default values
+        $query = "INSERT INTO Stocks (User_ID, Product_ID, Old_Stock, New_Stock, Threshold) VALUES (?, ?, 0, 0, 0)";
+        $stmt2 = $conn->prepare($query);
+        $stmt2->bind_param("ii", $User_ID, $product_id);
+        $stmt2->execute();
+        $stmt2->close();
+
         $success_message = "Product added successfully.";
     } else {
         $error_message = "Error adding product: " . $stmt->error;
     }
-    logActivity($conn, $User_ID, "Created a new Product $product_name");
 
+    logActivity($conn, $User_ID, "Created a new Product: $product_name");
     $stmt->close();
 }
 
@@ -59,6 +65,7 @@ if (isset($_POST['edit_product'])) {
     } else {
         $error_message = "Error updating product: " . $stmt->error;
     }
+
     logActivity($conn, $User_ID, "Edited a Product: $new_productname");
     $stmt->close();
 }
@@ -67,12 +74,12 @@ if (isset($_POST['edit_product'])) {
 $query = "SELECT * FROM Products";
 $result = $conn->query($query);
 
-// Handle logout when the form is submitted
+// Handle logout
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
     logActivity($conn, $User_ID, "Logged out");
-    session_unset(); // Unset all session variables
-    session_destroy(); // Destroy the session
-    header("Location: ../Login"); // Redirect to login page
+    session_unset();
+    session_destroy();
+    header("Location: ../Login");
     exit();
 }
 
@@ -81,40 +88,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_products'])) {
     $product_ids = json_decode($_POST['product_ids']);
 
     foreach ($product_ids as $product_id) {
-      
-
-        $query = "SELECT product_name FROM Products WHERE Product_ID = ?";
+        // Fetch full product details before deletion
+        $query = "SELECT Product_Name, Product_Type, Price, Unit FROM Products WHERE Product_ID = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
-        $stmt->bind_result($product_name);
+        $stmt->bind_result($product_name, $product_type, $price, $unit);
         $stmt->fetch();
         $stmt->close();
-        
-        logActivity($conn, $User_ID, "Deleted a Product: $product_name");
-        
-      // Delete the product
-      $query = "DELETE FROM Products WHERE Product_ID = ?";
-      $stmt = $conn->prepare($query);
-      $stmt->bind_param("i", $product_id);
-      $stmt->execute();
-      $stmt->close();
-    
-    
-    
-       
 
+        // Log activity with full product details
+        logActivity($conn, $User_ID, "Deleted a Product: Name - $product_name, Type - $product_type, Price - $price, Unit - $unit");
 
+        // Step 1: Delete transactions linked to orders for this product
+        $query = "DELETE FROM Transactions WHERE Order_ID IN (SELECT Order_ID FROM Orders WHERE Product_ID = ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Step 2: Delete orders linked to this product
+        $query = "DELETE FROM Orders WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Step 3: Delete stock entries linked to this product
+        $query = "DELETE FROM Stocks WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Step 4: Delete the product itself
+        $query = "DELETE FROM Products WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->close();
     }
 
-
-
-    
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -469,12 +488,21 @@ $(document).ready(function() {
 
             <?php if ($user_role !== 'driver') : // Exclude for drivers 
             ?>
-                <li>
-                    <a href="../ManageOrders">
-                        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
-                        <span>&nbsp;Manage Orders</span>
-                    </a>
-                </li>
+            <!-- Revision 1 -->
+            <li>
+                <a href="../InboundInvoices">
+                    <i class="fa-solid fa-file-import" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Inbound Invoices</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="../OutboundInvoices">
+                    <i class="fa-solid fa-file-export" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Outbound Invoices</span>
+                </a>
+            </li>
+            <!-- Revision 1 CODE ENDS HERE -->
             <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
@@ -734,13 +762,15 @@ $(document).ready(function() {
                         <label for="Product_Type" class="form-label">Product Type</label>
                         <input type="text" class="form-control" id="Product_Type" name="Product_Type" placeholder="Enter Product Type" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="Price" class="form-label">Price</label>
-                        <input type="number" class="form-control" id="Price" name="Price" placeholder="Enter Price" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="Unit" class="form-label">Unit</label>
-                        <input type="text" class="form-control" id="Unit" name="Unit" placeholder="Enter Unit" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="Price" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="Price" name="Price" placeholder="Enter Price" oninput="if(this.value.length > 11) this.value = this.value.slice(0, 11);" onkeydown="return event.key !== 'e';" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Unit" class="form-label">Unit</label>
+                            <input type="text" class="form-control" id="Unit" name="Unit" placeholder="Enter Unit" required>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;">Close</button>
@@ -771,13 +801,15 @@ $(document).ready(function() {
                         <label for="edit_product_type" class="form-label">Product Type</label>
                         <input type="text" class="form-control" id="edit_product_type" name="New_ProductType">
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_price" class="form-label">Price</label>
-                        <input type="number" class="form-control" id="edit_price" name="New_Price">
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_unit" class="form-label">Unit</label>
-                        <input type="text" class="form-control" id="edit_unit" name="New_Unit">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_price" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="edit_price" name="New_Price" oninput="if(this.value.length > 11) this.value = this.value.slice(0, 11);" onkeydown="return event.key !== 'e';">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_unit" class="form-label">Unit</label>
+                            <input type="text" class="form-control" id="edit_unit" name="New_Unit">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn custom-btn" data-bs-dismiss="modal" style="background-color: #e8ecef !important; color: #495057 !important;" id="deselect-all-btn">Close</button>

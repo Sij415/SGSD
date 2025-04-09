@@ -225,12 +225,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
 
             <?php if ($user_role !== 'driver') : // Exclude for drivers 
             ?>
-                <li>
-                    <a href="../ManageOrders">
-                        <i class="bx bxs-objects-vertical-bottom" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
-                        <span>&nbsp;Manage Orders</span>
-                    </a>
-                </li>
+            <!-- Revision 1 -->
+            <li>
+                <a href="../InboundInvoices">
+                    <i class="fa-solid fa-file-import" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Inbound Invoices</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="../OutboundInvoices">
+                    <i class="fa-solid fa-file-export" style="font-size:13.28px; background-color: #e8ecef; padding: 6px; border-radius: 3px;"></i>
+                    <span>&nbsp;Outbound Invoices</span>
+                </a>
+            </li>
+            <!-- Revision 1 CODE ENDS HERE -->
             <?php endif; ?>
 
             <?php if ($user_role === 'admin' || $user_role === 'staff') : // Admin and staff 
@@ -349,8 +358,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                             </div>
                         </div>
                         <div class="d-flex justify-content-end p-3">
-                            <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
+                            <button type="button" class="btn custom-btn mr-2" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
                                 <i class="fas fa-clipboard"></i> View Logs
+                            </button>
+                            <button type="button" class="btn custom-btn" style="border-radius: 12px;" onclick="window.location.href='../Logs'">
+                                <i class="fas fa-archive"></i> Archives
                             </button>
                         </div>
                     </div>
@@ -460,7 +472,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["logout"])) {
                             <div>
 
                                 <!-- Table Layout (Visible on larger screens) -->
-                                <div class="table-responsive d-none d-md-block">
+                                <div class="table-responsive d-none d-md-block" style="max-height: 500px; overflow-y: auto;">
                                     <table class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
