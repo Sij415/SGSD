@@ -73,24 +73,24 @@ $customer_query = "SELECT Customer_ID, First_Name, Last_Name FROM Customers";
 $customer_result = $conn->query($customer_query);
 $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 
-// Handle adding a new order
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
-    // Dynamically fetch the Customer_ID for "St. Gabriel Softdrinks Delivery"
-    $stmt = $conn->prepare("SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?");
-    $first_name = 'St. Gabriel';
-    $last_name = 'Softdrinks Delivery';
-    $stmt->bind_param("ss", $first_name, $last_name);
-    $stmt->execute();
-    $stmt->bind_result($customer_id);
-    $stmt->fetch();
-    $stmt->close();
+    // Handle adding a new order
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
+        // Dynamically fetch the Customer_ID for "St. Gabriel Softdrinks Delivery"
+        $stmt = $conn->prepare("SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?");
+        $first_name = 'St. Gabriel';
+        $last_name = 'Softdrinks Delivery';
+        $stmt->bind_param("ss", $first_name, $last_name);
+        $stmt->execute();
+        $stmt->bind_result($customer_id);
+        $stmt->fetch();
+        $stmt->close();
 
-    $product_name = $_POST['Product_Name'];
-    $unit = $_POST['Unit'];
-    $product_type = $_POST['Product_Type'];
-    $order_type = "Inbound";
-    $quantity = $_POST['Quantity'];
-    $notes = $_POST['Notes'];
+        $product_name = $_POST['Product_Name'];
+        $unit = $_POST['Unit'];
+        $product_type = $_POST['Product_Type'];
+        $order_type = "Inbound";
+        $quantity = $_POST['Quantity'];
+        $notes = $_POST['Notes'];
 
     // Get Product_ID and Price using the 3 input fields
     $query = "SELECT Product_ID, Price FROM Products WHERE Product_Name = ? AND Unit = ? AND Product_Type = ?";
@@ -103,13 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 
     $total_price = $price * $quantity;
 
-    // Insert Transaction
-    $query = "INSERT INTO Transactions (Customer_ID, Date, Time) VALUES (?, NOW(), NOW())";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $customer_id);
-    $stmt->execute();
-    $transaction_id = $stmt->insert_id;
-    $stmt->close();
+        // Insert Transaction
+        $query = "INSERT INTO Transactions (Customer_ID, Date, Time) VALUES (?, NOW(), NOW())";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $customer_id);
+        $stmt->execute();
+        $transaction_id = $stmt->insert_id;
+        $stmt->close();
 
     // Fetch stock details
     $query = "SELECT New_Stock FROM Stocks WHERE Product_ID = ?";
@@ -157,16 +157,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->execute();
         $stmt->close();
 
-        // Notify Driver
-        $notification_message = "New Inbound Order: $product_name, Quantity: $quantity.";
-        $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
-        $stmt = $conn->prepare($notif_query);
-        $stmt->bind_param("s", $notification_message);
-        $stmt->execute();
-        $stmt->close();
+            // Notify Driver
+            $notification_message = "New Inbound Order: $product_name, Quantity: $quantity.";
+            $notif_query = "INSERT INTO Notifications (Role, Message, Created_At, cleared) VALUES ('driver', ?, NOW(), 0)";
+            $stmt = $conn->prepare($notif_query);
+            $stmt->bind_param("s", $notification_message);
+            $stmt->execute();
+            $stmt->close();
 
-        // Log activity
-        logActivity($conn, $user_id, "Created Inbound Order: $product_name, Quantity: $quantity, Notes: $notes");
+            // Log activity
+            logActivity($conn, $user_id, "Created Inbound Order: $product_name, Quantity: $quantity, Notes: $notes");
 
         // Redirect to refresh page
         header("Location: " . $_SERVER['PHP_SELF']);
