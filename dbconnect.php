@@ -5,8 +5,8 @@
 
 // Database connection configuration
 $host = "localhost";
-$username = "root";
-$password = "";
+$username = "connectdatabase";
+$password = "ibw0LhO00N36";
 $database = "SGSD";
 
 // Create a connection
