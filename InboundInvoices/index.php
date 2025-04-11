@@ -46,8 +46,10 @@ $stmt->close();
 $query = "SELECT 
             Orders.Order_ID, 
             CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
+            Customers.Customer_ID,
             Customers.First_Name AS Customer_FName, 
             Customers.Last_Name AS Customer_LName,
+            Products.Product_ID,
             Products.Product_Name, 
             Products.Product_Type, 
             Products.Unit,
@@ -544,40 +546,40 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         }
     });
 
+    $(document).ready(function () {
     // Edit order modal functionality
-$(document).ready(function () {
     $("a[data-bs-target='#editOrderModal']").click(function () {
+        // Retrieve data attributes from the clicked element
         var orderID = $(this).data("order-id");
+        var customerID = $(this).data("customer-id");
         var customerFName = $(this).data("customer-first-name");
         var customerLName = $(this).data("customer-last-name");
+        var productID = $(this).data("product-id");
         var productName = $(this).data("product-name");
         var productType = $(this).data("product-type");
         var productUnit = $(this).data("product-unit");
         var quantity = $(this).data("quantity");
         var orderType = $(this).data("order-type");
-        var status = $(this).data("status");
         var notes = $(this).data("notes");
-
-        // Construct the exact product text format used in the dropdown
-        var formattedProductText = productName + " (" + productUnit + ") - " + productType;
 
         // Populate the modal fields
         $("#edit_order_id").val(orderID);
         $("#edit_quantity").val(quantity);
         $("#edit_order_type").val(orderType);
-        $("#edit_status").val(status);
         $("#edit_notes").val(notes);
 
-        // Match the formatted text with the correct option in the dropdown
-        $("#editProduct option").each(function () {
-            if ($(this).text().trim() === formattedProductText.trim()) {
-                $(this).prop("selected", true);
-                return false; // Stop looping once a match is found
-            }
-        });
+        // Set the customer dropdown to the correct customer
+        $("#editCustomer").val(customerID);
+
+        // Set the product dropdown to the correct customer
+        $("#editProduct").val(productID);
+
+        // Match the product unit, and type in the dropdowns
+        $("#editUnit").val(productUnit);
+        $("#editProductType").val(productType);
 
         // Handle customer fields based on order type
-        if (orderType === "INBOUND ORDER") {
+        if (orderType === "Inbound") {
             $("#edit_customer_fname, #edit_customer_lname").val("N/A").prop("disabled", true);
         } else {
             $("#edit_customer_fname").val(customerFName).prop("disabled", false);
@@ -1023,27 +1025,28 @@ $(document).ready(function () {
                         <p class="text-danger text-center fw-bold">You are not permitted to edit orders.</p>
                     <?php else: ?>
                         <input type="hidden" id="edit_order_id" name="Order_ID">
-                        
                         <!-- Customer Name -->
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
                             <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
+                                <option value="">Select Customer</option>
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
                                         <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-
                         </div>
+
                         <!-- Product Name -->
                         <div class="mb-3">
                             <label for="productName" class="form-label">Product Name</label>
-                            <select class="form-control" id="productName" name="Product_Name" style="height: fit-content;" required>
-                                <?php 
-                                $productNames = array_unique(array_column($products, 'Product_Name'));
-                                foreach ($productNames as $name): ?>
-                                    <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
+                            <select class="form-control" id="editProduct" name="New_ProductID" style="height: fit-content;" required>
+                                <option value="">Select Product Name</option>
+                                <?php foreach ($products as $product): ?>
+                                    <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                        <?= htmlspecialchars($product['Product_Name']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -1052,7 +1055,7 @@ $(document).ready(function () {
                         <!-- Unit -->
                         <div class="col-md-6 mb-3">
                             <label for="unit" class="form-label">Unit</label>
-                            <select class="form-control" id="unit" name="Unit" style="height: fit-content;" required>
+                            <select class="form-control" id="editUnit" name="Unit" style="height: fit-content;" required>
                                 <?php 
                                 $units = array_unique(array_column($products, 'Unit'));
                                 foreach ($units as $unit): ?>
@@ -1064,7 +1067,7 @@ $(document).ready(function () {
                         <!-- Product Type -->
                         <div class="col-md-6 mb-3">
                             <label for="productType" class="form-label">Product Type</label>
-                            <select class="form-control" id="productType" name="Product_Type" style="height: fit-content;" required>
+                            <select class="form-control" id="editProductType" name="Product_Type" style="height: fit-content;" required>
                                 <?php 
                                 $types = array_unique(array_column($products, 'Product_Type'));
                                 foreach ($types as $type): ?>
@@ -1244,7 +1247,17 @@ function updateCharacterCountEdit() {
                                 $orderType = $row['Order_Type']; // Fetch Order Type
                                 $orderClass = ($orderType == 'Outbound') ? 'outbound' : 'inbound';
                         ?>
-                                <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
+                                <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>"
+                                data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>"
+                                data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>"
+                                data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>"
+                                data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>"
+                                data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>"
+                                data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>"
+                                data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
+                                data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
+                                data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
+                                data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
                                 <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars(($row['Customer_FName'] ?? "N/A") . " " . ($row['Customer_LName'] ?? "N/A"), ENT_QUOTES, 'UTF-8'); ?></td>
@@ -1257,16 +1270,18 @@ function updateCharacterCountEdit() {
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                     <td class="text-center"> 
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal"
-                                        data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>" 
-                                        data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>" 
-                                        data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>" 
-                                        data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>" 
-                                        data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
-                                        data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
-                                        data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
-                                        data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
-                                        data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
-                                        <i class="bi bi-pencil-square"></i>
+                                    data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>" 
+                                    data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>"
+                                    data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>" 
+                                    data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>" 
+                                    data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>"
+                                    data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>" 
+                                    data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
+                                    data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
+                                    data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
+                                    data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
+                                    data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
+                                    <i class="bi bi-pencil-square"></i>
                                     </a>
                                     </td>
                                     <td> 
