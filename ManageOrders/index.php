@@ -200,11 +200,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->close();
 
 
-
-
-
-
-
       // Insert Notification Logic for New Order
       if ($order_type === "Inbound") {
         $notification_message = "New Inbound Order: $product_name, Quantity: $quantity, Status: $status.";
@@ -217,39 +212,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
         $stmt->close();
     }
 
-
-
-
-
-
-
-
     
         logActivity($conn, $user_id, "Created a new Order Product: $product_name, Quantity: $quantity, Order Type: $order_type, Status: $status, Notes: $notes");
     
-    
 
-    
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
 
 
-
-
-
-
-
-
         
     }
-
-
-
-    
-
-
-
-
 
 }
 

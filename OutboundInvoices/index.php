@@ -46,8 +46,10 @@ $stmt->close();
 $query = "SELECT 
             Orders.Order_ID, 
             CONCAT(Users.First_Name, ' ', Users.Last_Name) AS Full_Name, 
+            Customers.Customer_ID,
             Customers.First_Name AS Customer_FName, 
             Customers.Last_Name AS Customer_LName,
+            Products.Product_ID,
             Products.Product_Name, 
             Products.Product_Type, 
             Products.Unit,
@@ -62,7 +64,6 @@ $query = "SELECT
           LEFT JOIN Customers ON Transactions.Customer_ID = Customers.Customer_ID
           WHERE Orders.Order_Type = 'Outbound'
           ORDER BY Orders.Order_ID DESC";
-
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
@@ -170,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
 
         // Insert Order
         $query = "INSERT INTO Orders (User_ID, Product_ID, Order_Type, Quantity, Total_Price, Notes, Transaction_ID) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                  VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("iisidsi", $user_id, $product_id, $order_type, $quantity, $total_price, $notes, $transaction_id);
         if (!$stmt->execute()) {
@@ -682,36 +683,35 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
 $(document).ready(function () {
     $("a[data-bs-target='#editOrderModal']").click(function () {
         var orderID = $(this).data("order-id");
+        var customerID = $(this).data("customer-id");
         var customerFName = $(this).data("customer-first-name");
         var customerLName = $(this).data("customer-last-name");
+        var productID = $(this).data("product-id");
         var productName = $(this).data("product-name");
         var productType = $(this).data("product-type");
         var productUnit = $(this).data("product-unit");
         var quantity = $(this).data("quantity");
         var orderType = $(this).data("order-type");
-        var status = $(this).data("status");
         var notes = $(this).data("notes");
-
-        // Construct the exact product text format used in the dropdown
-        var formattedProductText = productName + " (" + productUnit + ") - " + productType;
 
         // Populate the modal fields
         $("#edit_order_id").val(orderID);
         $("#edit_quantity").val(quantity);
         $("#edit_order_type").val(orderType);
-        $("#edit_status").val(status);
         $("#edit_notes").val(notes);
 
-        // Match the formatted text with the correct option in the dropdown
-        $("#editProduct option").each(function () {
-            if ($(this).text().trim() === formattedProductText.trim()) {
-                $(this).prop("selected", true);
-                return false; // Stop looping once a match is found
-            }
-        });
+        // Set the customer dropdown to the correct customer
+        $("#editCustomer").val(customerID);
+
+        // Set the product dropdown to the correct customer
+        $("#editProduct").val(productID);
+
+        // Match the product unit, and type in the dropdowns
+        $("#editUnit").val(productUnit);
+        $("#editProductType").val(productType);
 
         // Handle customer fields based on order type
-        if (orderType === "INBOUND ORDER") {
+        if (orderType === "Inbound") {
             $("#edit_customer_fname, #edit_customer_lname").val("N/A").prop("disabled", true);
         } else {
             $("#edit_customer_fname").val(customerFName).prop("disabled", false);
@@ -1106,8 +1106,8 @@ $(document).ready(function () {
                         <input type="number" name="Quantity" id="Quantity" class="form-control" required placeholder="Enter quantity" min="0">
                     </div>
                     <div class="mb-3">
-                        <label for="Notes" class="form-label">Notes</label>
-                        <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCount()"></textarea>
+                        <label for="Notes" class="form-label">Remarks</label>
+                        <textarea maxlength="250" class="form-control" id="Notes" name="Notes" rows="3" placeholder="Enter Remarks" oninput="updateCharacterCount()"></textarea>
                         <script>
                             function updateCharacterCount() {
                                 const textarea = document.getElementById('Notes');
@@ -1165,28 +1165,29 @@ $(document).ready(function () {
                         <!-- Customer Name -->
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
-
                             <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
+                                <option value="">Select Customer</option>
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
                                         <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-
                         </div>
 
                         <!-- Product Name -->
                         <div class="mb-3">
                             <label for="productName" class="form-label">Product Name</label>
-                            <select class="form-control" id="productName" name="Product_Name" style="height: fit-content;" required>
-                                <?php 
-                                $productNames = array_unique(array_column($products, 'Product_Name'));
-                                foreach ($productNames as $name): ?>
-                                    <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
+                            <select class="form-control" id="editProduct" name="New_ProductID" style="height: fit-content;" required>
+                                <option value="">Select Product Name</option>
+                                <?php foreach ($products as $product): ?>
+                                    <option value="<?= htmlspecialchars($product['Product_ID']) ?>">
+                                        <?= htmlspecialchars($product['Product_Name']) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
                         <div class='row'>
                             <!-- Unit -->
                             <div class="col-md-6 mb-3">
@@ -1221,8 +1222,8 @@ $(document).ready(function () {
 
                         <!-- Notes -->
                         <div class="mb-3">
-                            <label for="edit_notes" class="form-label">Notes</label>
-                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter notes" oninput="updateCharacterCountEdit()"></textarea>
+                            <label for="edit_notes" class="form-label">Remarks</label>
+                            <textarea maxlength="250" class="form-control" id="edit_notes" name="New_Notes" rows="3" placeholder="Enter Remarks" oninput="updateCharacterCountEdit()"></textarea>
                             
                             <div class="d-flex justify-content-between">
                                 <small class="form-text text-muted">Maximum 250 characters. Special characters will be escaped.</small>
@@ -1280,7 +1281,7 @@ function updateCharacterCountEdit() {
                 <h3 style="font-size: 40px; letter-spacing: -0.045em;">
                     <b>Outbound Invoices</b>
                 </h3>
-                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage orders including adding, editing, and viewing order details."></i>
+                <i class="bi bi-info-circle pl-2 pb-2" style="font-size: 20px; color:rgb(74, 109, 65); font-weight: bold;" data-toggle="tooltip" data-placement="top" title="Manage outbound invoices including adding, editing, and viewing details."></i>
                 <script>
                     $(document).ready(function(){
                         $('[data-toggle="tooltip"]').tooltip();
@@ -1373,7 +1374,7 @@ function updateCharacterCountEdit() {
                             <th onclick="sortTable(7)">Quantity <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(8)">Order Type <i class="bi bi-arrow-down-up"></i></th>
                             <th onclick="sortTable(9)">Total Price <i class="bi bi-arrow-down-up"></i></th>
-                            <th onclick="sortTable(10)">Notes <i class="bi bi-arrow-down-up"></i></th>
+                            <th onclick="sortTable(10)">Remarks <i class="bi bi-arrow-down-up"></i></th>
                             <th>Edit</th>
                             <th>Generate Record</th>
                         </tr>
@@ -1384,7 +1385,17 @@ function updateCharacterCountEdit() {
                                 $orderType = $row['Order_Type']; // Fetch Order Type
                                 $orderClass = ($orderType == 'Outbound') ? 'outbound' : 'inbound';
                         ?>
-                                <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>">
+                                <tr data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>"
+                                data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>"
+                                data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>"
+                                data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>"
+                                data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>"
+                                data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>"
+                                data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>"
+                                data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
+                                data-quantity="<?php echo htmlspecialchars($row['Quantity']); ?>"
+                                data-order-type="<?php echo htmlspecialchars($row['Order_Type']); ?>"
+                                data-notes="<?php echo htmlspecialchars($row['Notes']); ?>">
                                     <td><?php echo htmlspecialchars($row['Order_ID']); ?></td>
                                     <td><?php echo htmlspecialchars($row['Full_Name']); ?></td>
                                     <td><?php echo htmlspecialchars(($row['Customer_FName'] ?? "N/A") . " " . ($row['Customer_LName'] ?? "N/A"), ENT_QUOTES, 'UTF-8'); ?></td>
@@ -1397,9 +1408,11 @@ function updateCharacterCountEdit() {
                                     <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                     <td class="text-center"> 
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal"
-                                        data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>" 
+                                        data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>"
+                                        data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>" 
                                         data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>" 
                                         data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>" 
+                                        data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>"
                                         data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>" 
                                         data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
                                         data-product-unit="<?php echo htmlspecialchars($row['Unit']); ?>"
@@ -1485,7 +1498,7 @@ function updateCharacterCountEdit() {
                                             <p class="card-text"><strong>Total Price:</strong> <?php echo htmlspecialchars($row['Total_Price']); ?></p>
                                         </div>
                                         <div class="col-6">
-                                            <p class="card-text"><strong>Notes:</strong> <?php echo htmlspecialchars($row['Notes']); ?></p>
+                                            <p class="card-text"><strong>Remarks:</strong> <?php echo htmlspecialchars($row['Notes']); ?></p>
                                         </div>
                                     </div>
                                 </div>
