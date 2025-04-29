@@ -568,8 +568,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
         $("#edit_order_type").val(orderType);
         $("#edit_notes").val(notes);
 
-        // Set the customer dropdown to the correct customer
-        $("#editCustomer").val(customerID);
+        // Set the customer name field to the correct customer name
+        var customerName = $(this).data("customer-name");
+        $("#editCustomer").val(customerName);
 
         // Set the product dropdown to the correct customer
         $("#editProduct").val(productID);
@@ -1028,16 +1029,9 @@ $products = $product_result->fetch_all(MYSQLI_ASSOC);
                         <!-- Customer Name -->
                         <div class="mb-3">
                             <label for="editCustomer" class="form-label">Customer Name</label>
-                            <select class="form-control" id="editCustomer" name="New_CustomerID" style="height: fit-content;" required>
-                                <option value="">Select Customer</option>
-                                <?php foreach ($customers as $customer): ?>
-                                    <option value="<?= htmlspecialchars($customer['Customer_ID']) ?>">
-                                        <?= htmlspecialchars($customer['First_Name'] . ' ' . $customer['Last_Name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="text" class="form-control" id="editCustomer" name="New_CustomerName" 
+                                value="<?php echo htmlspecialchars(($row['Customer_FName'] ?? '') . ' ' . ($row['Customer_LName'] ?? '')); ?>" readonly>
                         </div>
-
                         <!-- Product Name -->
                         <div class="mb-3">
                             <label for="productName" class="form-label">Product Name</label>
@@ -1272,8 +1266,7 @@ function updateCharacterCountEdit() {
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#editOrderModal"
                                     data-order-id="<?php echo htmlspecialchars($row['Order_ID']); ?>" 
                                     data-customer-id="<?php echo htmlspecialchars($row['Customer_ID']); ?>"
-                                    data-customer-first-name="<?php echo htmlspecialchars($row['Customer_FName']); ?>" 
-                                    data-customer-last-name="<?php echo htmlspecialchars($row['Customer_LName']); ?>" 
+                                    data-customer-name="<?php echo htmlspecialchars(($row['Customer_FName'] ?? '') . ' ' . ($row['Customer_LName'] ?? '')); ?>"
                                     data-product-id="<?php echo htmlspecialchars($row['Product_ID']); ?>"
                                     data-product-name="<?php echo htmlspecialchars($row['Product_Name']); ?>" 
                                     data-product-type="<?php echo htmlspecialchars($row['Product_Type']); ?>" 
