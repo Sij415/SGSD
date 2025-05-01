@@ -180,19 +180,21 @@ $customers = $customer_result->fetch_all(MYSQLI_ASSOC);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
     $order_id = $_POST['Order_ID'];
 
-    if ($user_role === 'driver') {
-        $query = "UPDATE Orders SET Status = ? WHERE Order_ID = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("si", $status, $order_id);
-        $stmt->execute();
-        $stmt->close();
-    } else {
         // Fetch updated order details
-        $customer_id = $_POST['New_CustomerID'];  // Directly from form
         $product_id = $_POST['New_ProductID'];    // Directly from form
-        $order_type = $_POST['New_OrderType'];
         $quantity = $_POST['New_Quantity'];
         $notes = $_POST['New_Notes'];
+        $order_type = "Inbound";
+
+        // Dynamically fetch the Customer_ID for "St. Gabriel Softdrinks Delivery"
+        $stmt = $conn->prepare("SELECT Customer_ID FROM Customers WHERE First_Name = ? AND Last_Name = ?");
+        $first_name = 'St. Gabriel';
+        $last_name = 'Softdrinks Delivery';
+        $stmt->bind_param("ss", $first_name, $last_name);
+        $stmt->execute();
+        $stmt->bind_result($customer_id);
+        $stmt->fetch();
+        $stmt->close();
 
         // Get Product_ID and Price
         $query = "SELECT Price FROM Products WHERE Product_ID = ?";
@@ -240,10 +242,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         // Update Order
         $total_price = $price * $quantity;
         $query = "UPDATE Orders 
-                SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
+                SET Product_ID = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
                 WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
+        $stmt->bind_param("isidsi", $product_id, $order_type, $quantity, $total_price, $notes, $order_id);
         $stmt->execute();
         $stmt->close();
 
@@ -293,7 +295,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
-}
 
 // Avoid infinite loop by checking the 'reload' parameter
 if (isset($_GET['reload']) && $_GET['reload'] == 'true') {
