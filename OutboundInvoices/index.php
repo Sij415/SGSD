@@ -222,12 +222,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
 
         // Fetch updated order details
         $customer_id = $_POST['New_CustomerID'];  // Directly from form
-        $product_name = $_POST['New_ProductName'];
-        $unit = $_POST['New_Unit'];
-        $product_type = $_POST['New_ProductType'];
-        $order_type = $_POST['New_OrderType'];
+        $product_id = $_POST['New_ProductID'];    // Directly from form
         $quantity = $_POST['New_Quantity'];
         $notes = $_POST['New_Notes'];
+        $order_type = "Outbound";;
 
         // Get Product_ID using composite product fields
         $product_query = "SELECT Product_ID FROM Products WHERE Product_Name = ? AND Unit = ? AND Product_Type = ?";
@@ -253,6 +251,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
             </script>";
             exit();
         }
+
+        // Get Product_ID and Price
+        $query = "SELECT Price FROM Products WHERE Product_ID = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->bind_result($price);
+        $stmt->fetch();
+        $stmt->close();
 
         // Get Current Quantity from Orders
         $query = "SELECT Quantity FROM Orders WHERE Order_ID = ?";
@@ -365,10 +372,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_order'])) {
         // Update Order
         $total_price = $price * $quantity;
         $query = "UPDATE Orders 
-                SET Product_ID = ?, Status = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
+                SET Product_ID = ?, Order_Type = ?, Quantity = ?, Total_Price = ?, Notes = ? 
                 WHERE Order_ID = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("issidsi", $product_id, $status, $order_type, $quantity, $total_price, $notes, $order_id);
+        $stmt->bind_param("isidsi", $product_id, $order_type, $quantity, $total_price, $notes, $order_id);
         $stmt->execute();
         $stmt->close();
 
