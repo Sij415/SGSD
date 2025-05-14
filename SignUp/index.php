@@ -261,15 +261,55 @@ $conn->close();
     <div class="form-field-signup">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>
-    </div>
     <div class="form-field-signup">
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+        <div class="password-container">
+            <input type="password" id="password" name="password" required>
+            <span class="password-toggle" onclick="togglePassword('password', 'toggleIcon1')">
+                <i class="fa fa-eye" id="toggleIcon1"></i>
+            </span>
+        </div>
     </div>
     <div class="form-field-signup">
         <label for="confirm_password">Confirm Password:</label>
-        <input type="password" id="confirm_password" name="confirm_password" required>
+        <div class="password-container">
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <span class="password-toggle" onclick="togglePassword('confirm_password', 'toggleIcon2')">
+                <i class="fa fa-eye" id="toggleIcon2"></i>
+            </span>
+        </div>
     </div>
+    <style>
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            opacity: 0.6;
+        }
+        .fa-eye, .fa-eye-slash {
+            font-size: 16px;
+        }
+    </style>
+    <script>
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(iconId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'fa fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'fa fa-eye';
+            }
+        }
+    </script>
     <div class="form-field-signup">
         <label for="role">Role:</label>
         <select id="role" name="role" required>
