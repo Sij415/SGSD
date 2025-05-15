@@ -192,7 +192,43 @@ return "The username or password you entered is incorrect. You have 4 attempts r
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-group" placeholder="Enter your password" required>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" class="form-group" placeholder="Enter your password" required>
+                    <span class="password-toggle" onclick="togglePassword()">
+                        <i class="fa fa-eye" id="toggleIcon"></i>
+                    </span>
+                </div>
+                <style>
+                    .password-container {
+                        position: relative;
+                        width: 100%;
+                    }
+                    .password-toggle {
+                        position: absolute;
+                        right: 10px;
+                        top: 35%;
+                        transform: translateY(-50%);
+                        cursor: pointer;
+                        opacity: 0.5;
+                    }
+                    .fa-eye, .fa-eye-slash {
+                        font-size: 16px;
+                    }
+                </style>
+                <script>
+                    function togglePassword() {
+                        const passwordInput = document.getElementById('password');
+                        const toggleIcon = document.getElementById('toggleIcon');
+                        
+                        if (passwordInput.type === 'password') {
+                            passwordInput.type = 'text';
+                            toggleIcon.className = 'fa fa-eye-slash';
+                        } else {
+                            passwordInput.type = 'password';
+                            toggleIcon.className = 'fa fa-eye';
+                        }
+                    }
+                </script>
             </div>
             <!-- Display error message if any -->
         <?php if (isset($error)) { echo "<div class='alert alert-danger'>$error</div>"; } ?>
