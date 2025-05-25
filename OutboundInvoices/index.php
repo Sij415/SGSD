@@ -121,7 +121,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                     icon: 'error',
                     title: 'Error',
                     text: 'No stock entry found for the selected product.'
-                });
+                }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
             });
         </script>";
     } else if ($quantity > ($old_stock + $new_stock) && $order_type !== "Inbound") {
@@ -131,7 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                     icon: 'error',
                     title: 'Error',
                     text: 'Insufficient stock available for this product.'
-                });
+                }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
             });
         </script>";
     } else {
@@ -145,7 +149,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_order'])) {
                     icon: 'error',
                     title: 'Error',
                     text: 'Insufficient stock available for this product.'
-                });
+                }).then(function() {
+                        window.location.href = window.location.href.split('?')[0] + '?reload=true';
+                    });
             });
         </script>";
         exit;
